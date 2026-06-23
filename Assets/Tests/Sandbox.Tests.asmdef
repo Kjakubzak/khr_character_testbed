@@ -1,0 +1,27 @@
+{
+    "name": "Sandbox.Tests",
+    "rootNamespace": "",
+    "references": [
+        "Samples.Shared",
+        "UnityGLTF.KhrCharacter.Runtime",
+        "UnityGLTF.KhrCharacter.Schema",
+        "UnityGLTFScripts",
+        "GLTFSerialization",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll",
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,248 @@
+fileFormatVersion: 2
+guid: cd6cb53072b114e449c5707dcafe1eef
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 804e1ce4c496647cfa3f1a1134187c71, type: 3}
+  _removeEmptyRootObjects: 1
+  _scaleFactor: 1
+  _deduplicateResources: 0
+  _deduplicatedStatistics:
+    meshCountBefore: 0
+    meshCountAfter: 0
+    textureCountBefore: 0
+    textureCountAfter: 0
+  _maximumLod: 300
+  _readWriteEnabled: 1
+  _generateColliders: 0
+  _addColliders: 0
+  _swapUvs: 0
+  _generateLightmapUVs: 0
+  _importBlendShapeNames: 1
+  _blendShapeFrameWeight:
+    _option: 0
+    _multiplier: 1
+  _importNormals: 0
+  _importTangents: 0
+  _importCamera: 2
+  _importAnimations: 2
+  _mecanimHumanoidFlip: 0
+  _addAnimatorComponent: 0
+  _animationLoopTime: 1
+  _animationLoopPose: 0
+  _importMaterials: 1
+  _enableGpuInstancing: 0
+  _texturesReadWriteEnabled: 1
+  _generateMipMaps: 1
+  _useSceneNameIdentifier: 1
+  _textureCompression: -50
+  _gltfAsset: '<b>Generator: </b>VRoid Studio-2.12.0
+
+    <b>Version: </b>2.0
+
+    
+
+    <b>Extras:
+    </b>
+
+'
+  optimizeGameObjects: 0
+  materials:
+  - {fileID: -10445852844373290, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -3086040202636137392, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 3962705404929896953, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -3795172059498023923, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 3408670460030677136, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -8947343091360537376, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 3480520191389243366, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -9158373887091854016, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 7554852980809054205, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -8406702592541528301, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 8345363512847544646, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -2475380982112512756, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -8864942217884724621, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  textures:
+  - {fileID: 2808317123517323342, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -4960794875819661355, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -4407734190278982866, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 5134788550220458975, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -5496234832007829451, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -5386000052843801069, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -7991923158731760435, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 8871107045552810907, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 2544008388570112, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -6196267951596334405, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -1766637601443850223, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 972583040376352481, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 4847422638766700981, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -4843830621552100724, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: 7018667825719044861, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  - {fileID: -1418265707173932259, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+  hasSceneData: 1
+  hasAnimationData: 1
+  hasMaterialData: 1
+  hasTextureData: 1
+  animations:
+  - name: happy
+  - name: angry
+  - name: sad
+  - name: relaxed
+  - name: surprised
+  - name: aa
+  - name: ih
+  - name: ou
+  - name: ee
+  - name: oh
+  - name: blink
+  - name: blinkLeft
+  - name: blinkRight
+  - name: neutral
+  - name: lookUp
+  - name: lookDown
+  - name: lookLeft
+  - name: lookRight
+  _extensions:
+  - name: KHR_texture_transform
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_materials_unlit
+    supported: 1
+    used: 1
+    required: 0
+  - name: VRMC_vrm
+    supported: 1
+    used: 1
+    required: 0
+  - name: VRMC_springBone
+    supported: 1
+    used: 1
+    required: 0
+  - name: VRMC_materials_mtoon
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_xmp_json_ld
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_skeleton_mapping
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_animation_pointer
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_mapping
+    supported: 1
+    used: 1
+    required: 0
+  - name: VRMC_character_expression_lookat
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_mesh_annotation
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_mesh_annotation_renderview
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_virtual_transforms
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_node_camera_hint
+    supported: 1
+    used: 1
+    required: 0
+  _textures:
+  - texture: {fileID: 2808317123517323342, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: -4960794875819661355, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: -4407734190278982866, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: 5134788550220458975, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: -5496234832007829451, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: -5386000052843801069, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: -7991923158731760435, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: 8871107045552810907, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: 2544008388570112, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: -6196267951596334405, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: -1766637601443850223, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: 972583040376352481, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: 4847422638766700981, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: -4843830621552100724, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  - texture: {fileID: 7018667825719044861, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  - texture: {fileID: -1418265707173932259, guid: cd6cb53072b114e449c5707dcafe1eef, type: 3}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  _mainAssetIdentifier: scenes/Scene
+  _importPlugins:
+  - typeName: UnityGLTF.KhrCharacter.KhrCharacterImportPlugin
+    overrideEnabled: 1
+    enabled: 0
+    jsonSettings: 

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Samples/_Shared/Scenes/SampleHub.unity
+    guid: 89033acf992841a41aad7fce6fb174ec
+  - enabled: 1
+    path: Assets/Samples/GlbViewer/Scenes/GlbViewer.unity
+    guid: 8f004371dce58a04baf456abf16fd76c
+  - enabled: 1
+    path: Assets/Samples/KhrCharacter/Scenes/Expressions.unity
+    guid: 88776ef94a085f743a0cb4b77764b6dc
+  - enabled: 1
+    path: Assets/Samples/KhrCharacter/Scenes/GazeAndCamera.unity
+    guid: 44b73d00f5c09ca4e99da21d231634cf
+  - enabled: 1
+    path: Assets/Samples/KhrCharacter/Scenes/RigAndPose.unity
+    guid: 666b8a241a239544bb8acdbb66e7a562
+  - enabled: 1
+    path: Assets/Samples/KhrCharacter/Scenes/RoundTrip.unity
+    guid: adce39b3c615d3548a942043b0e5cabc
+  - enabled: 1
+    path: Assets/Samples/KhrCharacter/Scenes/Health.unity
+    guid: 784518ec7e3effa4db0f7e0bed6fbdf5
+  m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

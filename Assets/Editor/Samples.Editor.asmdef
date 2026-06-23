@@ -1,0 +1,26 @@
+{
+    "name": "Samples.Editor",
+    "rootNamespace": "Samples.Editor",
+    "references": [
+        "Samples.Shared",
+        "Samples.GlbViewer",
+        "Samples.KhrCharacter",
+        "UnityGLTFScripts",
+        "GLTFSerialization",
+        "UnityGLTF.KhrCharacter.Runtime",
+        "UnityGLTF.KhrCharacter.Schema",
+        "UnityGLTFEditor",
+        "UnityGLTF.KhrCharacter.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

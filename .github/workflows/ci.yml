@@ -1,0 +1,157 @@
+# GitHub Actions CI for the KHR Character sandbox.
+#
+# Four merge gates (see docs/ci.md):
+#   1. Compile clean         — implicit in the game-ci test run (a compile error fails the run).
+#   2. Tests green + floor    — PlayMode tests pass AND total >= floor (anti "0 tests = false green").
+#   3. glTF-Validator         — 0 errors on every exported GLB (no Unity needed).
+#   4. Round-trip goldens     — no un-acknowledged change to the normalized wire snapshot.
+#
+# Render-pipeline matrix: Built-in is the REQUIRED gate; URP is a non-blocking nightly axis (TODO at the bottom).
+# The KHR test / glTF-validation / golden gates are RP-agnostic (they decode/validate the wire), so they run on
+# the Built-in cell and pass identically anywhere.
+#
+# SETUP (one-time): add a repository secret `UNITY_LICENSE` containing a Unity *Personal* license file (.ulf).
+# Activate locally once with game-ci's request/activation flow, then paste the .ulf contents into the secret.
+# See https://game.ci/docs/github/activation and docs/ci.md.
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UNITY_VERSION: "6000.0.76f1"
+  MIN_TESTS: "6"
+
+jobs:
+  # GATE 1 (compile) + GATE 2 (tests + min-test-count floor). Built-in RP, required.
+  tests:
+    name: Tests (Unity 6000.0.76f1, Built-in)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      # Library cache keyed on the dependency fingerprint: manifest + the resolved package SHA in packages-lock
+      # + the editor version. A new/force-pushed dependency commit changes packages-lock and busts the cache.
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ env.UNITY_VERSION }}-builtin-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-${{ env.UNITY_VERSION }}-builtin-
+
+      - name: Run PlayMode tests (game-ci)
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          testMode: playmode
+          artifactsPath: artifacts/test-results
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          # No -nographics here: game-ci provides an xvfb display, so this also supports future demo-render tests.
+          # (The local Tools/ci scripts use -nographics for the wire-only suite.)
+
+      # GATE 2 floor: a near-zero test count means the dependency resolved "hollow" (no KHR plugin/tests).
+      - name: Enforce test gate + min-test-count floor
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          xml="$(find artifacts/test-results -name '*.xml' | head -n1 || true)"
+          if [ -z "$xml" ]; then echo "GATE 2 FAILED: no results XML (hang/crash)."; exit 1; fi
+          attr() { tr '\n' ' ' < "$xml" | sed -n 's/.*<test-run[^>]*[[:space:]]'"$1"'="\([0-9]*\)".*/\1/p' | head -n1; }
+          total="$(attr total)"; failed="$(attr failed)"; inc="$(attr inconclusive)"; sk="$(attr skipped)"
+          total="${total:-0}"; failed="${failed:-0}"; inc="${inc:-0}"; sk="${sk:-0}"
+          echo "total=$total failed=$failed inconclusive=$inc skipped=$sk (floor=${MIN_TESTS})"
+          if [ "$failed" != "0" ] || [ "$inc" != "0" ] || [ "$sk" != "0" ]; then echo "GATE 2 FAILED: failed/inconclusive/skipped must be 0."; exit 1; fi
+          if [ "$total" -lt "$MIN_TESTS" ]; then echo "GATE 2 FAILED (floor): ran $total, need >= ${MIN_TESTS} — hollow dependency?"; exit 1; fi
+          echo "GATE 2 PASS."
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: artifacts/test-results
+
+  # GATE 3 (glTF-Validator) — no Unity; validates the committed fixtures with the official Khronos CLI.
+  gltf-validator:
+    name: glTF-Validator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install glTF-Validator + jq
+        run: |
+          npm i -g gltf-validator
+          sudo apt-get update && sudo apt-get install -y jq
+      - name: Validate exported GLBs (numErrors == 0)
+        run: bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/Synthetic
+
+  # GATE 4 (round-trip goldens) — re-export + normalize the wire under Unity, then diff against committed goldens.
+  goldens:
+    name: Round-trip goldens
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ env.UNITY_VERSION }}-builtin-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-${{ env.UNITY_VERSION }}-builtin-
+      # NOTE: game-ci's unity-builder is used here only as a licensed headless Unity host that runs our
+      # `-executeMethod` seam (buildMethod). SandboxCI.ExportGoldens writes Artifacts/snapshots/*.json. Depending
+      # on your game-ci version you may instead activate a license + invoke Tools/ci/export-goldens.sh directly;
+      # repo-architect owns final CI wiring. The gate itself (the diff below) is provider-agnostic.
+      - name: Export normalized snapshots (SandboxCI.ExportGoldens)
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: StandaloneLinux64
+          buildMethod: Samples.Editor.SandboxCI.ExportGoldens
+          allowDirtyBuild: true
+      - name: Diff snapshots against committed goldens
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          goldens=(Tests/Golden/*.json)
+          if [ ${#goldens[@]} -eq 0 ]; then
+            echo "No committed goldens yet — run Tools/ci/Export-Goldens -Update locally and commit. Skipping."
+            exit 0
+          fi
+          fail=0
+          for g in "${goldens[@]}"; do
+            s="Artifacts/snapshots/$(basename "$g")"
+            if [ ! -f "$s" ]; then echo "MISSING snapshot $s"; fail=1; continue; fi
+            if ! diff -u "$g" "$s"; then fail=1; fi
+          done
+          if [ $fail -ne 0 ]; then echo "GATE 4 FAILED — wire drift. If intentional: Export-Goldens -Update + commit."; exit 1; fi
+          echo "GATE 4 PASS."
+
+  # ── TODO: URP nightly (non-blocking) ────────────────────────────────────────────────────────────────────────
+  # Add a scheduled (cron) workflow or a matrix axis that runs the `tests` job against a URP-configured project
+  # variant (Graphics Settings render pipeline asset + URP shaders in Always-Included). Keep it non-blocking:
+  # `continue-on-error: true` or a separate nightly workflow. HDRP is deferred (limited UnityGLTF support).
