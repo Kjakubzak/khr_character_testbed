@@ -77,7 +77,7 @@ namespace Samples.Characters
                          "collapse; duplicate names; blendMode/priority off-wire; camera index; one character per document.");
 
             // Neutralize: consume a VRM-origin character purely via KHR_character (VRMC_* ignored) and re-export
-            // vendor-neutral. Defaults to the local (git-ignored) VRoid sample if present, else the neutral SC-Body.
+            // vendor-neutral. Defaults to the LFS-committed VRoid sample if present, else the neutral SC-Body.
             if (string.IsNullOrEmpty(ExternalGlbPath)) ExternalGlbPath = ResolveExternalDefault();
             _ui.AddLabel("Neutralize a VRM-origin character (KHR_character ignores VRMC_*; re-export is vendor-neutral):");
             _ui.AddInputField("External path", ExternalGlbPath, v => ExternalGlbPath = v);
@@ -223,7 +223,8 @@ namespace Samples.Characters
         {
             var rig = Object.FindFirstObjectByType<OrbitCameraRig>();
             if (rig == null) return;
-            rig.Frame(new Bounds(new Vector3(0.75f, 0f, 0f), new Vector3(3.5f, 2f, 2f)));
+            var bounds = new Bounds(new Vector3(0.75f, 0f, 0f), new Vector3(3.5f, 2f, 2f));
+            rig.FrameAndFace(bounds, _a != null ? _a.transform : null);
         }
     }
 }

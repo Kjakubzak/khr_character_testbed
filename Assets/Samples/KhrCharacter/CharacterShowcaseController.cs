@@ -8,7 +8,7 @@ namespace Samples.Characters
 {
     /// <summary>
     /// Character Showcase — drives a single character through every KHR_character capability in ONE combined,
-    /// capability-gated panel. Loads the hero (the local, git-ignored VRoid <c>khr-character-example.glb</c>) when
+    /// capability-gated panel. Loads the hero (the LFS-committed VRoid <c>khr-character-example.glb</c>) when
     /// present, else falls back to the committed synthetic <c>SC-FacePlus.glb</c> (so a fresh public clone works).
     /// Each section is null-checked against the hub's sub-controllers, so a character missing a capability simply
     /// omits that section. A VRM-origin hero is consumed purely via KHR_character; its VRMC_* extensions are ignored.
@@ -186,12 +186,12 @@ namespace Samples.Characters
             var renderers = scene.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0)
             {
-                _rig.Frame(new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)));
+                _rig.FrameAndFace(new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)), scene.transform);
                 return;
             }
             var bounds = renderers[0].bounds;
             for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
-            _rig.Frame(bounds);
+            _rig.FrameAndFace(bounds, scene.transform);
         }
 
         private void AddBack()

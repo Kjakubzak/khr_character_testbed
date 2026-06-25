@@ -104,7 +104,12 @@ namespace Samples.Characters
             if (renderers.Length == 0) return;
             var bounds = renderers[0].bounds;
             for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
-            rig.Frame(bounds);
+
+            // Expressions is a head shot: zoom onto the character's head (still facing the camera).
+            if (OrbitCameraRig.TryGetHeadFocus(scene, bounds, out var headCenter, out var headRadius))
+                rig.FrameAndFaceHead(bounds, scene.transform, headCenter, headRadius);
+            else
+                rig.FrameAndFace(bounds, scene.transform);
         }
     }
 }

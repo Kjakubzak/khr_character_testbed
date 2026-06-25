@@ -70,6 +70,9 @@ namespace Samples.Editor
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
             new GameObject(controllerName, typeof(TController));
 
+            // Shared camera-control / QoL panel. Self-builds at runtime and no-ops on scenes with no OrbitCameraRig.
+            new GameObject("CameraControlPanel", typeof(CameraControlPanel));
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, scenePath);
         }

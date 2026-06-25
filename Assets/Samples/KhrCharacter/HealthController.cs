@@ -54,12 +54,12 @@ namespace Samples.Characters
             var renderers = scene.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0)
             {
-                rig.Frame(new Bounds(new Vector3(0f, 0.5f, 0f), new Vector3(2f, 2f, 2f)));
+                rig.FrameAndFace(new Bounds(new Vector3(0f, 0.5f, 0f), new Vector3(2f, 2f, 2f)), scene.transform);
                 return;
             }
             var bounds = renderers[0].bounds;
             for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
-            rig.Frame(bounds);
+            rig.FrameAndFace(bounds, scene.transform);
         }
     }
 }

@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # run-tests.sh — GATE 1 (compile) + GATE 2 (tests green + min-test-count floor).
-# Usage:  ./Tools/ci/run-tests.sh [--project <p>] [--platform PlayMode|EditMode|Both] [--filter <f>] [--min-tests 6] [--timeout 60]
+# Usage:  ./Tools/ci/run-tests.sh [--project <p>] [--platform PlayMode|EditMode|Both] [--filter <f>] [--min-tests 12] [--min-sandbox-tests 12] [--timeout 60]
+# NOTE: only the testbed's OWN tests run in this consumer project - Unity 'testables' does NOT surface a
+# git-package's tests into a consumer, so the floor tracks the sandbox suite (plugin's ~165 gate in its own repo).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/_common.sh"
 
-PROJECT=""; PLATFORM="PlayMode"; FILTER=""; TIMEOUT=60; MIN_TESTS=6; RESULTS_DIR=""
+PROJECT=""; PLATFORM="PlayMode"; FILTER=""; TIMEOUT=60; MIN_TESTS=12; MIN_SANDBOX=12; RESULTS_DIR=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project) PROJECT="$2"; shift 2;;
@@ -13,6 +15,7 @@ while [[ $# -gt 0 ]]; do
     --filter) FILTER="$2"; shift 2;;
     --timeout) TIMEOUT="$2"; shift 2;;
     --min-tests) MIN_TESTS="$2"; shift 2;;
+    --min-sandbox-tests) MIN_SANDBOX="$2"; shift 2;;
     --results-dir) RESULTS_DIR="$2"; shift 2;;
     *) echo "unknown arg: $1" >&2; exit 2;;
   esac
@@ -39,7 +42,15 @@ read_attr() {
   tr '\n' ' ' < "$file" | sed -n 's/.*<test-run[^>]*[[:space:]]'"$attr"'="\([0-9]*\)".*/\1/p' | head -n1
 }
 
-total=0; bad=0
+# Counts the testbed's OWN test-cases (classname in namespace KhrCharacterTestbed.*) for the sandbox sub-floor.
+# grep exits 1 when there are no matches; the '|| true' keeps that from tripping 'set -e -o pipefail' (wc still
+# prints 0 for empty input, which is the count we want).
+sandbox_count() {
+  local file="$1"
+  { tr '\n' ' ' < "$file" | grep -o '<test-case[^>]*classname="KhrCharacterTestbed[^"]*"' | wc -l | tr -d '[:space:]'; } || true
+}
+
+total=0; sandbox=0; bad=0
 for p in "${platforms[@]}"; do
   tag="$(echo "$p" | tr '[:upper:]' '[:lower:]')"
   results="$RESULTS_DIR/results-$tag.xml"
@@ -56,14 +67,20 @@ for p in "${platforms[@]}"; do
   t="$(read_attr "$results" total)"; f="$(read_attr "$results" failed)"
   inc="$(read_attr "$results" inconclusive)"; sk="$(read_attr "$results" skipped)"
   t="${t:-0}"; f="${f:-0}"; inc="${inc:-0}"; sk="${sk:-0}"
-  echo "[ci]   $p: total=$t failed=$f inconclusive=$inc skipped=$sk"
+  sb="$(sandbox_count "$results")"; sb="${sb:-0}"
+  echo "[ci]   $p: total=$t failed=$f inconclusive=$inc skipped=$sk sandbox=$sb"
   if [[ "$f" -ne 0 || "$inc" -ne 0 || "$sk" -ne 0 ]]; then bad=1; fi
   total=$(( total + t ))
+  sandbox=$(( sandbox + sb ))
 done
 
 if [[ $bad -ne 0 ]]; then echo "[ci] GATE 2 (tests) FAILED -- failed/inconclusive/skipped must all be 0." >&2; exit 1; fi
 if [[ $total -lt $MIN_TESTS ]]; then
-  echo "[ci] GATE 2 (floor) FAILED -- ran $total test(s), need >= $MIN_TESTS (hollow-dependency guard)." >&2
+  echo "[ci] GATE 2 (floor) FAILED -- ran $total test(s), need >= $MIN_TESTS (only the testbed's own tests run; 'testables' does not surface a git-package's tests)." >&2
   exit 1
 fi
-echo "[ci] GATES 1 + 2 PASS -- $total test(s); 0 failed/inconclusive/skipped; floor >= $MIN_TESTS."
+if [[ $sandbox -lt $MIN_SANDBOX ]]; then
+  echo "[ci] GATE 2 (sandbox sub-floor) FAILED -- ran $sandbox sandbox test(s) (KhrCharacterTestbed.*), need >= $MIN_SANDBOX." >&2
+  exit 1
+fi
+echo "[ci] GATES 1 + 2 PASS -- $total test(s) (sandbox $sandbox); 0 failed/inconclusive/skipped; floor >= $MIN_TESTS; sandbox sub-floor >= $MIN_SANDBOX."

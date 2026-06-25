@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -36,8 +35,8 @@ namespace KhrCharacterTestbed.Tests
                 $"SC-FacePlus.glb not found at '{path}'. Run Generate Sample Characters first.");
 
             var taskA = CharacterLoader.LoadAsync(path, null);
-            yield return WaitFor(taskA, 30f);
-            var sceneA = ResolveScene(taskA);
+            yield return SandboxTestUtil.WaitFor(taskA, 30f);
+            var sceneA = SandboxTestUtil.ResolveScene(taskA, _created);
 
             var a = sceneA.GetComponent<KhrCharacter>();
             Assert.IsNotNull(a, "Character A should import as a KhrCharacter.");
@@ -58,8 +57,8 @@ namespace KhrCharacterTestbed.Tests
 
             // Re-import the bytes as B and verify it round-trips to a character with matching expressions.
             var taskB = CharacterLoader.LoadFromBytesAsync(glb, null);
-            yield return WaitFor(taskB, 30f);
-            var sceneB = ResolveScene(taskB);
+            yield return SandboxTestUtil.WaitFor(taskB, 30f);
+            var sceneB = SandboxTestUtil.ResolveScene(taskB, _created);
 
             var b = sceneB.GetComponent<KhrCharacter>();
             Assert.IsNotNull(b, "Re-imported character B must be a KhrCharacter.");
@@ -77,8 +76,8 @@ namespace KhrCharacterTestbed.Tests
                 $"SC-Body.glb not found at '{path}'. Run Generate Sample Characters first.");
 
             var task = CharacterLoader.LoadAsync(path, null);
-            yield return WaitFor(task, 30f);
-            var scene = ResolveScene(task);
+            yield return SandboxTestUtil.WaitFor(task, 30f);
+            var scene = SandboxTestUtil.ResolveScene(task, _created);
 
             // Let the frame in which a legacy Animation would otherwise auto-play its default clip pass.
             yield return null;
@@ -89,25 +88,6 @@ namespace KhrCharacterTestbed.Tests
                     "an imported character must not auto-play its clips on load (no T-pose snap / import suppression).");
             // A null Animation host means nothing can auto-play, which also satisfies M6.
             yield return null;
-        }
-
-        // ── helpers ──────────────────────────────────────────────────────────
-
-        private GameObject ResolveScene(Task<GameObject> task)
-        {
-            Assert.IsTrue(task.IsCompleted, "glTF import did not complete within the timeout.");
-            if (task.Exception != null) throw task.Exception;
-            var scene = task.Result;
-            Assert.IsNotNull(scene, "Imported scene root is null.");
-            _created.Add(scene);
-            return scene;
-        }
-
-        private static IEnumerator WaitFor(Task task, float timeoutSeconds)
-        {
-            float deadline = Time.realtimeSinceStartup + timeoutSeconds;
-            while (!task.IsCompleted && Time.realtimeSinceStartup < deadline)
-                yield return null;
         }
     }
 }

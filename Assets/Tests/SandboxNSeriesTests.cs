@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -167,11 +166,15 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
+        [Category("Hero")]
         public IEnumerator Neutralize_VrmOriginCharacter_ReexportsVendorNeutral()
         {
-            string path = Path.Combine(Application.dataPath, "SampleAssets/khr-character-example.glb");
-            if (!File.Exists(path))
-                Assert.Ignore("VRM-origin sample not present (git-ignored, bring-your-own); skipping.");
+            // Gate on the GLB magic, not File.Exists: an un-smudged LFS pointer exists but is not a real GLB and
+            // would throw on import. CI excludes [Category("Hero")] when the hero isn't pulled, so this never reds
+            // the build as a skip.
+            if (!CharacterLoader.HeroIsRealGlb)
+                Assert.Ignore("Hero GLB not present as a real glTF (LFS pointer not smudged / hero absent); skipping.");
+            string path = CharacterLoader.HeroAbsolutePath;
 
             var task = CharacterLoader.LoadAsync(path, null);
             float deadline = Time.realtimeSinceStartup + 60f; // complex asset -> longer budget
@@ -192,29 +195,25 @@ namespace KhrCharacterTestbed.Tests
             byte[] glb = CharacterLoader.ExportToGlb(hub.gameObject, out var root);
             Assert.IsNotNull(glb); Assert.Greater(glb.Length, 0); Assert.IsNotNull(root);
 
-            // Vendor-neutral guarantee: UnityGLTF has no VRMC_* importer, so they cannot survive into the re-export.
+            // Vendor-neutral guarantee via the ^KHR_ allow-list: UnityGLTF has no VRMC_* importer, so vendor
+            // tokens cannot survive into the re-export, and every surviving extension must be Khronos-neutral.
             // (extensionsRequired may legitimately carry a RATIFIED KHR_ extension - e.g. KHR_materials_unlit from a
-            // VRoid MToon/unlit material - which is still vendor-neutral; we assert no-vendor and log the rest.)
-            if (root.ExtensionsUsed != null)
-                foreach (var e in root.ExtensionsUsed)
-                    Assert.IsFalse(IsVendor(e), $"Re-export extensionsUsed must be vendor-neutral; found '{e}'.");
-            if (root.ExtensionsRequired != null)
-            {
-                foreach (var e in root.ExtensionsRequired)
-                    Assert.IsFalse(IsVendor(e), $"Re-export extensionsRequired must be vendor-neutral; found '{e}'.");
-                if (root.ExtensionsRequired.Count > 0)
-                    Debug.Log("[Neutralize] re-export extensionsRequired (ratified/non-vendor): " +
-                        string.Join(", ", root.ExtensionsRequired));
-            }
+            // VRoid MToon/unlit material - which is still vendor-neutral; we assert neutrality and log the rest.)
+            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsUsed, "Re-export extensionsUsed");
+            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsRequired, "Re-export extensionsRequired");
+            if (root.ExtensionsRequired != null && root.ExtensionsRequired.Count > 0)
+                Debug.Log("[Neutralize] re-export extensionsRequired (ratified/non-vendor): " +
+                    string.Join(", ", root.ExtensionsRequired));
         }
 
         [UnityTest]
+        [Category("Hero")]
         public IEnumerator Showcase_LoadsAndDrivesCharacter()
         {
-            // Mirror the showcase's path logic: hero if present, else the committed synthetic fallback.
-            string heroPath = Path.Combine(Application.dataPath, "SampleAssets/khr-character-example.glb");
-            bool hero = File.Exists(heroPath);
-            string path = hero ? heroPath : CharacterLoader.SyntheticPath("SC-FacePlus.glb");
+            // Mirror the showcase's path logic: hero if a REAL GLB is present (LFS-smudged, not just a pointer),
+            // else the committed synthetic fallback (so a fresh public clone still passes).
+            bool hero = CharacterLoader.HeroIsRealGlb;
+            string path = hero ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-FacePlus.glb");
             Assert.IsTrue(File.Exists(path), $"Showcase fallback asset missing at '{path}'. Run Generate Sample Characters first.");
 
             var task = CharacterLoader.LoadAsync(path, null);
@@ -244,9 +243,6 @@ namespace KhrCharacterTestbed.Tests
         }
 
         // ── helpers ──────────────────────────────────────────────────────────
-
-        private static bool IsVendor(string extension) =>
-            extension != null && extension.IndexOf("VRM", System.StringComparison.OrdinalIgnoreCase) >= 0;
 
         private static void SetPairBlendMode(ExpressionController controller, ExpressionBlendMode mode)
         {
@@ -278,38 +274,7 @@ namespace KhrCharacterTestbed.Tests
             return null;
         }
 
-        // Loads a synthetic fixture and yields until ready; exposes the scene root via .Current.
-        private SceneLoad LoadScene(string fileName) => new SceneLoad(this, fileName);
-
-        private sealed class SceneLoad : CustomYieldInstruction
-        {
-            private readonly SandboxNSeriesTests _owner;
-            private readonly Task<GameObject> _task;
-            private readonly float _deadline;
-            public GameObject Current { get; private set; }
-
-            public SceneLoad(SandboxNSeriesTests owner, string fileName)
-            {
-                _owner = owner;
-                string path = CharacterLoader.SyntheticPath(fileName);
-                Assert.IsTrue(File.Exists(path), $"{fileName} not found at '{path}'. Run Generate Sample Characters first.");
-                _task = CharacterLoader.LoadAsync(path, null);
-                _deadline = Time.realtimeSinceStartup + 30f;
-            }
-
-            public override bool keepWaiting
-            {
-                get
-                {
-                    if (!_task.IsCompleted && Time.realtimeSinceStartup < _deadline) return true;
-                    Assert.IsTrue(_task.IsCompleted, "glTF import did not complete within 30s.");
-                    if (_task.Exception != null) throw _task.Exception;
-                    Current = _task.Result;
-                    Assert.IsNotNull(Current, "Imported scene root is null.");
-                    _owner._created.Add(Current);
-                    return false;
-                }
-            }
-        }
+        // Loads a synthetic fixture and yields until ready; exposes the scene root via .Current (shared helper).
+        private SandboxTestUtil.SceneLoad LoadScene(string fileName) => SandboxTestUtil.LoadSynthetic(fileName, _created);
     }
 }

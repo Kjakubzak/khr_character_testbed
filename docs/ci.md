@@ -9,19 +9,30 @@ for Linux CI). Contributors run the **same** scripts CI runs, so there is no dri
 | # | Gate | Script | Pass criteria |
 |---|------|--------|---------------|
 | 1 | **Compile clean** | `Run-Tests` (Phase A) / `Warm-Library` | Unity exits 0 **and** no `error CS` in the compile log. Runs *before* any test pass — a `-runTests` against uncompilable code hangs forever, so we fail fast instead. |
-| 2 | **Tests green + floor** | `Run-Tests` | Every NUnit run has `failed == 0`, `inconclusive == 0`, `skipped == 0`, the results XML is present, **and** `total >= floor` (default **6**). The floor kills the "0 tests ran = false green" trap: if the dependency resolves *hollow* (no KHR plugin), the suite shrinks toward 0 and this turns red instead of green. |
+| 2 | **Tests green + floor** | `Run-Tests` | Every NUnit run has `failed == 0`, `inconclusive == 0`, `skipped == 0`, the results XML is present, `total >= floor` (default **12**), **and** `sandbox >= sub-floor` (default **12**, the testbed's own `KhrCharacterTestbed.*` cases). Only the testbed's own tests run here (Unity `testables` does **not** surface a git-package's tests into a consumer), so a hollow package resolve fails **GATE 1 compile** (the `Sandbox.Tests` assembly links real plugin types); the floor kills the "0 tests ran = false green" trap. |
 | 3 | **glTF-Validator** | `Validate-Glb` | The official Khronos `gltf_validator` reports `numErrors == 0` on every exported GLB. Independent, spec-authoritative — catches a bad wire even if our own tests have a bug. |
-| 4 | **Round-trip goldens** | `Export-Goldens` | The normalized wire snapshot of each fixture matches its committed golden. Catches *structural* drift (new/renamed key, reordered array, changed accessor min/max) that value round-trip tests don't. |
+| 4 | **Round-trip goldens** | `Export-Goldens` | The normalized wire snapshot of each fixture matches its committed golden. Each FLOAT accessor is **decoded to its actual values (rounded 1e-5)** and byte-packing fields are dropped, so an interior value change can't hide behind unchanged `min`/`max` and packing jitter can't false-diff. Catches structural drift (new/renamed key, reordered array, changed value) that value round-trip tests don't. |
 
 > **Why the floor matters most:** the most dangerous CI failure is a *silent* one — a project that compiles nothing
 > and reports a green 0-test run. The floor makes that specific regression impossible to merge.
 
 ## Min-test-count floor
 
-- Default **6** — the sandbox's own PlayMode suite (smoke + M1–M6). Parameterized: `Run-Tests -MinTests <n>` (PS) /
-  `run-tests.sh --min-tests <n>` (bash), and `MIN_TESTS` in `.github/workflows/ci.yml`.
-- **Raise it** to ~150 once the consumed package's KHR test suite (≈161–163 cases) is confirmed running via
-  `testables`. A low effective count is the signal that the package dependency resolved without the KHR plugin.
+Two independent floors, both enforced every run (and all of `failed`/`inconclusive`/`skipped` must be 0):
+
+- **Total floor — default 12.** Only the testbed's own tests run in this consumer: Unity `testables` does **not**
+  surface a git-package's tests into a consuming project (the plugin's ~165 cases run in the plugin repo /
+  `khr-test-proj`, not here). A hollow package resolve instead fails **GATE 1 (compile)**, since `Sandbox.Tests`
+  links real plugin types. This floor guards the "0 tests ran = false green" trap. Parameterized:
+  `Run-Tests -MinTests <n>` (PS) / `run-tests.sh --min-tests <n>` (bash), and `MIN_TESTS` in `.github/workflows/ci.yml`.
+- **Independent sandbox sub-floor — default 12.** Counts only the testbed's own cases (NUnit `classname` under
+  `KhrCharacterTestbed.*`), so the testbed can't go hollow even if the package count alone clears the main floor.
+  Parameterized: `Run-Tests -MinSandboxTests <n>` (PS) / `run-tests.sh --min-sandbox-tests <n>` (bash), and
+  `MIN_SANDBOX_TESTS` in `.github/workflows/ci.yml`.
+
+> Hero-dependent tests are tagged `[Category("Hero")]`; when the LFS hero isn't pulled, exclude that category so they
+> don't run as skips (`skipped` must stay 0). The sub-floor (12) sits below the always-run sandbox count so excluding
+> the hero tests never trips it.
 
 ## Running locally
 
@@ -36,7 +47,7 @@ All scripts default `-ProjectPath` to the repo root and auto-locate Unity from
 ./Tools/ci/Warm-Library.ps1
 
 # Gates 1+2: compile, then run the PlayMode suite with the floor
-./Tools/ci/Run-Tests.ps1 -Platform PlayMode -MinTests 6
+./Tools/ci/Run-Tests.ps1 -Platform PlayMode -MinTests 12 -MinSandboxTests 12
 ./Tools/ci/Run-Tests.ps1 -Platform Both          # also run EditMode
 
 # Gate 3: validate every exported GLB (no Unity needed)
@@ -51,7 +62,7 @@ All scripts default `-ProjectPath` to the repo root and auto-locate Unity from
 
 ```bash
 ./Tools/ci/warm-library.sh
-./Tools/ci/run-tests.sh --platform PlayMode --min-tests 6
+./Tools/ci/run-tests.sh --platform PlayMode --min-tests 12 --min-sandbox-tests 12
 ./Tools/ci/validate-glb.sh
 ./Tools/ci/export-goldens.sh --check
 ./Tools/ci/export-goldens.sh --update
@@ -88,6 +99,11 @@ correctness is covered by the **golden snapshot** (gate 4), not the validator.
 ## Updating goldens (gate 4)
 
 Goldens live in `Tests/Golden/*.json` (one per fixture). When you intentionally change the wire:
+
+> **Format note (one-time):** goldens are now **decoded-accessor** snapshots — each FLOAT accessor stores its rounded
+> (1e-5) `values` instead of raw `byteOffset`/`min`/`max`, and byte-packing fields (`bufferView`/`buffer` offsets and
+> lengths) are dropped. The first run after this change shows a large diff; regenerate once with `-Update` and commit
+> it as the new baseline.
 
 ```powershell
 ./Tools/ci/Export-Goldens.ps1 -Update    # or: ./Tools/ci/export-goldens.sh --update

@@ -32,14 +32,41 @@ namespace Samples.Shared
         /// <summary>Absolute path of a committed synthetic sample by file name (e.g. "SC-Body.glb").</summary>
         public static string SyntheticPath(string fileName) => Path.Combine(SyntheticDirectory, fileName);
 
-        /// <summary>Project-relative path of the local "hero" character (git-ignored, bring-your-own VRoid/VRM).</summary>
+        /// <summary>Project-relative path of the "hero" character (VRM-origin, committed via Git LFS).</summary>
         public const string HeroRelativePath = "SampleAssets/khr-character-example.glb";
 
         /// <summary>Absolute, runtime-readable path of the local hero character.</summary>
         public static string HeroAbsolutePath => Path.Combine(Application.dataPath, HeroRelativePath);
 
-        /// <summary>True when the local hero character is present, so demos can default to it.</summary>
+        /// <summary>True when the hero file is present on disk (does NOT prove it is a real GLB — see
+        /// <see cref="HeroIsRealGlb"/>; an un-smudged Git LFS pointer also passes File.Exists).</summary>
         public static bool HeroExists => File.Exists(HeroAbsolutePath);
+
+        // The first four bytes of a binary glTF container spell "glTF": g=0x67 l=0x6C T=0x54 F=0x46
+        // (the magic 0x676C5446). A Git LFS pointer that was never smudged is a ~130-byte ASCII text file
+        // ("version https://git-lfs..."), so it fails this check and reads as NOT a real GLB.
+        /// <summary>
+        /// True only when the hero file exists AND its first four bytes are the binary glTF magic ("glTF").
+        /// Use this — not <see cref="HeroExists"/> — to gate hero-dependent tests/demos: it distinguishes a real
+        /// LFS-smudged GLB from an un-smudged LFS pointer (which would otherwise be mis-parsed as a GLB and throw
+        /// on import rather than skip).
+        /// </summary>
+        public static bool HeroIsRealGlb
+        {
+            get
+            {
+                try
+                {
+                    string path = HeroAbsolutePath;
+                    if (!File.Exists(path)) return false;
+                    var magic = new byte[4];
+                    using (var stream = File.OpenRead(path))
+                        if (stream.Read(magic, 0, 4) < 4) return false;
+                    return magic[0] == 0x67 && magic[1] == 0x6C && magic[2] == 0x54 && magic[3] == 0x46;
+                }
+                catch (System.Exception e) { Debug.LogException(e); return false; }
+            }
+        }
 
         /// <summary>
         /// Load the demo's character: the local hero (VRM-origin, consumed via KHR_character) when present, else the

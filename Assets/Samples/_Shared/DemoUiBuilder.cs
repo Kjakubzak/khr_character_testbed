@@ -16,6 +16,9 @@ namespace Samples.Shared
         /// <summary>Parent for appended rows (the scroll view's content).</summary>
         public RectTransform Content { get; private set; }
 
+        /// <summary>The root panel RectTransform (top-left by default); expose it so callers can re-dock the panel.</summary>
+        public RectTransform Panel { get; private set; }
+
         private DefaultControls.Resources _res;
 
         private static readonly Color PanelColor = new Color(0f, 0f, 0f, 0.55f);
@@ -57,6 +60,7 @@ namespace Samples.Shared
             panelRt.anchoredPosition = new Vector2(10f, -10f);
             panelRt.sizeDelta = panelSize;
             panel.GetComponent<Image>().color = PanelColor;
+            Panel = panelRt;
 
             var panelLayout = panel.AddComponent<VerticalLayoutGroup>();
             panelLayout.padding = new RectOffset(8, 8, 8, 8);

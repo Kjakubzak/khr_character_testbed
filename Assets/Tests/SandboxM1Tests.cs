@@ -34,17 +34,8 @@ namespace KhrCharacterTestbed.Tests
                 $"SC-Face.glb not found at '{path}'. Run Assets > UnityGLTF > KHR Character > Generate Sample Characters first.");
 
             var task = CharacterLoader.LoadAsync(path, null);
-
-            float deadline = Time.realtimeSinceStartup + 30f;
-            while (!task.IsCompleted && Time.realtimeSinceStartup < deadline)
-                yield return null;
-
-            Assert.IsTrue(task.IsCompleted, "glTF import did not complete within 30s.");
-            if (task.Exception != null) throw task.Exception;
-
-            var scene = task.Result;
-            Assert.IsNotNull(scene, "Imported scene root is null.");
-            _created.Add(scene);
+            yield return SandboxTestUtil.WaitFor(task, 30f);
+            var scene = SandboxTestUtil.ResolveScene(task, _created);
 
             var hub = scene.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub,

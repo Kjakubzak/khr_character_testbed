@@ -28,7 +28,10 @@ concurrency:
 
 env:
   UNITY_VERSION: "6000.0.76f1"
-  MIN_TESTS: "6"
+  # Only the testbed's own tests run in this consumer (Unity 'testables' does not surface a git-package's
+  # tests); the floor tracks the sandbox suite. The plugin's ~165 tests gate in the plugin repo / khr-test-proj.
+  MIN_TESTS: "12"
+  MIN_SANDBOX_TESTS: "12"
 
 jobs:
   # GATE 1 (compile) + GATE 2 (tests + min-test-count floor). Built-in RP, required.
@@ -62,7 +65,9 @@ jobs:
           # No -nographics here: game-ci provides an xvfb display, so this also supports future demo-render tests.
           # (The local Tools/ci scripts use -nographics for the wire-only suite.)
 
-      # GATE 2 floor: a near-zero test count means the dependency resolved "hollow" (no KHR plugin/tests).
+      # GATE 2 floor: only the testbed's own tests run here (Unity 'testables' does not surface a git-package's
+      # tests into a consumer), so the floor tracks the sandbox suite. A hollow package resolve instead fails
+      # GATE 1 compile (Sandbox.Tests links real plugin types); the plugin's ~165 tests gate in the plugin repo.
       - name: Enforce test gate + min-test-count floor
         if: always()
         shell: bash
@@ -73,9 +78,12 @@ jobs:
           attr() { tr '\n' ' ' < "$xml" | sed -n 's/.*<test-run[^>]*[[:space:]]'"$1"'="\([0-9]*\)".*/\1/p' | head -n1; }
           total="$(attr total)"; failed="$(attr failed)"; inc="$(attr inconclusive)"; sk="$(attr skipped)"
           total="${total:-0}"; failed="${failed:-0}"; inc="${inc:-0}"; sk="${sk:-0}"
-          echo "total=$total failed=$failed inconclusive=$inc skipped=$sk (floor=${MIN_TESTS})"
+          sandbox="$(tr '\n' ' ' < "$xml" | grep -o '<test-case[^>]*classname="KhrCharacterTestbed[^"]*"' | wc -l | tr -d '[:space:]' || true)"
+          sandbox="${sandbox:-0}"
+          echo "total=$total failed=$failed inconclusive=$inc skipped=$sk sandbox=$sandbox (floor=${MIN_TESTS}, sandbox-floor=${MIN_SANDBOX_TESTS})"
           if [ "$failed" != "0" ] || [ "$inc" != "0" ] || [ "$sk" != "0" ]; then echo "GATE 2 FAILED: failed/inconclusive/skipped must be 0."; exit 1; fi
-          if [ "$total" -lt "$MIN_TESTS" ]; then echo "GATE 2 FAILED (floor): ran $total, need >= ${MIN_TESTS} — hollow dependency?"; exit 1; fi
+          if [ "$total" -lt "$MIN_TESTS" ]; then echo "GATE 2 FAILED (floor): ran $total, need >= ${MIN_TESTS} (sandbox suite did not run?)"; exit 1; fi
+          if [ "$sandbox" -lt "$MIN_SANDBOX_TESTS" ]; then echo "GATE 2 FAILED (sandbox sub-floor): ran $sandbox, need >= ${MIN_SANDBOX_TESTS} — testbed suite hollow?"; exit 1; fi
           echo "GATE 2 PASS."
 
       - name: Upload test results

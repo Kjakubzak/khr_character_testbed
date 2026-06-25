@@ -73,13 +73,12 @@ namespace Samples.Editor
             foreach (var fixture in Fixtures)
             {
                 string glbPath = fixture.Generate(GlbStagingDir);
-                string json = ExtractGlbJson(glbPath);
-                if (json == null)
+                if (!ReadGlbChunks(glbPath, out string json, out byte[] bin) || json == null)
                 {
                     Debug.LogError($"[SandboxCI] Could not read GLB JSON chunk for {fixture.Name} at {glbPath}");
                     continue;
                 }
-                string snapshot = NormalizeGltfJson(json);
+                string snapshot = NormalizeGltfJson(json, bin);
                 string outPath = Path.Combine(SnapshotDir, fixture.Name + ".json");
                 File.WriteAllText(outPath, snapshot);
                 Debug.Log($"[SandboxCI] snapshot -> {outPath}");
@@ -94,13 +93,15 @@ namespace Samples.Editor
             return 1;
         }
 
-        // Reads the JSON chunk out of a binary GLB container (12-byte header + length/type-prefixed chunks).
-        private static string ExtractGlbJson(string glbPath)
+        // Reads the JSON (and BIN, if present) chunks out of a binary GLB container (12-byte header + length/
+        // type-prefixed chunks). Returns true when a JSON chunk was found.
+        private static bool ReadGlbChunks(string glbPath, out string json, out byte[] bin)
         {
-            if (!File.Exists(glbPath)) return null;
+            json = null; bin = null;
+            if (!File.Exists(glbPath)) return false;
             var bytes = File.ReadAllBytes(glbPath);
-            if (bytes.Length < 20) return null;
-            if (System.BitConverter.ToUInt32(bytes, 0) != 0x46546C67u) return null; // "glTF"
+            if (bytes.Length < 20) return false;
+            if (System.BitConverter.ToUInt32(bytes, 0) != 0x46546C67u) return false; // "glTF"
 
             int offset = 12;
             while (offset + 8 <= bytes.Length)
@@ -110,24 +111,120 @@ namespace Samples.Editor
                 int dataStart = offset + 8;
                 if (dataStart + (long)chunkLength > bytes.Length) break;
                 if (chunkType == 0x4E4F534Au) // "JSON"
-                    return System.Text.Encoding.UTF8.GetString(bytes, dataStart, (int)chunkLength);
+                    json = System.Text.Encoding.UTF8.GetString(bytes, dataStart, (int)chunkLength);
+                else if (chunkType == 0x004E4942u) // "BIN\0"
+                {
+                    bin = new byte[chunkLength];
+                    System.Array.Copy(bytes, dataStart, bin, 0, (int)chunkLength);
+                }
                 offset = dataStart + (int)chunkLength;
             }
-            return null;
+            return json != null;
         }
 
-        // Deterministic snapshot: drop volatile asset fields, sort every object's keys, pretty-print. This makes a
-        // committed golden stable run-to-run while still capturing real wire changes (new/renamed keys, changed
-        // min/max, reordered arrays). (Accessor-value decoding is a future enhancement if byte packing ever jitters.)
-        private static string NormalizeGltfJson(string json)
+        // Deterministic snapshot: decode every FLOAT accessor to its actual values (rounded to 1e-5), drop the
+        // byte-packing fields (accessor/bufferView byteOffset, bufferView/buffer byteLength) and volatile asset
+        // fields, sort every object's keys, pretty-print. Snapshotting DECODED values (not raw byteOffset/min/max)
+        // means an interior value change can't hide behind unchanged extremes, and packing-order jitter can't
+        // false-diff the golden. NOTE: this is a golden FORMAT change - regenerate once via
+        // Export-Goldens -Update and commit the diff.
+        private static string NormalizeGltfJson(string json, byte[] bin)
         {
             var root = JToken.Parse(json);
-            if (root is JObject obj && obj["asset"] is JObject asset)
+            if (root is JObject obj)
             {
-                asset.Remove("generator");
-                asset.Remove("copyright");
+                if (obj["asset"] is JObject asset)
+                {
+                    asset.Remove("generator");
+                    asset.Remove("copyright");
+                }
+                DecodeFloatAccessors(obj, bin);
+                StripPackingFields(obj);
             }
             return SortToken(root).ToString(Newtonsoft.Json.Formatting.Indented);
+        }
+
+        // Decode each FLOAT (componentType 5126) accessor's values from the GLB BIN chunk, round to 1e-5, and store
+        // them on the accessor as "values" (replacing the raw min/max + byteOffset). Non-float accessors (indices,
+        // joints) keep their deterministic min/max; only their byteOffset (packing) is dropped by StripPackingFields.
+        private static void DecodeFloatAccessors(JObject root, byte[] bin)
+        {
+            if (bin == null) return;
+            if (!(root["accessors"] is JArray accessors)) return;
+            var bufferViews = root["bufferViews"] as JArray;
+
+            foreach (var token in accessors)
+            {
+                if (!(token is JObject acc)) continue;
+                if (ReadInt(acc["componentType"], 0) != 5126) continue;   // FLOAT only
+                if (bufferViews == null) continue;
+
+                int bvIndex = ReadInt(acc["bufferView"], -1);
+                if (bvIndex < 0 || bvIndex >= bufferViews.Count || !(bufferViews[bvIndex] is JObject bv)) continue;
+
+                int count = ReadInt(acc["count"], 0);
+                int numComp = ComponentCount((string)acc["type"]);
+                if (count <= 0 || numComp <= 0) continue;
+
+                int elementSize = numComp * 4;   // sizeof(float)
+                int byteStride = ReadInt(bv["byteStride"], 0);
+                int stride = byteStride > 0 ? byteStride : elementSize;
+                int start = ReadInt(bv["byteOffset"], 0) + ReadInt(acc["byteOffset"], 0);
+
+                var values = new JArray();
+                bool ok = true;
+                for (int i = 0; i < count && ok; i++)
+                {
+                    int elementStart = start + i * stride;
+                    for (int c = 0; c < numComp; c++)
+                    {
+                        int byteOffset = elementStart + c * 4;
+                        if (byteOffset < 0 || byteOffset + 4 > bin.Length) { ok = false; break; }
+                        double rounded = System.Math.Round((double)System.BitConverter.ToSingle(bin, byteOffset), 5);
+                        if (rounded == 0d) rounded = 0d;   // collapse -0 to +0 for a stable snapshot
+                        values.Add(rounded);
+                    }
+                }
+                if (!ok) continue;   // leave the accessor untouched if the slice is out of range (safety)
+
+                acc.Remove("min");
+                acc.Remove("max");
+                acc.Remove("byteOffset");
+                acc["values"] = values;
+            }
+        }
+
+        // Drop byte-packing fields so packing order / jitter can't false-diff the golden (the decoded accessor
+        // values carry the actual data). Structural fields (buffer index, target, byteStride, names) are kept.
+        private static void StripPackingFields(JObject root)
+        {
+            if (root["bufferViews"] is JArray bufferViews)
+                foreach (var bv in bufferViews)
+                    if (bv is JObject o) { o.Remove("byteOffset"); o.Remove("byteLength"); }
+            if (root["buffers"] is JArray buffers)
+                foreach (var b in buffers)
+                    if (b is JObject o) o.Remove("byteLength");
+        }
+
+        private static int ReadInt(JToken token, int fallback)
+            => token != null && (token.Type == JTokenType.Integer || token.Type == JTokenType.Float)
+                ? (int)token
+                : fallback;
+
+        // glTF accessor element component counts.
+        private static int ComponentCount(string type)
+        {
+            switch (type)
+            {
+                case "SCALAR": return 1;
+                case "VEC2": return 2;
+                case "VEC3": return 3;
+                case "VEC4": return 4;
+                case "MAT2": return 4;
+                case "MAT3": return 9;
+                case "MAT4": return 16;
+                default: return 0;
+            }
         }
 
         private static JToken SortToken(JToken token)

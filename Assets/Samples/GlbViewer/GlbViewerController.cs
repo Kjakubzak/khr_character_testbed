@@ -102,7 +102,7 @@ namespace Samples.GlbViewer
             if (renderers.Length == 0) return;
             var bounds = renderers[0].bounds;
             for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
-            rig.Frame(bounds);
+            rig.FrameAndFace(bounds, scene.transform);
         }
 
         private void PopulateCapabilities(KhrCharacter hub)

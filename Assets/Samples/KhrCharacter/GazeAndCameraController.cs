@@ -26,6 +26,7 @@ namespace Samples.Characters
         private ViewModeController _viewMode;
         private EyeAimConstraint _eyeAim;
         private Transform _gazeTarget;
+        private RuntimeMoveWidget _targetWidget;
         private float _targetX;
         private float _targetY;
 
@@ -81,6 +82,7 @@ namespace Samples.Characters
             _ui.AddSlider("Gaze Weight", v => { if (_gaze != null) _gaze.Weight = v; }, 0f, 1f, 1f);
             _ui.AddSlider("Target X", v => { _targetX = Mathf.Lerp(-2f, 2f, v); UpdateTarget(); }, 0f, 1f, 0.5f);
             _ui.AddSlider("Target Y", v => { _targetY = Mathf.Lerp(-2f, 2f, v); UpdateTarget(); }, 0f, 1f, 0.5f);
+            _ui.AddButton("Add movable target", AddMovableTarget);
 
             // N4: first/third-person view mode (first-person hides the head renderer).
             _ui.AddToggle("First-person (hide head) [N4]", on =>
@@ -103,9 +105,47 @@ namespace Samples.Characters
             if (_gazeTarget != null) _gazeTarget.position = new Vector3(_targetX, _targetY, TargetZ);
         }
 
+        // Place the gaze target in front of the head (toward the camera at Yaw 0) and make it draggable via an
+        // in-scene handle; the eyes track it as the user drags. Reuses the existing _gazeTarget the gaze points at.
+        private void AddMovableTarget()
+        {
+            if (_gazeTarget == null) return;
+
+            Vector3 headCenter = _rig != null ? _rig.Pivot : new Vector3(0f, 1.4f, 0f);
+            _gazeTarget.position = headCenter + new Vector3(0f, 0f, -0.6f);
+
+            if (_targetWidget == null)
+                _targetWidget = _gazeTarget.gameObject.AddComponent<RuntimeMoveWidget>();
+
+            if (_gaze != null)
+            {
+                _gaze.Mode = GazeSolver.LookAtMode.CustomTarget;
+                _gaze.Target = _gazeTarget;
+                if (_gaze.Weight <= 0f) _gaze.Weight = 1f;
+            }
+        }
+
         private void WireGaze(KhrCharacter hub)
         {
-            _gaze = hub != null ? hub.Gaze : null;
+            if (hub == null) return;
+
+            // Frame + face the gaze character to the camera (once, start-only — mouse-orbit still works after).
+            if (_rig != null)
+            {
+                var renderers = hub.GetComponentsInChildren<Renderer>();
+                Bounds bounds = renderers.Length > 0
+                    ? renderers[0].bounds
+                    : new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f));
+                for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+
+                // Gaze is a head shot: zoom onto the gaze character's head (still facing the camera).
+                if (OrbitCameraRig.TryGetHeadFocus(hub.gameObject, bounds, out var headCenter, out var headRadius))
+                    _rig.FrameAndFaceHead(bounds, hub.transform, headCenter, headRadius);
+                else
+                    _rig.FrameAndFace(bounds, hub.transform);
+            }
+
+            _gaze = hub.Gaze;
             if (_gaze == null) { _ui.AddLabel("Face asset has no gaze solver."); return; }
             _gaze.Mode = GazeSolver.LookAtMode.CustomTarget;
             _gaze.Target = _gazeTarget;
