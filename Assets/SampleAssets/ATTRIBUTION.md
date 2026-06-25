@@ -19,9 +19,22 @@ third-party, vendor, or scanned content. They are dedicated to the public domain
 
 | Asset | Source | License (SPDX) | Notes |
 |---|---|---|---|
-| `khr-character-example.glb` | Authored in **VRoid Studio 2.12.0** | ⚠️ **CONFIRM BEFORE PUBLIC RELEASE** | The demo "hero" used as the default character across all scenes. The demos consume **only its `KHR_character` data** (skeleton mapping, expressions, camera hints) and **ignore** its VRM extensions (`VRMC_vrm` / `VRMC_springBone` / `VRMC_materials_mtoon` / `VRMC_character_expression_lookat`) and MToon materials. Stored via **Git LFS** (~10.5 MB). |
+| `khr-character-example.glb` | By **0b5vr**, authored in **VRoid Studio 2.12.0** | `LicenseRef-VRM-1.0` | The demo "hero" used as the default character across all scenes. The demos consume **only its `KHR_character` data** (skeleton mapping, expressions, camera hints) and **ignore** its VRM extensions (`VRMC_vrm` / `VRMC_springBone` / `VRMC_materials_mtoon` / `VRMC_character_expression_lookat`) and MToon materials. Stored via **Git LFS** (~10.5 MB). |
 
-> ⚠️ **Unlike the synthetic `SC-*`, this asset is VRoid-origin and is NOT automatically CC0.** The demos only read its `KHR_character` data, but the **mesh and textures still originate from VRoid Studio**. Before making this repository public, confirm you have the right to redistribute it and record the SPDX license above: if you authored it yourself in VRoid Studio your chosen license applies; if it derives from a third-party VRoid/VRM model, the original author's terms govern.
+> **License — read from the model's embedded `VRMC_vrm.meta`** (authoritative for its declared terms): author
+> **0b5vr**, under the [**VRM 1.0 license**](https://vrm.dev/licenses/1.0/). There is no SPDX short-identifier for the
+> VRM license, so it is recorded above with the SPDX `LicenseRef-` form (`LicenseRef-VRM-1.0`). Declared permissions:
+> **redistribution allowed** (`allowRedistribution: true`) and **modification + redistribution allowed**
+> (`modification: allowModificationRedistribution`) — so committing/redistributing it in this repo is permitted —
+> **avatar use for everyone** (`avatarPermission: everyone`), and **credit unnecessary** (`creditNotation: unnecessary`;
+> we credit 0b5vr regardless).
+>
+> ⚠️ **Non-commercial.** `commercialUsage: personalNonProfit` — unlike the CC0 `SC-*` fixtures, this asset is
+> restricted to **personal / non-profit use**, and the metadata further disallows excessively violent or sexual,
+> political/religious, and antisocial/hate usage. Its mesh and textures remain 0b5vr's VRoid content under these terms
+> (the demos read only its `KHR_character` data). **If you need a fully unrestricted / commercial-friendly default,
+> swap in a CC0 model or rely on the synthetic `SC-*` characters** (the demos fall back to `SC-*` automatically when
+> the hero is absent).
 
 ## External/ — downloaded on first run (not committed)
 
