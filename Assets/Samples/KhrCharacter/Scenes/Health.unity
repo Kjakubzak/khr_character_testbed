@@ -267,7 +267,6 @@ MonoBehaviour:
   Yaw: 0
   Pitch: 12
   OrbitSpeed: 200
-  ZoomSpeed: 4
   MinDistance: 0.3
   MaxDistance: 50
   MinPitch: -85
