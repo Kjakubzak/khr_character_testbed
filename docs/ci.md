@@ -83,8 +83,9 @@ plugins in code** (never trusting the committed settings asset, which can silent
 
 ## Installing the glTF-Validator (gate 3)
 
-`Validate-Glb` looks for `gltf_validator` on `PATH` (or `$env:GLTF_VALIDATOR`). If it is absent the gate **skips
-non-fatally** with this message. Install one of:
+`Validate-Glb` looks for `gltf_validator` on `PATH` (or `$env:GLTF_VALIDATOR`). Locally, if it is absent the gate
+**skips non-fatally** with this message. On CI it runs with `--required` (PS: `-Required`), so a missing validator
+(or an unparseable report) is a **hard error**, not a silent skip. Install one of:
 
 ```bash
 npm i -g gltf-validator           # provides the gltf_validator CLI

@@ -109,7 +109,7 @@ jobs:
           npm i -g gltf-validator
           sudo apt-get update && sudo apt-get install -y jq
       - name: Validate exported GLBs (numErrors == 0)
-        run: bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/Synthetic
+        run: bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/Synthetic --required
 
   # GATE 4 (round-trip goldens) — re-export + normalize the wire under Unity, then diff against committed goldens.
   goldens:

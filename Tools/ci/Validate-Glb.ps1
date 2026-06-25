@@ -1,11 +1,14 @@
-# Validate-Glb.ps1 — GATE 3. Runs the Khronos glTF-Validator over every exported GLB and gates on numErrors==0.
-# Standalone (no Unity). If the validator binary is absent, SKIPS non-fatally with install instructions.
-# Usage:  ./Tools/ci/Validate-Glb.ps1 [-ProjectPath <p>] [-InputDir <dir>] [-ReportDir <dir>] [-FailOnWarning]
+# Validate-Glb.ps1 - GATE 3. Runs the Khronos glTF-Validator over every exported GLB and gates on numErrors==0.
+# Standalone (no Unity). If the validator binary is absent, SKIPS non-fatally with install instructions UNLESS
+# -Required is set, in which case a missing validator (or an unparseable report) is a HARD ERROR (CI uses -Required
+# so a silent coverage loss can't sneak a bad wire through).
+# Usage:  ./Tools/ci/Validate-Glb.ps1 [-ProjectPath <p>] [-InputDir <dir>] [-ReportDir <dir>] [-Required] [-FailOnWarning]
 [CmdletBinding()]
 param(
     [string]$ProjectPath,
     [string]$InputDir,
     [string]$ReportDir,
+    [switch]$Required,
     [switch]$FailOnWarning
 )
 . "$PSScriptRoot/_Common.ps1"
@@ -22,6 +25,10 @@ if (-not $validator) {
     if ($cmd) { $validator = $cmd.Source }
 }
 if (-not $validator) {
+    if ($Required) {
+        Write-Error "[ci] GATE 3 (glTF-Validator) FAILED -- validator not found and -Required was set. Install:  npm i -g gltf-validator   (or set `$env:GLTF_VALIDATOR)."
+        exit 1
+    }
     Write-Warning "[ci] glTF-Validator not found -- SKIPPING GATE 3 (non-fatal)."
     Write-Warning "[ci] Install:  npm i -g gltf-validator   (or download 'gltf_validator' from KhronosGroup/glTF-Validator releases and set `$env:GLTF_VALIDATOR)."
     exit 0
@@ -48,6 +55,7 @@ foreach ($f in $files) {
         try { $json = (& $validator -a -p $f.FullName 2>$null | Out-String) | ConvertFrom-Json } catch { $json = $null }
     }
     if (-not $json -or -not $json.issues) {
+        if ($Required) { Write-Error "[ci]   $($f.Name): could not parse a validator report (-Required); failing GATE 3."; exit 1 }
         Write-Warning "[ci]   $($f.Name): could not parse a validator report (skipping this file). Check your gltf_validator version/flags."
         continue
     }

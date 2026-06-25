@@ -22,11 +22,13 @@ namespace Samples.Editor
                 string facePlus = SampleCharacterFactory.GenerateSCFacePlus(OutputDirectory);
                 string body = SampleCharacterFactory.GenerateSCBody(OutputDirectory);
                 string lookAt = SampleCharacterFactory.GenerateSCLookAt(OutputDirectory);
+                string partial = SampleCharacterFactory.GenerateSCPartial(OutputDirectory);
+                string pseudoVrm = SampleCharacterFactory.GenerateSCPseudoVRM(OutputDirectory);
 
-                Debug.Log($"[Samples] Generated sample characters:\n  {face}\n  {facePlus}\n  {body}\n  {lookAt}");
+                Debug.Log($"[Samples] Generated sample characters:\n  {face}\n  {facePlus}\n  {body}\n  {lookAt}\n  {partial}\n  {pseudoVrm}");
                 if (!Application.isBatchMode)
                     EditorUtility.DisplayDialog("Generate Sample Characters",
-                        $"Wrote:\n{face}\n{facePlus}\n{body}\n{lookAt}", "OK");
+                        $"Wrote:\n{face}\n{facePlus}\n{body}\n{lookAt}\n{partial}\n{pseudoVrm}", "OK");
             }
             catch (System.Exception ex)
             {

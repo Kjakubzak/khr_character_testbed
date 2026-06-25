@@ -97,6 +97,41 @@ namespace KhrCharacterTestbed.Tests
             }
         }
 
+        // Always-on neutralization gate: a synthetic VRM-origin asset (SC-PseudoVRM carries injected VRMC_* vendor
+        // tokens) must re-export through the KHR plugin as a fully Khronos-neutral wire (every VRMC_* dropped).
+        // Unlike the hero-dependent path, this fixture is always committed, so the gate never degrades to a skip.
+        [UnityTest]
+        public IEnumerator PseudoVrm_VendorSource_ReExportsKhrNeutral()
+        {
+            string path = CharacterLoader.SyntheticPath("SC-PseudoVRM.glb");
+            Assert.IsTrue(System.IO.File.Exists(path),
+                $"SC-PseudoVRM.glb not found at '{path}'. Run Generate Sample Characters first.");
+
+            // The SOURCE is intentionally non-neutral: it carries VRMC_* vendor tokens.
+            var sourceUsed = CharacterLoader.ReadSourceExtensionsUsed(path);
+            CollectionAssert.Contains(sourceUsed, "VRMC_vrm",
+                "The pseudo-VRM source must carry the VRMC_vrm vendor token (else the gate proves nothing).");
+            Assert.IsTrue(sourceUsed.Exists(SandboxTestUtil.IsVendorExtension),
+                "The pseudo-VRM source must carry at least one non-neutral vendor token.");
+
+            // Import (VRMC_* ignored as unknown) and re-export through the KHR plugin.
+            var load = SandboxTestUtil.LoadSynthetic("SC-PseudoVRM.glb", _created);
+            yield return load;
+            var hub = load.Current.GetComponent<KhrCharacter>();
+            Assert.IsNotNull(hub, "The pseudo-VRM should import as a KhrCharacter (VRMC_* ignored).");
+
+            byte[] glb = CharacterLoader.ExportToGlb(hub.gameObject, out var root);
+            Assert.IsNotNull(glb);
+            Assert.IsNotNull(root.ExtensionsUsed, "the re-export should declare extensionsUsed.");
+
+            // The re-export must be Khronos-neutral on both surfaces: every VRMC_* (and any vendor token) is gone.
+            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsUsed, "pseudo-VRM re-export extensionsUsed");
+            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsRequired, "pseudo-VRM re-export extensionsRequired");
+            foreach (var token in root.ExtensionsUsed)
+                Assert.IsFalse(token.StartsWith("VRMC_", System.StringComparison.Ordinal),
+                    $"the KHR re-export must not carry the vendor token '{token}'.");
+        }
+
         // Walks the exported KHR_character_expression items and asserts each nested sub-extension that is actually
         // present is declared in extensionsUsed (and never in extensionsRequired): the full-disk consumer proof of
         // bug B1's fix. Fixture-agnostic: only the sub-extensions a fixture actually uses are required.

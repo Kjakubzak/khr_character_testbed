@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityGLTF;
@@ -18,6 +20,8 @@ namespace Samples.Editor
     /// - SC-FacePlus   : SC-Face + a texture expression (UV offset + 2-texture index-swap) on a distinct material.
     /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + TPose reference pose + a camera hint.
     /// - SC-LookAt     : a KHR_character root + GazeSolver AuthoredTargets that mark nodes as KHR_node_lookat_target.
+    /// - SC-Partial    : a KHR_character root with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
+    /// - SC-PseudoVRM  : SC-Partial post-processed to carry synthetic VRMC_* vendor tokens (always-on neutralization gate).
     /// </summary>
     public static class SampleCharacterFactory
     {
@@ -97,6 +101,44 @@ namespace Samples.Editor
                 temps.Add(root);
 
                 return ExportAndImport(root, outputDirectory, "SC-LookAt");
+            }
+            finally { Cleanup(temps); }
+        }
+
+        /// <summary>Build SC-Partial (KHR_character + a single morph expression only) and export it to SC-Partial.glb.</summary>
+        public static string GenerateSCPartial(string outputDirectory)
+        {
+            outputDirectory = Normalize(outputDirectory);
+            var temps = new List<Object>();
+            try
+            {
+                var root = AssemblePartialCharacter(temps);
+                temps.Add(root);
+
+                return ExportAndImport(root, outputDirectory, "SC-Partial");
+            }
+            finally { Cleanup(temps); }
+        }
+
+        /// <summary>
+        /// Build SC-PseudoVRM: a real, importable KHR_character (the SC-Partial body) whose exported GLB is then
+        /// post-processed to inject synthetic <c>VRMC_*</c> vendor tokens into extensionsUsed + a stub root extension,
+        /// so it reads like a VRM-origin asset. CC0/synthetic - NOT a real VRM. Used by the always-on neutralization
+        /// gate (source carries VRMC_*; a KHR re-export drops them).
+        /// </summary>
+        public static string GenerateSCPseudoVRM(string outputDirectory)
+        {
+            outputDirectory = Normalize(outputDirectory);
+            var temps = new List<Object>();
+            try
+            {
+                var root = AssemblePartialCharacter(temps);
+                temps.Add(root);
+
+                string path = Export(root, outputDirectory, "SC-PseudoVRM");
+                InjectVendorExtensions(path, "VRMC_vrm", "VRMC_springBone");
+                ImportIfUnderAssets(path);
+                return path;
             }
             finally { Cleanup(temps); }
         }
@@ -414,7 +456,38 @@ namespace Samples.Editor
             return root;
         }
 
-        // ── Export ───────────────────────────────────────────────────────────
+        // ── Partial assembly (SC-Partial / SC-PseudoVRM) ────────────────────────
+
+        // The minimal graceful-degradation carrier: a KHR_character root with ONLY a single morph expression - no
+        // joint, texture, mask, mapping, skeleton, reference pose, camera hint, or look-at target. Proves the importer
+        // surfaces just the present capabilities and leaves the rest cleanly absent. Also the body of SC-PseudoVRM
+        // (which then gets VRMC_* injected post-export).
+        private static GameObject AssemblePartialCharacter(List<Object> temps)
+        {
+            var root = new GameObject("SC-Partial") { hideFlags = HideFlags.HideAndDontSave };
+            root.AddComponent<KhrCharacter>();
+
+            var mesh = BuildMinimalMorphMesh();
+            temps.Add(mesh);
+            var material = CreateSkinMaterial();
+            if (material != null) temps.Add(material);
+
+            var faceGo = new GameObject("Face") { hideFlags = HideFlags.HideAndDontSave };
+            faceGo.transform.SetParent(root.transform, false);
+            var smr = faceGo.AddComponent<SkinnedMeshRenderer>();
+            smr.sharedMesh = mesh;
+            if (material != null) smr.sharedMaterial = material;
+            smr.localBounds = mesh.bounds;
+
+            var set = new CharacterExpressionSet
+            {
+                Expressions = new[] { MorphTrack("blink", smr, 0) },
+            };
+            root.AddComponent<ExpressionController>().Initialize(set);
+            return root;
+        }
+
+        // ── Export ───────────────────────────────────────────────────────
 
         private static string ExportAndImport(GameObject root, string outputDirectory, string fileName)
         {
@@ -449,6 +522,57 @@ namespace Samples.Editor
 
             if (assetPath != null) AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
             else AssetDatabase.Refresh();
+        }
+
+        // Post-process an exported GLB to inject vendor extension tokens into extensionsUsed + a stub root extension
+        // object, simulating a VRM-origin asset. Rewrites the JSON chunk (re-padded to 4 bytes) and the GLB + JSON
+        // chunk lengths; the BIN chunk is preserved verbatim. Synthetic/CC0 - the tokens carry no real VRM data.
+        private static void InjectVendorExtensions(string glbPath, params string[] vendorTokens)
+        {
+            const uint GlbMagic = 0x46546C67;   // "glTF"
+            const uint ChunkJson = 0x4E4F534A;  // "JSON"
+
+            byte[] bytes = File.ReadAllBytes(glbPath);
+            if (bytes.Length < 20 || System.BitConverter.ToUInt32(bytes, 0) != GlbMagic)
+                throw new System.Exception($"Not a binary glTF: {glbPath}");
+            uint jsonLen = System.BitConverter.ToUInt32(bytes, 12);
+            if (System.BitConverter.ToUInt32(bytes, 16) != ChunkJson)
+                throw new System.Exception($"First GLB chunk is not JSON: {glbPath}");
+
+            int jsonStart = 20;
+            int binStart = jsonStart + (int)jsonLen;            // BIN chunk (+ any trailing chunks) preserved as-is
+            string json = Encoding.UTF8.GetString(bytes, jsonStart, (int)jsonLen);
+            var root = JObject.Parse(json);
+
+            var used = root["extensionsUsed"] as JArray;
+            if (used == null) { used = new JArray(); root["extensionsUsed"] = used; }
+            var exts = root["extensions"] as JObject;
+            if (exts == null) { exts = new JObject(); root["extensions"] = exts; }
+            foreach (var token in vendorTokens)
+            {
+                bool present = false;
+                foreach (var t in used) if ((string)t == token) { present = true; break; }
+                if (!present) used.Add(token);
+                if (exts[token] == null) exts[token] = new JObject();
+            }
+
+            byte[] newJson = Encoding.UTF8.GetBytes(root.ToString(Newtonsoft.Json.Formatting.None));
+            int pad = (4 - (newJson.Length % 4)) % 4;
+            int newJsonChunkLen = newJson.Length + pad;
+            byte[] binChunk = new byte[bytes.Length - binStart];
+            System.Array.Copy(bytes, binStart, binChunk, 0, binChunk.Length);
+
+            int total = 12 + 8 + newJsonChunkLen + binChunk.Length;
+            using (var ms = new MemoryStream(total))
+            using (var w = new BinaryWriter(ms))
+            {
+                w.Write(GlbMagic); w.Write((uint)2); w.Write((uint)total);
+                w.Write((uint)newJsonChunkLen); w.Write(ChunkJson);
+                w.Write(newJson);
+                for (int i = 0; i < pad; i++) w.Write((byte)0x20);   // pad JSON chunk with spaces
+                w.Write(binChunk);
+                File.WriteAllBytes(glbPath, ms.ToArray());
+            }
         }
 
         private static string Normalize(string outputDirectory)
@@ -544,6 +668,22 @@ namespace Samples.Editor
             mesh.SetTriangles(new List<int> { 0, 2, 1, 1, 2, 3 }, 0);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        // A tiny triangle with a single "blink" blendshape - the minimal mesh for a morph-only character.
+        private static Mesh BuildMinimalMorphMesh()
+        {
+            var mesh = new Mesh { name = "SC-Partial-Mesh", hideFlags = HideFlags.HideAndDontSave };
+            mesh.SetVertices(new List<Vector3>
+            {
+                new Vector3(-0.3f, 0f, 0f), new Vector3(0.3f, 0f, 0f), new Vector3(0f, 0.6f, 0f),
+            });
+            mesh.SetTriangles(new List<int> { 0, 1, 2 }, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mesh.AddBlendShapeFrame("blink", 100f,
+                new[] { new Vector3(0f, -0.1f, 0f), new Vector3(0f, -0.1f, 0f), new Vector3(0f, -0.05f, 0f) }, null, null);
             return mesh;
         }
 
