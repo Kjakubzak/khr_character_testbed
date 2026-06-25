@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using Samples.Shared;
 using UnityEditor;
 using UnityEngine;
 using UnityGLTF;
@@ -318,8 +319,7 @@ namespace Samples.Editor
             // The base-color texture property name differs per pipeline (_BaseMap on URP, _MainTex on Built-in),
             // so detect it and point the texture drivers at it.
             string baseProperty = "_MainTex";
-            var shader = Shader.Find("Universal Render Pipeline/Lit");
-            if (shader == null) shader = Shader.Find("Standard");
+            var shader = RenderPipelineUtil.LitShader();
             if (shader != null)
             {
                 var material = new Material(shader) { name = "SC-FacePlus-Tex", hideFlags = HideFlags.HideAndDontSave };
@@ -820,13 +820,11 @@ namespace Samples.Editor
 
         // ── Material ─────────────────────────────────────────────────────────
 
-        // A pipeline-agnostic skin-tone material: tries URP Lit, then Built-in Standard, then Unlit. Returns null
-        // if no shader is available, in which case the exporter emits a default material.
+        // A pipeline-aware skin-tone material: the lit shader for the active pipeline (Standard on Built-in, URP Lit
+        // under URP). Returns null if no shader is available, in which case the exporter emits a default material.
         private static Material CreateSkinMaterial()
         {
-            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
-            if (shader == null) shader = Shader.Find("Standard");
-            if (shader == null) shader = Shader.Find("Unlit/Color");
+            Shader shader = RenderPipelineUtil.LitShader();
             if (shader == null) return null;
 
             var material = new Material(shader) { name = "SC-Face-Mat", hideFlags = HideFlags.HideAndDontSave };

@@ -3,6 +3,7 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityGLTF;
 using UnityGLTF.KhrCharacter;
 using UnityGLTF.Plugins;
@@ -33,6 +34,85 @@ namespace Samples.Editor
             ("SC-PseudoVRM", SampleCharacterFactory.GenerateSCPseudoVRM),
             ("SC-ExprEdge", SampleCharacterFactory.GenerateSCExprEdge),
         };
+
+        // ── URP nightly cell (Phase 5): create + (de)activate a URP pipeline asset ──────────────────────────────
+        // Creation via reflection + activation via the base RenderPipelineAsset type, so this (Built-in) editor
+        // assembly needs NO compile-time URP reference. The committed project default stays Built-in (GraphicsSettings
+        // null); the nightly URP job calls ActivateUrp before -runTests, and materials follow the active pipeline
+        // (Samples.Shared.RenderPipelineUtil). Built-in goldens are unaffected.
+        private const string UrpDir = "Assets/Settings/URP";
+        private const string UrpAssetPath = UrpDir + "/URP-Nightly.asset";
+        private const string UrpRendererPath = UrpDir + "/URP-Nightly-Renderer.asset";
+        private const string UrpRuntimeAsm = "Unity.RenderPipelines.Universal.Runtime";
+
+        /// <summary>One-time: create the committed URP pipeline asset + its Universal renderer (idempotent).</summary>
+        public static void SetupUrp()
+        {
+            var rendererType = System.Type.GetType($"UnityEngine.Rendering.Universal.UniversalRendererData, {UrpRuntimeAsm}");
+            var assetType = System.Type.GetType($"UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset, {UrpRuntimeAsm}");
+            if (rendererType == null || assetType == null)
+            {
+                Debug.LogError("[SandboxCI] SetupUrp: URP types not found - is com.unity.render-pipelines.universal installed?");
+                EditorApplication.Exit(2);
+                return;
+            }
+            Directory.CreateDirectory(UrpDir);
+            if (AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(UrpAssetPath) != null)
+            {
+                Debug.Log("[SandboxCI] SetupUrp: URP asset already exists; nothing to do.");
+                return;
+            }
+
+            var renderer = ScriptableObject.CreateInstance(rendererType);
+            AssetDatabase.CreateAsset(renderer, UrpRendererPath);
+
+            System.Reflection.MethodInfo create = null;
+            foreach (var m in assetType.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static))
+                if (m.Name == "Create" && m.GetParameters().Length == 1) { create = m; break; }
+            if (create == null)
+            {
+                Debug.LogError("[SandboxCI] SetupUrp: UniversalRenderPipelineAsset.Create(rendererData) not found.");
+                EditorApplication.Exit(2);
+                return;
+            }
+            var asset = (UnityEngine.Object)create.Invoke(null, new object[] { renderer });
+            AssetDatabase.CreateAsset(asset, UrpAssetPath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"[SandboxCI] SetupUrp: created {UrpAssetPath} (+ renderer).");
+        }
+
+        /// <summary>Activate URP as the project render pipeline (nightly URP cell, before -runTests).</summary>
+        public static void ActivateUrp() => SetActivePipeline(UrpAssetPath);
+
+        /// <summary>Restore the Built-in pipeline (the committed default).</summary>
+        public static void DeactivateUrp() => SetActivePipeline(null);
+
+        private static void SetActivePipeline(string assetPath)
+        {
+            RenderPipelineAsset rp = null;
+            if (assetPath != null)
+            {
+                rp = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(assetPath);
+                if (rp == null)
+                {
+                    Debug.LogError($"[SandboxCI] render pipeline asset not found at {assetPath}; run SetupUrp first.");
+                    EditorApplication.Exit(2);
+                    return;
+                }
+            }
+            GraphicsSettings.defaultRenderPipeline = rp;   // in-memory for the current editor session
+            QualitySettings.renderPipeline = rp;
+            // Persist to ProjectSettings/GraphicsSettings.asset: AssetDatabase.SaveAssets alone does NOT flush the
+            // GraphicsSettings singleton in batchmode, so write m_CustomRenderPipeline via SerializedObject + SetDirty.
+            var gs = GraphicsSettings.GetGraphicsSettings();
+            var so = new SerializedObject(gs);
+            var prop = so.FindProperty("m_CustomRenderPipeline");
+            if (prop != null) { prop.objectReferenceValue = rp; so.ApplyModifiedProperties(); }
+            EditorUtility.SetDirty(gs);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[SandboxCI] active render pipeline = {(rp != null ? rp.name : "Built-in")}.");
+        }
 
         /// <summary>Enable the KHR Character import + export plugins (and AnimationPointer) on the shared settings.</summary>
         public static void EnablePlugins()

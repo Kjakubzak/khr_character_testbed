@@ -72,21 +72,51 @@ jobs:
           path: artifacts/test-results
 
   # ── URP axis (non-blocking) ───────────────────────────────────────────────────────────────────────────────────
-  # `continue-on-error: true` so a URP-only issue never reds the nightly; it surfaces as a signal, not a gate.
-  #
-  # ENABLING THE URP CELL (remaining optional project config — keep Built-in as the default/required pipeline):
-  #   1. Add  "com.unity.render-pipelines.universal": "<ver>"  to Packages/manifest.json.
-  #   2. Create a URP pipeline asset + renderer (Assets/Settings/URP/…) — committed.
-  #   3. Point Graphics/Quality settings at it for the URP run only (e.g. a committed URP GraphicsSettings variant,
-  #      or an -executeMethod that sets GraphicsSettings.defaultRenderPipeline before -runTests).
-  # The SC-* materials already prefer URP Lit, so once the pipeline is active the demo-scene smoke tests validate
-  # URP shader-clean boot with no further code changes. Until this lands the cell is intentionally a no-op stub.
+  # continue-on-error: a URP-only issue surfaces as a signal, never reds the nightly. The cell ACTIVATES the committed
+  # URP pipeline asset (Assets/Settings/URP) via SandboxCI.ActivateUrp - which writes ProjectSettings/GraphicsSettings
+  # - then runs the full PlayMode suite under URP. game-ci provides an xvfb display (NOT -nographics), so URP renders;
+  # materials follow the active pipeline (Samples.Shared.RenderPipelineUtil), so the demo-scene smoke tests exercise
+  # URP shader-clean boot. The committed project default stays Built-in (this activation is per-run / ephemeral).
   nightly-urp:
-    name: Nightly tests (URP) — scaffold, non-blocking
+    name: Nightly tests (URP)
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - name: URP cell pending project config
-        run: |
-          echo "URP nightly is scaffolded but not yet wired (see the comment block above in ci-nightly.yml)."
-          echo "Enable by adding the URP package + a pipeline asset + activating it for this run."
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Cache Library (URP)
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ env.UNITY_VERSION }}-urp-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-${{ env.UNITY_VERSION }}-urp-
+      # Step 1: activate URP (persists GraphicsSettings.defaultRenderPipeline to the committed URP asset). unity-builder
+      # is used purely as a licensed headless host for the -executeMethod seam (mirrors the golden job); allowDirtyBuild
+      # since we don't produce a player. The change is written to disk for the test step to read.
+      - name: Activate URP (SandboxCI.ActivateUrp)
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: StandaloneLinux64
+          buildMethod: Samples.Editor.SandboxCI.ActivateUrp
+          allowDirtyBuild: true
+      # Step 2: run the PlayMode suite under the now-active URP pipeline (xvfb display, no -nographics).
+      - name: Run PlayMode tests under URP (game-ci)
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          testMode: playmode
+          artifactsPath: artifacts/test-results-urp
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload URP test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-urp-test-results
+          path: artifacts/test-results-urp

@@ -41,9 +41,7 @@ namespace Samples.Shared
             var renderer = sphere.GetComponent<Renderer>();
             if (renderer != null)
             {
-                var shader = Shader.Find("Universal Render Pipeline/Lit");
-                if (shader == null) shader = Shader.Find("Standard");
-                if (shader == null) shader = Shader.Find("Unlit/Color");
+                var shader = RenderPipelineUtil.LitShader();
                 if (shader != null)
                 {
                     _handleMaterial = new Material(shader);

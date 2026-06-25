@@ -118,7 +118,7 @@ goldens) skips the diff with a message to run `-Update` once.
 - **Provider:** GitHub Actions + [game-ci](https://game.ci) `unity-test-runner` (pinned editor image + license).
 - **Unity:** `6000.0.76f1` (exact patch).
 - **Render pipeline:** **Built-in = required gate**; **URP = nightly / non-blocking** (see `.github/workflows/ci-nightly.yml`;
-  the URP cell is scaffolded pending project config — the suite is RP-agnostic, so URP only adds demo-shader coverage);
+  the URP cell is WIRED - it activates a committed URP pipeline asset and runs the suite under URP via xvfb);
   HDRP deferred. The KHR test / glTF-validation / golden gates are RP-agnostic.
 - **Library cache:** keyed on `Packages/manifest.json` + `Packages/packages-lock.json` + `ProjectVersion.txt`.
   Commit `packages-lock.json` so the resolved dependency commit SHA is recorded and a new commit busts the cache.
@@ -135,10 +135,12 @@ A separate non-blocking workflow (`.github/workflows/ci-nightly.yml`) runs on a 
 never gates a PR — the per-push `ci.yml` is the required gate. The nightly:
 
 - **Built-in cell:** re-runs the full PlayMode suite to catch environment / dependency drift.
-- **URP cell:** scaffolded + non-blocking (`continue-on-error`). The wire/state tests are RP-agnostic, so URP's
-  incremental value is the **demo-scene smoke tests** rendering the demo materials under URP. The SC-* materials are
-  already pipeline-aware (`CreateSkinMaterial` prefers URP Lit), so enabling the cell is project config only (add the
-  URP package + a pipeline asset + activate it for the run) — the steps are inline in `ci-nightly.yml`.
+- **URP cell:** wired + non-blocking (`continue-on-error`). It activates the committed URP pipeline asset
+  (`Assets/Settings/URP`) via `SandboxCI.ActivateUrp`, then runs the full suite under URP on game-ci's xvfb display
+  (NOT `-nographics`). Materials follow the active pipeline (`Samples.Shared.RenderPipelineUtil`: Standard on Built-in,
+  URP Lit under URP), so the Built-in goldens stay byte-stable while the demo-scene smoke tests exercise URP
+  shader-clean boot. NOTE: the local `Tools/ci` scripts use `-nographics`, under which URP crashes during its material
+  reimport - so validate the URP cell on CI (xvfb), not locally; the Built-in suite + goldens are fully local-validated.
 
 **Demo-scene smoke tests** (`Assets/Tests/SandboxSceneSmokeTests.cs`) additively boot each built demo scene with the
 hero forced off (`CharacterLoader.ForceSyntheticForTests`, so boot is fast + deterministic) and assert a clean boot:
