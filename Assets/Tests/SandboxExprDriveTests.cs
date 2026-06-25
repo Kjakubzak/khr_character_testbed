@@ -66,6 +66,39 @@ namespace KhrCharacterTestbed.Tests
             ec.ResetAll();
         }
 
+        // SC-ExprEdge: "edgeB" BLOCK-masks "edgeA" (amount 1, threshold 0). Driving edgeB above the threshold must
+        // fully zero edgeA's output, while edgeB still drives its own shape - the block counterpart to the blend mask.
+        [UnityTest]
+        public IEnumerator Mask_BlockFullyBlocksTargetAboveThreshold()
+        {
+            var load = SandboxTestUtil.LoadSynthetic("SC-ExprEdge.glb", _created);
+            yield return load;
+            var hub = load.Current.GetComponent<KhrCharacter>();
+            Assert.IsNotNull(hub, "SC-ExprEdge should import a KhrCharacter hub.");
+            var ec = hub.Expressions;
+            Assert.IsNotNull(ec, "SC-ExprEdge should have an ExpressionController.");
+            var smr = load.Current.GetComponentInChildren<SkinnedMeshRenderer>();
+            int shapeA = BlendShapeIndex(smr, "shapeA");
+            int shapeB = BlendShapeIndex(smr, "shapeB");
+            Assert.GreaterOrEqual(shapeA, 0, "SC-ExprEdge should carry 'shapeA'.");
+            Assert.GreaterOrEqual(shapeB, 0, "SC-ExprEdge should carry 'shapeB'.");
+
+            ec.ResetAll(); ec.SetWeight("edgeA", 1f);
+            yield return null;
+            float aUnblocked = smr.GetBlendShapeWeight(shapeA);
+            Assert.Greater(aUnblocked, 1e-3f, "edgeA alone should drive shapeA.");
+
+            // Drive edgeB: it block-masks edgeA above threshold 0, fully zeroing edgeA, while driving its own shapeB.
+            ec.SetWeight("edgeB", 1f);
+            yield return null;
+            float aBlocked = smr.GetBlendShapeWeight(shapeA);
+            float bOut = smr.GetBlendShapeWeight(shapeB);
+            Assert.Less(aBlocked, aUnblocked * 0.1f, "a Block mask above threshold must fully reduce the target (edgeA -> ~0).");
+            Assert.Greater(bOut, 1e-3f, "edgeB should still drive its own shapeB while blocking edgeA.");
+
+            ec.ResetAll();
+        }
+
         // SC-Face declares a "demoVocabulary" set whose "Smile" target maps to happy(1.0) + aa(0.5). Driving the
         // vocabulary target must drive the mapped expressions' output (the "smile" blendshape from happy).
         [UnityTest]

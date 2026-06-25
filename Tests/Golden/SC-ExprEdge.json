@@ -1,0 +1,415 @@
+{
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC3",
+      "values": [
+        0.3,
+        0.0,
+        0.0,
+        -0.3,
+        0.0,
+        0.0,
+        0.0,
+        0.6,
+        0.0
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC3",
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5121,
+      "count": 3,
+      "max": [
+        2.0
+      ],
+      "min": [
+        0.0
+      ],
+      "type": "SCALAR"
+    },
+    {
+      "componentType": 5126,
+      "count": 3,
+      "max": [
+        0.0,
+        -0.05000000074505806,
+        0.0
+      ],
+      "min": [
+        0.0,
+        -0.10000000149011612,
+        0.0
+      ],
+      "sparse": {
+        "count": 3,
+        "indices": {
+          "bufferView": 3,
+          "componentType": 5125
+        },
+        "values": {
+          "bufferView": 4
+        }
+      },
+      "type": "VEC3"
+    },
+    {
+      "componentType": 5126,
+      "count": 3,
+      "max": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "sparse": {
+        "count": 1,
+        "indices": {
+          "bufferView": 5,
+          "componentType": 5125
+        },
+        "values": {
+          "bufferView": 6
+        }
+      },
+      "type": "VEC3"
+    },
+    {
+      "componentType": 5126,
+      "count": 3,
+      "max": [
+        -0.05000000074505806,
+        0.0,
+        0.0
+      ],
+      "min": [
+        -0.10000000149011612,
+        0.0,
+        0.0
+      ],
+      "sparse": {
+        "count": 3,
+        "indices": {
+          "bufferView": 7,
+          "componentType": 5125
+        },
+        "values": {
+          "bufferView": 8
+        }
+      },
+      "type": "VEC3"
+    },
+    {
+      "componentType": 5126,
+      "count": 3,
+      "max": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "min": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "sparse": {
+        "count": 1,
+        "indices": {
+          "bufferView": 9,
+          "componentType": 5125
+        },
+        "values": {
+          "bufferView": 10
+        }
+      },
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "values": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "values": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "values": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "values": [
+        0.0,
+        1.0
+      ]
+    }
+  ],
+  "animations": [
+    {
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/nodes/1/weights/0"
+              }
+            },
+            "path": "pointer"
+          }
+        }
+      ],
+      "name": "edgeA",
+      "samplers": [
+        {
+          "input": 7,
+          "interpolation": "STEP",
+          "output": 8
+        }
+      ]
+    },
+    {
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/nodes/1/weights/1"
+              }
+            },
+            "path": "pointer"
+          }
+        }
+      ],
+      "name": "edgeB",
+      "samplers": [
+        {
+          "input": 9,
+          "interpolation": "STEP",
+          "output": 10
+        }
+      ]
+    }
+  ],
+  "asset": {
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteStride": 12,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteStride": 12,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "target": 34963
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    }
+  ],
+  "buffers": [
+    {}
+  ],
+  "extensions": {
+    "KHR_character": {
+      "rootNode": 0
+    },
+    "KHR_character_expression": {
+      "expressions": [
+        {
+          "animation": 0,
+          "expression": "edgeA",
+          "extensions": {
+            "KHR_character_expression_morphtarget": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        },
+        {
+          "animation": 1,
+          "expression": "edgeB",
+          "extensions": {
+            "KHR_character_expression_mask": {
+              "masks": [
+                {
+                  "amount": 1.0,
+                  "target": "edgeA",
+                  "threshold": 0.0,
+                  "type": "block"
+                }
+              ]
+            },
+            "KHR_character_expression_morphtarget": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "extensionsUsed": [
+    "KHR_character",
+    "KHR_animation_pointer",
+    "KHR_character_expression",
+    "KHR_character_expression_morphtarget",
+    "KHR_character_expression_mask"
+  ],
+  "materials": [
+    {
+      "name": "SC-Face-Mat",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.827571,
+          0.5704816,
+          0.447988421,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.5
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "extras": {
+        "targetNames": [
+          "shapeA",
+          "shapeB"
+        ]
+      },
+      "name": "Face",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0
+          },
+          "indices": 2,
+          "material": 0,
+          "targets": [
+            {
+              "NORMAL": 4,
+              "POSITION": 3
+            },
+            {
+              "NORMAL": 6,
+              "POSITION": 5
+            }
+          ]
+        }
+      ],
+      "weights": [
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "name": "SC-ExprEdge"
+    },
+    {
+      "mesh": 0,
+      "name": "Face"
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "SC-ExprEdge",
+      "nodes": [
+        0
+      ]
+    }
+  ]
+}

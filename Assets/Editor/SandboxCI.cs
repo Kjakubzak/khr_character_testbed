@@ -31,6 +31,7 @@ namespace Samples.Editor
             ("SC-LookAt", SampleCharacterFactory.GenerateSCLookAt),
             ("SC-Partial", SampleCharacterFactory.GenerateSCPartial),
             ("SC-PseudoVRM", SampleCharacterFactory.GenerateSCPseudoVRM),
+            ("SC-ExprEdge", SampleCharacterFactory.GenerateSCExprEdge),
         };
 
         /// <summary>Enable the KHR Character import + export plugins (and AnimationPointer) on the shared settings.</summary>

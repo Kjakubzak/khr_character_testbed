@@ -22,6 +22,7 @@ namespace Samples.Editor
     /// - SC-LookAt     : a KHR_character root + GazeSolver AuthoredTargets that mark nodes as KHR_node_lookat_target.
     /// - SC-Partial    : a KHR_character root with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
     /// - SC-PseudoVRM  : SC-Partial post-processed to carry synthetic VRMC_* vendor tokens (always-on neutralization gate).
+    /// - SC-ExprEdge   : two morph expressions where one BLOCK-masks the other (mask-domain edge: block vs blend).
     /// </summary>
     public static class SampleCharacterFactory
     {
@@ -139,6 +140,21 @@ namespace Samples.Editor
                 InjectVendorExtensions(path, "VRMC_vrm", "VRMC_springBone");
                 ImportIfUnderAssets(path);
                 return path;
+            }
+            finally { Cleanup(temps); }
+        }
+
+        /// <summary>Build SC-ExprEdge (two morph expressions where one BLOCK-masks the other) and export to SC-ExprEdge.glb.</summary>
+        public static string GenerateSCExprEdge(string outputDirectory)
+        {
+            outputDirectory = Normalize(outputDirectory);
+            var temps = new List<Object>();
+            try
+            {
+                var root = AssembleExprEdgeCharacter(temps);
+                temps.Add(root);
+
+                return ExportAndImport(root, outputDirectory, "SC-ExprEdge");
             }
             finally { Cleanup(temps); }
         }
@@ -487,7 +503,58 @@ namespace Samples.Editor
             return root;
         }
 
-        // ── Export ───────────────────────────────────────────────────────
+        // ── Expression-edge assembly (SC-ExprEdge) ────────────────────────
+
+        // Two morph expressions on a two-blendshape mesh: 'edgeA' drives shapeA; 'edgeB' drives shapeB AND BLOCK-masks
+        // edgeA (amount 1, threshold 0) - so driving edgeB above the threshold fully zeroes edgeA's output while edgeB
+        // still drives its own shape. The block-mask counterpart to SC-Face's blend mask.
+        private static GameObject AssembleExprEdgeCharacter(List<Object> temps)
+        {
+            var root = new GameObject("SC-ExprEdge") { hideFlags = HideFlags.HideAndDontSave };
+            root.AddComponent<KhrCharacter>();
+
+            var mesh = BuildTwoShapeMesh();
+            temps.Add(mesh);
+            var material = CreateSkinMaterial();
+            if (material != null) temps.Add(material);
+
+            var faceGo = new GameObject("Face") { hideFlags = HideFlags.HideAndDontSave };
+            faceGo.transform.SetParent(root.transform, false);
+            var smr = faceGo.AddComponent<SkinnedMeshRenderer>();
+            smr.sharedMesh = mesh;
+            if (material != null) smr.sharedMaterial = material;
+            smr.localBounds = mesh.bounds;
+
+            var edgeA = MorphTrack("edgeA", smr, 0);   // drives shapeA
+            var edgeB = MorphTrack("edgeB", smr, 1);   // drives shapeB AND block-masks edgeA
+            edgeB.Masks = new[]
+            {
+                new MaskEntry { TargetIndex = 0, SourceIndex = 1, Type = MaskType.Block, Amount = 1f, Threshold = 0f },
+            };
+            var set = new CharacterExpressionSet { Expressions = new[] { edgeA, edgeB } };
+            root.AddComponent<ExpressionController>().Initialize(set);
+            return root;
+        }
+
+        // A tiny triangle with two blendshapes (shapeA, shapeB) for the block-mask edge fixture.
+        private static Mesh BuildTwoShapeMesh()
+        {
+            var mesh = new Mesh { name = "SC-ExprEdge-Mesh", hideFlags = HideFlags.HideAndDontSave };
+            mesh.SetVertices(new List<Vector3>
+            {
+                new Vector3(-0.3f, 0f, 0f), new Vector3(0.3f, 0f, 0f), new Vector3(0f, 0.6f, 0f),
+            });
+            mesh.SetTriangles(new List<int> { 0, 1, 2 }, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mesh.AddBlendShapeFrame("shapeA", 100f,
+                new[] { new Vector3(0f, -0.1f, 0f), new Vector3(0f, -0.1f, 0f), new Vector3(0f, -0.05f, 0f) }, null, null);
+            mesh.AddBlendShapeFrame("shapeB", 100f,
+                new[] { new Vector3(0.1f, 0f, 0f), new Vector3(0.1f, 0f, 0f), new Vector3(0.05f, 0f, 0f) }, null, null);
+            return mesh;
+        }
+
+        // ── Export ──────────────────────────────────────
 
         private static string ExportAndImport(GameObject root, string outputDirectory, string fileName)
         {
