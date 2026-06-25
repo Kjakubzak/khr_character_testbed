@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,8 +12,9 @@ namespace KhrCharacterTestbed.Tests
     /// Phase 5 (optional polish): demo-scene smoke tests. Additively loads each built demo scene with the hero forced
     /// off (CharacterLoader.ForceSyntheticForTests) so boot is fast + deterministic, lets it settle, then asserts a
     /// clean boot: the scene loaded with root objects + a Camera, and every static renderer has a real shader (never
-    /// the magenta "Hidden/InternalErrorShader"). Catches scene-wiring / shader regressions a wire test can't. The
-    /// async character load is allowed to finish before unload so teardown is clean. Anti-hollow via real plugin types.
+    /// the magenta "Hidden/InternalErrorShader"). Catches scene-wiring / shader regressions a wire test can't. Cleanup
+    /// runs in [UnityTearDown] (which executes even on a failed assert), so a failure never leaks the additively-loaded
+    /// scene into the next [ValueSource] case. Anti-hollow via real plugin types.
     /// </summary>
     public class SandboxSceneSmokeTests
     {
@@ -23,6 +23,19 @@ namespace KhrCharacterTestbed.Tests
         {
             "SampleHub", "GlbViewer", "Expressions", "GazeAndCamera", "RigAndPose", "RoundTrip", "Health",
         };
+
+        private Scene _loaded;
+
+        // Runs even when the test body throws (unlike code placed after a yield-bearing try), guaranteeing the
+        // additively-loaded scene is unloaded and the global flag is reset between cases.
+        [UnityTearDown]
+        public IEnumerator Cleanup()
+        {
+            CharacterLoader.ForceSyntheticForTests = false;
+            if (_loaded.IsValid() && _loaded.isLoaded)
+                yield return SceneManager.UnloadSceneAsync(_loaded);
+            _loaded = default;
+        }
 
         private static bool HasKhrCharacter(Scene scene)
         {
@@ -35,46 +48,37 @@ namespace KhrCharacterTestbed.Tests
         public IEnumerator DemoScene_BootsCleanly([ValueSource(nameof(SceneNames))] string sceneName)
         {
             CharacterLoader.ForceSyntheticForTests = true;
-            Scene scene = default;
-            try
-            {
-                yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-                scene = SceneManager.GetSceneByName(sceneName);
-                Assert.IsTrue(scene.IsValid() && scene.isLoaded, $"demo scene '{sceneName}' should load additively.");
 
-                // Boot, and let any forced-synthetic character load settle so unload is clean (capped; scenes without
-                // a character just hit the cap, which is fine).
-                float deadline = Time.realtimeSinceStartup + 4f;
-                while (Time.realtimeSinceStartup < deadline && !HasKhrCharacter(scene)) yield return null;
-                yield return null;
-                yield return null;
+            yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            var scene = SceneManager.GetSceneByName(sceneName);
+            _loaded = scene;   // tracked for [UnityTearDown] before any assert that could throw
+            Assert.IsTrue(scene.IsValid() && scene.isLoaded, $"demo scene '{sceneName}' should load additively.");
 
-                var roots = scene.GetRootGameObjects();
-                Assert.Greater(roots.Length, 0, $"'{sceneName}' should contain root objects after boot.");
+            // Boot, and let any forced-synthetic character load settle so unload is clean (capped; scenes without a
+            // character just hit the cap, which is fine).
+            float deadline = Time.realtimeSinceStartup + 4f;
+            while (Time.realtimeSinceStartup < deadline && !HasKhrCharacter(scene)) yield return null;
+            yield return null;
+            yield return null;
 
-                bool hasCamera = false;
-                foreach (var root in roots)
-                    if (root.GetComponentInChildren<Camera>(true) != null) { hasCamera = true; break; }
-                Assert.IsTrue(hasCamera, $"'{sceneName}' should contain a Camera.");
+            var roots = scene.GetRootGameObjects();
+            Assert.Greater(roots.Length, 0, $"'{sceneName}' should contain root objects after boot.");
 
-                // Shader-clean: no static renderer may fall back to the magenta error shader.
-                foreach (var root in roots)
-                    foreach (var r in root.GetComponentsInChildren<Renderer>(true))
-                        foreach (var m in r.sharedMaterials)
-                        {
-                            if (m == null) continue;   // an unassigned slot is not an error-shader failure
-                            Assert.IsNotNull(m.shader, $"'{sceneName}': material on '{r.name}' has a null shader.");
-                            Assert.AreNotEqual("Hidden/InternalErrorShader", m.shader.name,
-                                $"'{sceneName}': renderer '{r.name}' uses the magenta error shader (broken material).");
-                        }
-            }
-            finally
-            {
-                CharacterLoader.ForceSyntheticForTests = false;
-            }
+            bool hasCamera = false;
+            foreach (var root in roots)
+                if (root.GetComponentInChildren<Camera>(true) != null) { hasCamera = true; break; }
+            Assert.IsTrue(hasCamera, $"'{sceneName}' should contain a Camera.");
 
-            if (scene.IsValid() && scene.isLoaded)
-                yield return SceneManager.UnloadSceneAsync(scene);
+            // Shader-clean: no static renderer may fall back to the magenta error shader.
+            foreach (var root in roots)
+                foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+                    foreach (var m in r.sharedMaterials)
+                    {
+                        if (m == null) continue;   // an unassigned slot is not an error-shader failure
+                        Assert.IsNotNull(m.shader, $"'{sceneName}': material on '{r.name}' has a null shader.");
+                        Assert.AreNotEqual("Hidden/InternalErrorShader", m.shader.name,
+                            $"'{sceneName}': renderer '{r.name}' uses the magenta error shader (broken material).");
+                    }
         }
     }
 }

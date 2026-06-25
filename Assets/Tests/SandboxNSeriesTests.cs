@@ -166,20 +166,20 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        [Category("Hero")]
         public IEnumerator Neutralize_VrmOriginCharacter_ReexportsVendorNeutral()
         {
-            // Gate on the GLB magic, not File.Exists: an un-smudged LFS pointer exists but is not a real GLB and
-            // would throw on import. CI excludes [Category("Hero")] when the hero isn't pulled, so this never reds
-            // the build as a skip.
-            if (!CharacterLoader.HeroIsRealGlb)
-                Assert.Ignore("Hero GLB not present as a real glTF (LFS pointer not smudged / hero absent); skipping.");
-            string path = CharacterLoader.HeroAbsolutePath;
+            // Prefer the real VRM-origin hero (gate on the GLB magic, not File.Exists: an un-smudged LFS pointer
+            // exists but would throw on import). When the hero is absent (e.g. a fork without LFS objects) fall back to
+            // the committed synthetic pseudo-VRM, which carries the same VRMC_* vendor tokens - so this gate ALWAYS
+            // runs a real neutralization check and never skips (a skip would red the build: the gate fails on skipped != 0).
+            bool hero = CharacterLoader.HeroIsRealGlb;
+            string path = hero ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-PseudoVRM.glb");
+            Assert.IsTrue(File.Exists(path), $"Neutralization source missing at '{path}'.");
 
             var task = CharacterLoader.LoadAsync(path, null);
-            float deadline = Time.realtimeSinceStartup + 60f; // complex asset -> longer budget
+            float deadline = Time.realtimeSinceStartup + (hero ? 60f : 30f); // complex hero -> longer budget
             while (!task.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
-            Assert.IsTrue(task.IsCompleted, "VRM-origin import did not complete within 60s.");
+            Assert.IsTrue(task.IsCompleted, "VRM-origin import did not complete in time.");
             if (task.Exception != null) throw task.Exception;
 
             var scene = task.Result;

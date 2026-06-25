@@ -42,6 +42,7 @@ namespace KhrCharacterTestbed.Tests
             ec.ResetAll(); ec.SetWeight("aa", 1f);
             yield return null;
             float aaOnly = smr.GetBlendShapeWeight(jaw);
+            Assert.Greater(aaOnly, 1e-3f, "'aa' must actually drive the shared blendshape, else the clamp case isn't exercised.");
 
             ec.ResetAll(); ec.SetWeight("jawOpen", 1f);
             yield return null;

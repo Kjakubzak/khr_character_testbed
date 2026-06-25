@@ -194,7 +194,8 @@ namespace Samples.Shared
         /// Find a tight head focus (center + radius) for a loaded character. Priority: (a) a humanoid Animator's
         /// Head bone, (b) a child whose name contains "head", (c) the average of "eye"-named children, (d) the top
         /// of the bounds. The radius is body-relative for a real body (head found via bone/name) and bounds-relative
-        /// for a head-only mesh (eyes found but no head bone, e.g. the synthetic SC-Face). Always succeeds.
+        /// for a head-only mesh (eyes found but no head bone, e.g. the synthetic SC-Face). Returns false only when
+        /// <paramref name="character"/> is null (center/radius then fall back to the full bounds); otherwise true.
         /// </summary>
         public static bool TryGetHeadFocus(GameObject character, Bounds fullBounds, out Vector3 center, out float radius)
         {

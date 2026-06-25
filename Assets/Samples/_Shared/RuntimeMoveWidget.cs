@@ -18,6 +18,7 @@ namespace Samples.Shared
         private Transform _handle;
         private Collider _handleCollider;
         private Camera _cam;
+        private Material _handleMaterial;
         private bool _dragging;
         private Plane _dragPlane;
         private Vector3 _grabOffset;
@@ -45,10 +46,10 @@ namespace Samples.Shared
                 if (shader == null) shader = Shader.Find("Unlit/Color");
                 if (shader != null)
                 {
-                    var mat = new Material(shader);
-                    if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", HandleColor);
-                    if (mat.HasProperty("_Color")) mat.SetColor("_Color", HandleColor);
-                    renderer.sharedMaterial = mat;
+                    _handleMaterial = new Material(shader);
+                    if (_handleMaterial.HasProperty("_BaseColor")) _handleMaterial.SetColor("_BaseColor", HandleColor);
+                    if (_handleMaterial.HasProperty("_Color")) _handleMaterial.SetColor("_Color", HandleColor);
+                    renderer.sharedMaterial = _handleMaterial;
                 }
             }
         }
@@ -108,6 +109,12 @@ namespace Samples.Shared
                 _dragging = false;
                 OrbitCameraRig.InputCaptured = false;
             }
+        }
+
+        private void OnDestroy()
+        {
+            // The handle uses a runtime-created Material instance; destroy it so it isn't leaked when the widget goes.
+            if (_handleMaterial != null) Destroy(_handleMaterial);
         }
     }
 }
