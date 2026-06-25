@@ -20,7 +20,9 @@ namespace Samples.Shared
 
         [Header("Tuning")]
         public float OrbitSpeed = 200f;
-        public float ZoomSpeed = 4f;
+        [Tooltip("Per-notch zoom fraction (multiplicative): each scroll notch scales the orbit distance by this " +
+                 "fraction, so zooming feels consistent at any distance and never overshoots a close framing.")]
+        public float ZoomStep = 0.07f;
         public float MinDistance = 0.3f;
         public float MaxDistance = 50f;
         public float MinPitch = -85f;
@@ -73,7 +75,10 @@ namespace Samples.Shared
 
             float scroll = Input.mouseScrollDelta.y;
             if (Mathf.Abs(scroll) > 0.0001f)
-                Distance = Mathf.Clamp(Distance - scroll * ZoomSpeed, MinDistance, MaxDistance);
+                // Multiplicative (proportional) zoom: scale the orbit distance by (1 - ZoomStep) per scroll notch.
+                // Gentle + consistent across the whole MinDistance..MaxDistance range, unlike the old fixed additive
+                // step which was huge relative to a close-up framing distance (the "too aggressive" zoom).
+                Distance = Mathf.Clamp(Distance * Mathf.Pow(1f - ZoomStep, scroll), MinDistance, MaxDistance);
 
             Apply();
         }
