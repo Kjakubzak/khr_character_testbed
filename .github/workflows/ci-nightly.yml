@@ -1,0 +1,92 @@
+# Nightly CI for the KHR Character sandbox — NON-BLOCKING (optional polish; see docs/ci.md "Nightly").
+#
+# The per-push workflow (ci.yml) is the REQUIRED Built-in merge gate. This workflow never blocks a PR: it runs on a
+# schedule (and manual dispatch) to (1) re-run the full PlayMode suite nightly to catch environment/dependency drift,
+# and (2) host the URP render-pipeline axis.
+#
+# RP-agnostic note: the wire/state tests pass identically on any render pipeline, so URP's incremental value is
+# proving the DEMO materials render under URP (what the demo-scene smoke tests' shader-clean check exercises). The
+# synthetic SC-* materials are already pipeline-aware (SampleCharacterFactory.CreateSkinMaterial prefers URP Lit and
+# falls back to Built-in Standard), so the remaining work for a true URP cell is purely project config (below).
+
+name: CI Nightly
+
+on:
+  schedule:
+    - cron: "0 7 * * *"   # 07:00 UTC daily
+  workflow_dispatch:
+
+env:
+  UNITY_VERSION: "6000.0.76f1"
+  MIN_TESTS: "12"
+  MIN_SANDBOX_TESTS: "12"
+
+jobs:
+  # Built-in nightly: the same PlayMode suite as the required gate, on a schedule (drift detection). Non-blocking
+  # by virtue of being a scheduled workflow that no branch protection depends on.
+  nightly-builtin:
+    name: Nightly tests (Built-in)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ env.UNITY_VERSION }}-builtin-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-${{ env.UNITY_VERSION }}-builtin-
+      - name: Run PlayMode tests (game-ci)
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          testMode: playmode
+          artifactsPath: artifacts/test-results
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Enforce test gate + floor
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          xml="$(find artifacts/test-results -name '*.xml' | head -n1 || true)"
+          if [ -z "$xml" ]; then echo "Nightly FAILED: no results XML (hang/crash)."; exit 1; fi
+          attr() { tr '\n' ' ' < "$xml" | sed -n 's/.*<test-run[^>]*[[:space:]]'"$1"'="\([0-9]*\)".*/\1/p' | head -n1; }
+          total="$(attr total)"; failed="$(attr failed)"; inc="$(attr inconclusive)"; sk="$(attr skipped)"
+          total="${total:-0}"; failed="${failed:-0}"; inc="${inc:-0}"; sk="${sk:-0}"
+          sandbox="$(tr '\n' ' ' < "$xml" | grep -o '<test-case[^>]*classname="KhrCharacterTestbed[^"]*"' | wc -l | tr -d '[:space:]' || true)"
+          sandbox="${sandbox:-0}"
+          echo "total=$total failed=$failed inconclusive=$inc skipped=$sk sandbox=$sandbox (floor=${MIN_TESTS}, sandbox-floor=${MIN_SANDBOX_TESTS})"
+          if [ "$failed" != "0" ] || [ "$inc" != "0" ] || [ "$sk" != "0" ]; then echo "Nightly FAILED: tests not green."; exit 1; fi
+          if [ "$total" -lt "$MIN_TESTS" ]; then echo "Nightly FAILED (floor): ran $total, need >= ${MIN_TESTS}."; exit 1; fi
+          if [ "$sandbox" -lt "$MIN_SANDBOX_TESTS" ]; then echo "Nightly FAILED (sandbox sub-floor): ran $sandbox."; exit 1; fi
+          echo "Nightly (Built-in) PASS."
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-test-results
+          path: artifacts/test-results
+
+  # ── URP axis (non-blocking) ───────────────────────────────────────────────────────────────────────────────────
+  # `continue-on-error: true` so a URP-only issue never reds the nightly; it surfaces as a signal, not a gate.
+  #
+  # ENABLING THE URP CELL (remaining optional project config — keep Built-in as the default/required pipeline):
+  #   1. Add  "com.unity.render-pipelines.universal": "<ver>"  to Packages/manifest.json.
+  #   2. Create a URP pipeline asset + renderer (Assets/Settings/URP/…) — committed.
+  #   3. Point Graphics/Quality settings at it for the URP run only (e.g. a committed URP GraphicsSettings variant,
+  #      or an -executeMethod that sets GraphicsSettings.defaultRenderPipeline before -runTests).
+  # The SC-* materials already prefer URP Lit, so once the pipeline is active the demo-scene smoke tests validate
+  # URP shader-clean boot with no further code changes. Until this lands the cell is intentionally a no-op stub.
+  nightly-urp:
+    name: Nightly tests (URP) — scaffold, non-blocking
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: URP cell pending project config
+        run: |
+          echo "URP nightly is scaffolded but not yet wired (see the comment block above in ci-nightly.yml)."
+          echo "Enable by adding the URP package + a pipeline asset + activating it for this run."

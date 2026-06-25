@@ -76,9 +76,16 @@ namespace Samples.Shared
         /// TODO: if runtime-loading the hero per scene proves slow at validation, switch this to instantiate the
         /// editor-imported prefab in the editor; keep this runtime LoadAsync path for player builds / fresh clones.
         /// </summary>
+        /// <summary>
+        /// When true, <see cref="LoadDemoCharacterAsync"/> skips the (large) hero and always loads the synthetic
+        /// fallback. Smoke tests set this so demo scenes boot fast and deterministically without the ~10 MB hero import.
+        /// </summary>
+        public static bool ForceSyntheticForTests = false;
+
         public static Task<GameObject> LoadDemoCharacterAsync(Transform parent, string fallbackSyntheticFileName)
         {
-            string path = HeroExists ? HeroAbsolutePath : SyntheticPath(fallbackSyntheticFileName);
+            bool useHero = !ForceSyntheticForTests && HeroIsRealGlb;
+            string path = useHero ? HeroAbsolutePath : SyntheticPath(fallbackSyntheticFileName);
             return LoadAsync(path, parent);
         }
 

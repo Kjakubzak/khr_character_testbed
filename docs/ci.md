@@ -117,8 +117,9 @@ goldens) skips the diff with a message to run `-Update` once.
 
 - **Provider:** GitHub Actions + [game-ci](https://game.ci) `unity-test-runner` (pinned editor image + license).
 - **Unity:** `6000.0.76f1` (exact patch).
-- **Render pipeline:** **Built-in = required gate**; **URP = nightly / non-blocking** (TODO stub at the bottom of
-  the workflow); HDRP deferred. The KHR test / glTF-validation / golden gates are RP-agnostic.
+- **Render pipeline:** **Built-in = required gate**; **URP = nightly / non-blocking** (see `.github/workflows/ci-nightly.yml`;
+  the URP cell is scaffolded pending project config — the suite is RP-agnostic, so URP only adds demo-shader coverage);
+  HDRP deferred. The KHR test / glTF-validation / golden gates are RP-agnostic.
 - **Library cache:** keyed on `Packages/manifest.json` + `Packages/packages-lock.json` + `ProjectVersion.txt`.
   Commit `packages-lock.json` so the resolved dependency commit SHA is recorded and a new commit busts the cache.
 - **License (one-time setup):** add a repository secret **`UNITY_LICENSE`** with a Unity **Personal** license
@@ -127,3 +128,22 @@ goldens) skips the diff with a message to run `-Update` once.
 > The golden job uses game-ci's builder as a licensed headless host to run the `SandboxCI.ExportGoldens`
 > `-executeMethod` seam, then diffs the snapshots. Exact wiring may need tuning for your game-ci version; the gate
 > logic (the diff) is provider-agnostic.
+
+## Nightly + demo smoke tests (optional polish)
+
+A separate non-blocking workflow (`.github/workflows/ci-nightly.yml`) runs on a daily cron (and manual dispatch). It
+never gates a PR — the per-push `ci.yml` is the required gate. The nightly:
+
+- **Built-in cell:** re-runs the full PlayMode suite to catch environment / dependency drift.
+- **URP cell:** scaffolded + non-blocking (`continue-on-error`). The wire/state tests are RP-agnostic, so URP's
+  incremental value is the **demo-scene smoke tests** rendering the demo materials under URP. The SC-* materials are
+  already pipeline-aware (`CreateSkinMaterial` prefers URP Lit), so enabling the cell is project config only (add the
+  URP package + a pipeline asset + activate it for the run) — the steps are inline in `ci-nightly.yml`.
+
+**Demo-scene smoke tests** (`Assets/Tests/SandboxSceneSmokeTests.cs`) additively boot each built demo scene with the
+hero forced off (`CharacterLoader.ForceSyntheticForTests`, so boot is fast + deterministic) and assert a clean boot:
+the scene loads with root objects + a Camera, and no static renderer falls back to the magenta error shader. They run
+in the normal suite (Gate 2), so a broken scene/material reds the required gate too.
+
+**Schema conformance** is gated by the PlayMode suite (`SandboxSchemaConformanceTests`, Gate 2); a standalone
+`Validate-Schema` CI script would duplicate it, so it is intentionally not added.
