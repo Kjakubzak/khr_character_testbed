@@ -17,6 +17,7 @@ namespace Samples.Editor
     /// - SC-Face       : head mesh + 6 morph expressions (incl. lookL/R/U/D) + a jaw joint.
     /// - SC-FacePlus   : SC-Face + a texture expression (UV offset + 2-texture index-swap) on a distinct material.
     /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + TPose reference pose + a camera hint.
+    /// - SC-LookAt     : a KHR_character root + GazeSolver AuthoredTargets that mark nodes as KHR_node_lookat_target.
     /// </summary>
     public static class SampleCharacterFactory
     {
@@ -81,6 +82,21 @@ namespace Samples.Editor
                 temps.Add(root);
 
                 return ExportAndImport(root, outputDirectory, "SC-Body");
+            }
+            finally { Cleanup(temps); }
+        }
+
+        /// <summary>Build SC-LookAt (KHR_node_lookat_target authored focus points) and export it to SC-LookAt.glb.</summary>
+        public static string GenerateSCLookAt(string outputDirectory)
+        {
+            outputDirectory = Normalize(outputDirectory);
+            var temps = new List<Object>();
+            try
+            {
+                var root = AssembleLookAtCharacter(temps);
+                temps.Add(root);
+
+                return ExportAndImport(root, outputDirectory, "SC-LookAt");
             }
             finally { Cleanup(temps); }
         }
@@ -364,6 +380,36 @@ namespace Samples.Editor
             {
                 new CameraHint { Role = "portrait", Label = "Portrait", Node = portrait.transform, Target = bones["head"] },
             });
+
+            return root;
+        }
+
+        // ── Look-at assembly (SC-LookAt) ─────────────────────────────────────
+
+        // The minimal carrier for KHR_node_lookat_target (bug B7 had zero coverage): a KHR_character root whose
+        // GazeSolver.AuthoredTargets mark two ordinary nodes as look-at targets. One target carries a "hint" string;
+        // the other is hint-less (an empty {} target - presence alone marks the node). No expressions or skeleton are
+        // needed: the exporter's node-feature gate emits on AuthoredTargets alone, and the importer attaches a
+        // GazeSolver and rehydrates the targets whenever any look-at target is present.
+        private static GameObject AssembleLookAtCharacter(List<Object> temps)
+        {
+            var root = new GameObject("SC-LookAt") { hideFlags = HideFlags.HideAndDontSave };
+            root.AddComponent<KhrCharacter>();
+
+            var focus = new GameObject("FocusTarget") { hideFlags = HideFlags.HideAndDontSave };
+            focus.transform.SetParent(root.transform, false);
+            focus.transform.localPosition = new Vector3(0f, 1.5f, 2f);    // in front, head height
+
+            var aux = new GameObject("AuxTarget") { hideFlags = HideFlags.HideAndDontSave };
+            aux.transform.SetParent(root.transform, false);
+            aux.transform.localPosition = new Vector3(0.6f, 1.5f, 1.6f);
+
+            var gaze = root.AddComponent<GazeSolver>();
+            gaze.Bind(new List<LookAtTarget>
+            {
+                new LookAtTarget { Node = focus.transform, Hint = "primary" },
+                new LookAtTarget { Node = aux.transform, Hint = null },
+            }, null);
 
             return root;
         }

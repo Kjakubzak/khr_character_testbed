@@ -1,0 +1,56 @@
+{
+  "asset": {
+    "version": "2.0"
+  },
+  "extensions": {
+    "KHR_character": {
+      "rootNode": 0
+    }
+  },
+  "extensionsUsed": [
+    "KHR_character",
+    "KHR_node_lookat_target"
+  ],
+  "nodes": [
+    {
+      "children": [
+        1,
+        2
+      ],
+      "name": "SC-LookAt"
+    },
+    {
+      "extensions": {
+        "KHR_node_lookat_target": {
+          "hint": "primary"
+        }
+      },
+      "name": "FocusTarget",
+      "translation": [
+        0.0,
+        1.5,
+        2.0
+      ]
+    },
+    {
+      "extensions": {
+        "KHR_node_lookat_target": {}
+      },
+      "name": "AuxTarget",
+      "translation": [
+        -0.6,
+        1.5,
+        1.6
+      ]
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "SC-LookAt",
+      "nodes": [
+        0
+      ]
+    }
+  ]
+}

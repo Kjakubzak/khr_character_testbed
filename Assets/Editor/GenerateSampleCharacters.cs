@@ -21,11 +21,12 @@ namespace Samples.Editor
                 string face = SampleCharacterFactory.GenerateSCFace(OutputDirectory);
                 string facePlus = SampleCharacterFactory.GenerateSCFacePlus(OutputDirectory);
                 string body = SampleCharacterFactory.GenerateSCBody(OutputDirectory);
+                string lookAt = SampleCharacterFactory.GenerateSCLookAt(OutputDirectory);
 
-                Debug.Log($"[Samples] Generated sample characters:\n  {face}\n  {facePlus}\n  {body}");
+                Debug.Log($"[Samples] Generated sample characters:\n  {face}\n  {facePlus}\n  {body}\n  {lookAt}");
                 if (!Application.isBatchMode)
                     EditorUtility.DisplayDialog("Generate Sample Characters",
-                        $"Wrote:\n{face}\n{facePlus}\n{body}", "OK");
+                        $"Wrote:\n{face}\n{facePlus}\n{body}\n{lookAt}", "OK");
             }
             catch (System.Exception ex)
             {
