@@ -4705,6 +4705,10 @@
     "KHR_character",
     "KHR_animation_pointer",
     "KHR_character_expression",
+    "KHR_character_expression_morphtarget",
+    "KHR_character_expression_joint",
+    "KHR_character_expression_texture",
+    "KHR_character_expression_mask",
     "KHR_character_expression_mapping"
   ],
   "images": [

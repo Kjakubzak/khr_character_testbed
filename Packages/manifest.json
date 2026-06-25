@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#921d098a4b88c3dd3dfae8af0c9f3b46bc31d14c",
+    "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#2c5c4f3067f187aa2d33f283605300aea976c253",
     "com.unity.test-framework": "1.4.6",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",

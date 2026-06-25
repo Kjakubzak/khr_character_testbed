@@ -89,13 +89,46 @@ namespace KhrCharacterTestbed.Tests
                 // Neutral iff EVERY token on each surface is ^KHR_ (or the short core allow-list).
                 SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsUsed, $"{fixture} extensionsUsed");
                 SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsRequired, $"{fixture} extensionsRequired");
+
+                // B1 completeness: every nested KHR_character_expression_* sub-extension actually present on an
+                // expression item must ALSO be declared in extensionsUsed (glTF requires every used extension be
+                // declared). The pinned plugin (>= 2c5c4f30) fixes this; before that it was a known conformance gap.
+                AssertNestedExpressionUsageComplete(root, fixture);
+            }
+        }
+
+        // Walks the exported KHR_character_expression items and asserts each nested sub-extension that is actually
+        // present is declared in extensionsUsed (and never in extensionsRequired): the full-disk consumer proof of
+        // bug B1's fix. Fixture-agnostic: only the sub-extensions a fixture actually uses are required.
+        private static void AssertNestedExpressionUsageComplete(GLTFRoot root, string fixture)
+        {
+            if (root.Extensions == null || !root.Extensions.ContainsKey(KHR_character_expression.EXTENSION_NAME))
+                return;
+            var expr = root.Extensions[KHR_character_expression.EXTENSION_NAME] as KHR_character_expression;
+            if (expr?.Expressions == null) return;
+
+            bool anyMorph = false, anyJoint = false, anyTexture = false, anyMask = false;
+            foreach (var item in expr.Expressions)
+            {
+                if (item == null) continue;
+                anyMorph |= item.Morphtarget != null;
+                anyJoint |= item.Joint != null;
+                anyTexture |= item.Texture != null;
+                anyMask |= item.Mask != null;
             }
 
-            // TODO: add an extensionsUsed-completeness gate HERE — assert every nested KHR_character_expression_
-            // {morphtarget,joint,texture,mask} token present anywhere in the document is ALSO listed in
-            // extensionsUsed (glTF requires every used extension be declared). The consumed plugin does not yet
-            // declare those nested extensions, so the gate is left unasserted for now to keep the suite green
-            // against the currently-pinned package.
+            void Require(bool present, string token)
+            {
+                if (!present) return;
+                CollectionAssert.Contains(root.ExtensionsUsed, token,
+                    $"{fixture}: '{token}' is used on an expression item but missing from extensionsUsed (B1).");
+                Assert.IsTrue(root.ExtensionsRequired == null || !root.ExtensionsRequired.Contains(token),
+                    $"{fixture}: '{token}' must NOT be in extensionsRequired (non-required, like the parent).");
+            }
+            Require(anyMorph, KHR_character_expression_morphtarget.EXTENSION_NAME);
+            Require(anyJoint, KHR_character_expression_joint.EXTENSION_NAME);
+            Require(anyTexture, KHR_character_expression_texture.EXTENSION_NAME);
+            Require(anyMask, KHR_character_expression_mask.EXTENSION_NAME);
         }
     }
 }
