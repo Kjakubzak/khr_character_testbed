@@ -216,7 +216,7 @@ namespace Samples.Shared
         }
 
         // Returns the JSON chunk of a binary GLB, or the whole file when it is already a .gltf JSON document.
-        private static string ExtractGltfJson(byte[] bytes)
+        public static string ExtractGltfJson(byte[] bytes)
         {
             if (bytes == null || bytes.Length < 20) return null;
             if (System.BitConverter.ToUInt32(bytes, 0) == 0x46546C67u) // "glTF" -> binary container
