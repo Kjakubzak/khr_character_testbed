@@ -98,10 +98,7 @@ namespace Samples.GlbViewer
         {
             var rig = Object.FindFirstObjectByType<OrbitCameraRig>();
             if (rig == null || scene == null) return;
-            var renderers = scene.GetComponentsInChildren<Renderer>();
-            if (renderers.Length == 0) return;
-            var bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            if (!SceneBoundsUtil.TryAggregate(scene, out var bounds)) return;
             rig.FrameAndFace(bounds, scene.transform);
         }
 

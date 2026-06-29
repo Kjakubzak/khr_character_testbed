@@ -22,7 +22,7 @@ namespace Samples.Characters
         [Tooltip("Optional explicit character path. If empty, uses the hero VRoid when present, else SC-FacePlus.")]
         public string HeroGlbPath;
 
-        private const float TargetZ = 2f;
+        private Vector3 _targetAnchor = new Vector3(0f, 1.4f, GazeTargetUtil.DefaultDistance);
 
         private DemoUiBuilder _ui;
         private OrbitCameraRig _rig;
@@ -33,18 +33,16 @@ namespace Samples.Characters
         private Text _rigStatus;
         private float _targetX;
         private float _targetYOffset;
-        private float _baseTargetY;
 
         private async void Start()
         {
             bool usingHero = string.IsNullOrEmpty(HeroGlbPath) && CharacterLoader.HeroExists;
-            _baseTargetY = usingHero ? 1.4f : 0f;
 
             _rig = Object.FindFirstObjectByType<OrbitCameraRig>();
 
             var targetGo = new GameObject("GazeTarget");
             targetGo.transform.SetParent(transform, false);
-            targetGo.transform.position = new Vector3(0f, _baseTargetY, TargetZ);
+            targetGo.transform.position = _targetAnchor;
             _gazeTarget = targetGo.transform;
 
             _ui = DemoUiBuilder.Create("Character Showcase");
@@ -75,6 +73,10 @@ namespace Samples.Characters
         private void BuildPanel(KhrCharacter hub)
         {
             if (hub == null) { AddBack(); return; }
+
+            // Anchor the gaze target ~2m in front of the head joint (the scene was framed in Start).
+            _targetAnchor = GazeTargetUtil.InFrontOfHead(hub);
+            UpdateTarget();
 
             // Live capability health.
             var healthText = _ui.AddLabel(string.Empty);
@@ -177,20 +179,17 @@ namespace Samples.Characters
         private void UpdateTarget()
         {
             if (_gazeTarget != null)
-                _gazeTarget.position = new Vector3(_targetX, _baseTargetY + _targetYOffset, TargetZ);
+                _gazeTarget.position = _targetAnchor + new Vector3(_targetX, _targetYOffset, 0f);
         }
 
         private void FrameScene(GameObject scene)
         {
             if (_rig == null || scene == null) return;
-            var renderers = scene.GetComponentsInChildren<Renderer>();
-            if (renderers.Length == 0)
+            if (!SceneBoundsUtil.TryAggregate(scene, out var bounds))
             {
                 _rig.FrameAndFace(new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)), scene.transform);
                 return;
             }
-            var bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
             _rig.FrameAndFace(bounds, scene.transform);
         }
 

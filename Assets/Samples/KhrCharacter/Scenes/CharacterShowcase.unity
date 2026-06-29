@@ -377,7 +377,7 @@ GameObject:
   - component: {fileID: 778442487}
   - component: {fileID: 778442486}
   m_Layer: 0
-  m_Name: Health
+  m_Name: CharacterShowcase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -392,10 +392,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 778442485}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa8198bd998876b4394992681c4b9420, type: 3}
+  m_Script: {fileID: 11500000, guid: c41fb66238296d74eac0a426de84c5f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlbPath: 
+  HeroGlbPath: 
 --- !u!4 &778442487
 Transform:
   m_ObjectHideFlags: 0

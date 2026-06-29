@@ -3,6 +3,9 @@ using UnityEngine.EventSystems;
 
 namespace Samples.Shared
 {
+    /// <summary>Named camera viewpoints used by <see cref="OrbitCameraRig.ApplyPreset"/> and the demo UI/keyboard.</summary>
+    public enum CameraPreset { Front, ThreeQuarter, Side, Back, Top }
+
     /// <summary>
     /// Minimal mouse-orbit camera. Hold the left mouse button and drag to orbit, scroll to zoom. Call
     /// <see cref="Frame"/> to center and fit a target's world bounds. Uses the legacy Input Manager so it works
@@ -38,6 +41,10 @@ namespace Samples.Shared
         public bool AutoRotate = false;
         public float AutoRotateSpeed = 20f;
 
+        [Header("Field of view")]
+        public float MinFov = 20f;
+        public float MaxFov = 90f;
+
         /// <summary>Set true by a 3D drag widget (e.g. RuntimeMoveWidget) to suppress camera orbit/zoom while dragging.</summary>
         public static bool InputCaptured;
 
@@ -52,6 +59,15 @@ namespace Samples.Shared
         private float _shotYaw;
         private float _shotPitch;
         private float _shotDistance;
+
+        private Camera _camera;
+        private float _defaultFov = -1f; // captured on first access so ResetFov can restore the authored FOV
+
+        private void Awake()
+        {
+            _camera = GetComponent<Camera>();
+            if (_camera != null) _defaultFov = _camera.fieldOfView;
+        }
 
         private void LateUpdate()
         {
@@ -184,6 +200,103 @@ namespace Samples.Shared
                 if (radius > 0f) { FrameAndFaceHead(_lastBounds, _lastCharacter, center, radius); return; }
             }
             FrameAndFace(_lastBounds, _lastCharacter);
+        }
+
+        /// <summary>The pivot captured at the last framing call — the baseline that pan offsets are measured from.</summary>
+        public Vector3 ShotPivot => _shotPivot;
+
+        /// <summary>
+        /// Pan the focus point in the camera's screen plane (right/up), scaled by <see cref="Distance"/> so the felt
+        /// speed is consistent at any zoom. This is the movement the rig otherwise lacks: the mouse only orbits and
+        /// zooms, and nothing moves <see cref="Pivot"/> except framing/reset.
+        /// </summary>
+        public void Pan(Vector2 screenDelta)
+        {
+            Pivot += (transform.right * screenDelta.x + transform.up * screenDelta.y) * Distance;
+            Apply();
+        }
+
+        /// <summary>Set the focus point to the framed baseline plus a world-space X/Y offset (drives the UI pan sliders).</summary>
+        public void SetPivotOffsetXY(float x, float y)
+        {
+            Pivot = new Vector3(_shotPivot.x + x, _shotPivot.y + y, _shotPivot.z);
+            Apply();
+        }
+
+        /// <summary>Restore the focus point to the framed baseline, undoing any pan (angles/distance unchanged).</summary>
+        public void PanReset()
+        {
+            if (!_hasFraming) return;
+            Pivot = _shotPivot;
+            Apply();
+        }
+
+        /// <summary>
+        /// Multiplicative dolly: positive <paramref name="step"/> zooms in (shrinks distance), negative zooms out —
+        /// the same proportional model the mouse scroll uses in <see cref="LateUpdate"/>.
+        /// </summary>
+        public void Dolly(float step)
+        {
+            Distance = Mathf.Clamp(Distance * Mathf.Pow(1f - ZoomStep, step), MinDistance, MaxDistance);
+            Apply();
+        }
+
+        /// <summary>Nudge the orbit angles (keyboard orbit); pitch is clamped to the rig's range.</summary>
+        public void OrbitBy(float deltaYaw, float deltaPitch)
+        {
+            Yaw += deltaYaw;
+            Pitch = Mathf.Clamp(Pitch + deltaPitch, MinPitch, MaxPitch);
+            Apply();
+        }
+
+        /// <summary>Jump to a named view (generalizes the camera panel's Front/3-4/Side presets).</summary>
+        public void ApplyPreset(CameraPreset preset)
+        {
+            switch (preset)
+            {
+                case CameraPreset.Front: SetAngles(0f, 5f); break;
+                case CameraPreset.ThreeQuarter: SetAngles(30f, 8f); break;
+                case CameraPreset.Side: SetAngles(90f, 5f); break;
+                case CameraPreset.Back: SetAngles(180f, 5f); break;
+                case CameraPreset.Top: SetAngles(0f, 80f); break;
+            }
+        }
+
+        private void SetAngles(float yaw, float pitch)
+        {
+            Yaw = yaw;
+            Pitch = Mathf.Clamp(pitch, MinPitch, MaxPitch);
+            Apply();
+        }
+
+        /// <summary>The active camera's vertical FOV, clamped to <see cref="MinFov"/>..<see cref="MaxFov"/>.</summary>
+        public float Fov
+        {
+            get { var c = Cam; return c != null ? c.fieldOfView : _defaultFov; }
+            set
+            {
+                var c = Cam;
+                if (c == null) return;
+                CaptureDefaultFov();
+                c.fieldOfView = Mathf.Clamp(value, MinFov, MaxFov);
+            }
+        }
+
+        /// <summary>Restore the FOV captured at startup (clamped to the current Min/Max).</summary>
+        public void ResetFov()
+        {
+            CaptureDefaultFov();
+            var c = Cam;
+            if (c != null) c.fieldOfView = Mathf.Clamp(_defaultFov, MinFov, MaxFov);
+        }
+
+        private Camera Cam => _camera != null ? _camera : (_camera = GetComponent<Camera>());
+
+        private void CaptureDefaultFov()
+        {
+            if (_defaultFov >= 0f) return;
+            var c = Cam;
+            _defaultFov = c != null ? c.fieldOfView : 60f;
         }
 
         private void CaptureShot()

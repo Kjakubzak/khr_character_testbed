@@ -117,15 +117,12 @@ namespace Samples.Characters
             var rig = Object.FindFirstObjectByType<OrbitCameraRig>();
             if (rig == null || body == null) return;
 
-            var renderers = body.GetComponentsInChildren<Renderer>();
-            if (renderers.Length == 0)
+            if (!SceneBoundsUtil.TryAggregate(body, out var bounds))
             {
                 // SC-Body is bones-only (no mesh); frame a default human-sized volume around the skeleton.
                 rig.FrameAndFace(new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)), body.transform);
                 return;
             }
-            var bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
             rig.FrameAndFace(bounds, body.transform);
         }
     }

@@ -22,6 +22,7 @@ namespace KhrCharacterTestbed.Tests
         private static readonly string[] SceneNames =
         {
             "SampleHub", "GlbViewer", "Expressions", "GazeAndCamera", "RigAndPose", "RoundTrip", "Health",
+            "CharacterShowcase",
         };
 
         private Scene _loaded;

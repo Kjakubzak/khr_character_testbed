@@ -26,5 +26,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Samples/KhrCharacter/Scenes/Health.unity
     guid: 784518ec7e3effa4db0f7e0bed6fbdf5
+  - enabled: 1
+    path: Assets/Samples/KhrCharacter/Scenes/CharacterShowcase.unity
+    guid: 7fc42cab92302fb4cb0f7473a2f18636
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

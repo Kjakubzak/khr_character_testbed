@@ -17,7 +17,7 @@ namespace Samples.Characters
         public string FaceGlbPath;
         public string BodyGlbPath;
 
-        private const float TargetZ = 2f;
+        private Vector3 _targetAnchor = new Vector3(0f, 1.4f, GazeTargetUtil.DefaultDistance);
 
         private DemoUiBuilder _ui;
         private OrbitCameraRig _rig;
@@ -39,7 +39,7 @@ namespace Samples.Characters
 
             var targetGo = new GameObject("GazeTarget");
             targetGo.transform.SetParent(transform, false);
-            targetGo.transform.position = new Vector3(0f, 0f, TargetZ);
+            targetGo.transform.position = _targetAnchor;
             _gazeTarget = targetGo.transform;
 
             _ui = DemoUiBuilder.Create("Gaze & Camera");
@@ -102,7 +102,7 @@ namespace Samples.Characters
 
         private void UpdateTarget()
         {
-            if (_gazeTarget != null) _gazeTarget.position = new Vector3(_targetX, _targetY, TargetZ);
+            if (_gazeTarget != null) _gazeTarget.position = _targetAnchor + new Vector3(_targetX, _targetY, 0f);
         }
 
         // Place the gaze target in front of the head (toward the camera at Yaw 0) and make it draggable via an
@@ -111,8 +111,7 @@ namespace Samples.Characters
         {
             if (_gazeTarget == null) return;
 
-            Vector3 headCenter = _rig != null ? _rig.Pivot : new Vector3(0f, 1.4f, 0f);
-            _gazeTarget.position = headCenter + new Vector3(0f, 0f, -0.6f);
+            _gazeTarget.position = _targetAnchor;
 
             if (_targetWidget == null)
                 _targetWidget = _gazeTarget.gameObject.AddComponent<RuntimeMoveWidget>();
@@ -132,11 +131,9 @@ namespace Samples.Characters
             // Frame + face the gaze character to the camera (once, start-only — mouse-orbit still works after).
             if (_rig != null)
             {
-                var renderers = hub.GetComponentsInChildren<Renderer>();
-                Bounds bounds = renderers.Length > 0
-                    ? renderers[0].bounds
+                Bounds bounds = SceneBoundsUtil.TryAggregate(hub.gameObject, out var aggregated)
+                    ? aggregated
                     : new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f));
-                for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
 
                 // Gaze is a head shot: zoom onto the gaze character's head (still facing the camera).
                 if (OrbitCameraRig.TryGetHeadFocus(hub.gameObject, bounds, out var headCenter, out var headRadius))
@@ -144,6 +141,10 @@ namespace Samples.Characters
                 else
                     _rig.FrameAndFace(bounds, hub.transform);
             }
+
+            // Anchor the gaze target ~2m in front of the head joint now the character is framed (forward settled).
+            _targetAnchor = GazeTargetUtil.InFrontOfHead(hub);
+            UpdateTarget();
 
             _gaze = hub.Gaze;
             if (_gaze == null) { _ui.AddLabel("Face asset has no gaze solver."); return; }

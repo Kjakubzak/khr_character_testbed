@@ -20,6 +20,12 @@ namespace Samples.Shared
     /// </summary>
     public static class CharacterLoader
     {
+        /// <summary>
+        /// Absolute path of the most recent disk load via <see cref="LoadAsync"/> (null after an in-memory load),
+        /// so inspection UI can re-read the source <c>extensionsUsed</c> without knowing the per-scene controller.
+        /// </summary>
+        public static string LastLoadedSourcePath { get; private set; }
+
         /// <summary>Project-relative path (under Assets/) of the committed synthetic sample.</summary>
         public const string DefaultRelativePath = "SampleAssets/Synthetic/SC-Face.glb";
 
@@ -117,6 +123,7 @@ namespace Samples.Shared
         /// </summary>
         public static async Task<GameObject> LoadAsync(string absolutePath, Transform parent)
         {
+            LastLoadedSourcePath = absolutePath;
             EnableImportPlugin();
 
             string directory = Path.GetDirectoryName(absolutePath);
@@ -178,6 +185,7 @@ namespace Samples.Shared
         /// </summary>
         public static async Task<GameObject> LoadFromBytesAsync(byte[] glb, Transform parent)
         {
+            LastLoadedSourcePath = null; // in-memory re-import has no source file on disk
             EnableImportPlugin();
 
             GameObject tempHost = null;

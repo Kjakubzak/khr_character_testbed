@@ -41,6 +41,7 @@ Launch any of these from **SampleHub**:
 
 | Scene | Shows | Try this |
 |---|---|---|
+| **CharacterShowcase** | Drive a full character through every `KHR_character` capability | The combined demo — every capability on one character (hero asset, or `SC-FacePlus` fallback) |
 | **GlbViewer** | Import any `.glb`/`.gltf` at runtime + capability discovery | Load a character; read the Active/Degraded/Inert capability list |
 | **Expressions** | Morph + joint + texture expression control | Drag `jawOpen`, the jaw-bone slider, and the texture swap (snaps at 0.5) |
 | **GazeAndCamera** | Expression-driven gaze + advisory camera hints | Move the target → eyes track it; click a camera-hint role |
@@ -92,10 +93,10 @@ Assets/
   Samples/
     _Shared/      shared infra (RP bootstrap, orbit camera, uGUI panel, SampleHub) + scenes
     GlbViewer/    runtime GLB viewer demo
-    KhrCharacter/ Expressions / GazeAndCamera / RigAndPose / RoundTrip / Health demos
+    KhrCharacter/ Expressions / GazeAndCamera / RigAndPose / RoundTrip / Health / CharacterShowcase demos
   SampleAssets/   generated SC-* GLBs + ATTRIBUTION.md
   Editor/         Enable Plugins / Generate Sample Characters / Build Sample Scenes
-  Tests/          PlayMode tests (M1–M6 + a neutral-wire smoke test)
+  Tests/          PlayMode tests (demo spine + a neutral-wire smoke test)
 Packages/         manifest.json (pinned plugin) + packages-lock.json (SHA)
 ```
 
@@ -103,7 +104,7 @@ Packages/         manifest.json (pinned plugin) + packages-lock.json (SHA)
 
 ## Running the tests
 
-PlayMode tests cover the full demo spine (M1–M6) and act as an anti-hollow gate — they fail to compile if the plugin dependency goes missing. In the Editor: **Window ▸ General ▸ Test Runner ▸ PlayMode ▸ Run All**. Headless:
+PlayMode tests cover the full demo spine and the core KHR_character behaviors (expressions, gaze, rig switch, round-trip, neutrality) plus a scene-smoke gate, and act as an anti-hollow gate — they fail to compile if the plugin dependency goes missing. In the Editor: **Window ▸ General ▸ Test Runner ▸ PlayMode ▸ Run All**. Headless:
 
 ```bash
 Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults results.xml -logFile -

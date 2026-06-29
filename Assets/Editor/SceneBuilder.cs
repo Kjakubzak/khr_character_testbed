@@ -73,6 +73,12 @@ namespace Samples.Editor
             // Shared camera-control / QoL panel. Self-builds at runtime and no-ops on scenes with no OrbitCameraRig.
             new GameObject("CameraControlPanel", typeof(CameraControlPanel));
 
+            // Shared 3D visualizer + inspection panel + keyboard shortcuts. Each self-builds at runtime and no-ops
+            // gracefully when its target is absent (e.g. the hub scene), mirroring CameraControlPanel.
+            new GameObject("AssetVisualizer", typeof(AssetVisualizer));
+            new GameObject("AssetInspectionPanel", typeof(AssetInspectionPanel));
+            new GameObject("DemoShortcuts", typeof(DemoShortcuts));
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, scenePath);
         }
