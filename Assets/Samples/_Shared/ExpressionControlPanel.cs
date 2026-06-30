@@ -7,8 +7,8 @@ namespace Samples.Shared
 {
     /// <summary>
     /// Binds a uGUI control panel to a character's <see cref="ExpressionController"/>. On
-    /// <see cref="KhrCharacter.WhenReady"/> it auto-builds one row per expression (a toggle for binary expressions,
-    /// a slider otherwise) plus a Reset All button. Expression names and counts vary per asset, so rows are
+    /// <see cref="KhrCharacter.WhenReady"/> it auto-builds one row per expression (a 0/1-snapping slider for binary
+    /// (all-STEP) expressions, a free 0..1 slider otherwise) plus a Reset All button. Expression names and counts vary
     /// generated from <see cref="ExpressionController.Expressions"/>; rows are iterated by index and each name is
     /// captured locally so writes are name-stable. Every controller access is null-checked because a capability
     /// (and its sub-controller) may be absent on a given character.
@@ -26,7 +26,6 @@ namespace Samples.Shared
         {
             public string Name;
             public Slider Slider;
-            public Toggle Toggle;
         }
 
         /// <summary>Bind to a character; rows (re)build when it becomes ready (live import or rehydrated prefab).</summary>
@@ -69,16 +68,10 @@ namespace Samples.Shared
                 string name = handle.Name;
                 if (string.IsNullOrEmpty(name)) continue;
 
-                if (handle.IsBinary)
-                {
-                    var toggle = Ui.AddToggle(name, isOn => Write(name, isOn ? 1f : 0f), _controller.GetWeight(name) >= 0.5f);
-                    _rows.Add(new RowBinding { Name = name, Toggle = toggle });
-                }
-                else
-                {
-                    var slider = Ui.AddSlider(name, v => Write(name, v), 0f, 1f, _controller.GetWeight(name));
-                    _rows.Add(new RowBinding { Name = name, Slider = slider });
-                }
+                var slider = Ui.AddSlider(name, v => Write(name, v), 0f, 1f, _controller.GetWeight(name));
+                // Binary (all-STEP) expressions use a 0/1-snapping slider instead of a free 0..1 slider.
+                if (handle.IsBinary) slider.wholeNumbers = true;
+                _rows.Add(new RowBinding { Name = name, Slider = slider });
             }
 
             Ui.AddButton("Reset All", ResetAll);
@@ -93,7 +86,6 @@ namespace Samples.Shared
             {
                 float w = _controller != null ? _controller.GetWeight(row.Name) : 0f;
                 if (row.Slider != null) row.Slider.SetValueWithoutNotify(w);
-                if (row.Toggle != null) row.Toggle.SetIsOnWithoutNotify(w >= 0.5f);
             }
         }
 

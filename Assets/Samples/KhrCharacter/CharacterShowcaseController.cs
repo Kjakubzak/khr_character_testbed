@@ -100,10 +100,9 @@ namespace Samples.Characters
             {
                 string name = handles[i].Name;
                 if (string.IsNullOrEmpty(name)) continue;
-                if (handles[i].IsBinary)
-                    _ui.AddToggle(name, on => controller.SetWeight(name, on ? 1f : 0f), controller.GetWeight(name) >= 0.5f);
-                else
-                    _ui.AddSlider(name, v => controller.SetWeight(name, v), 0f, 1f, controller.GetWeight(name));
+                var slider = _ui.AddSlider(name, v => controller.SetWeight(name, v), 0f, 1f, controller.GetWeight(name));
+                // Binary (all-STEP) expressions snap to 0/1.
+                if (handles[i].IsBinary) slider.wholeNumbers = true;
             }
             _ui.AddButton("Reset Expressions", controller.ResetAll);
         }

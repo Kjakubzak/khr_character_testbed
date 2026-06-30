@@ -51,11 +51,9 @@ Use **Back to Hub** to return and try the other demos.
 
 ## Neutralize your own character (bring-your-own)
 
-When `Assets/SampleAssets/khr-character-example.glb` is present, **all demo scenes default to that hero character** (consumed via `KHR_character`; `VRMC_*` ignored); otherwise each demo uses its synthetic `SC-*` fallback.
+This repo **ships a hero character** at `Assets/SampleAssets/khr-character-example.glb` (by **0b5vr**, VRoid Studio, [VRM 1.0](https://vrm.dev/licenses/1.0/), committed via Git LFS). When present, **all demo scenes default to it** (consumed via `KHR_character`; `VRMC_*` ignored); otherwise each demo uses its synthetic `SC-*` fallback.
 
-The **Round Trip** demo can also consume
-
-The **Round Trip** demo can also consume an *external* character — e.g. a VRoid/VRM `.glb` that carries `VRMC_*` vendor extensions — purely via `KHR_character`, and re-export it **vendor-neutral**. Drop a file at `Assets/SampleAssets/khr-character-example.glb` (it is **git-ignored**: its mesh/textures carry their own licensing, so keep it local), open **Round Trip** and click **Load + Neutralize external**, then compare the **source** `extensionsUsed` (including `VRMC_*`) against the **re-export** `extensionsUsed` (KHR-only, no vendor extensions, empty `extensionsRequired`). With no such file present it falls back to the neutral `SC-Body`.
+The **Round Trip** demo can also consume an *external* character — e.g. a VRoid/VRM `.glb` that carries `VRMC_*` vendor extensions — purely via `KHR_character`, and re-export it **vendor-neutral**. To neutralize your own instead, replace the committed hero `Assets/SampleAssets/khr-character-example.glb` with your `.glb` (it carries its own licensing, so mind the terms), open **Round Trip** and click **Load + Neutralize external**, then compare the **source** `extensionsUsed` (including `VRMC_*`) against the **re-export** `extensionsUsed` (KHR-only, no vendor extensions, empty `extensionsRequired`). With no such file present it falls back to the neutral `SC-Body`.
 
 ## Troubleshooting
 
