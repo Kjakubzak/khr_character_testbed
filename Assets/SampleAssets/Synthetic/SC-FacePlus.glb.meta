@@ -52,11 +52,11 @@ ScriptedImporter:
 '
   optimizeGameObjects: 0
   materials:
-  - {instanceID: 0}
-  - {instanceID: 0}
+  - {fileID: -3366485159237516975, guid: 51eee87f8348c6f428294bebc62f3c0f, type: 3}
+  - {fileID: -1308353361740096057, guid: 51eee87f8348c6f428294bebc62f3c0f, type: 3}
   textures:
-  - {instanceID: 0}
-  - {instanceID: 0}
+  - {fileID: -3590282578597461233, guid: 51eee87f8348c6f428294bebc62f3c0f, type: 3}
+  - {fileID: -5971162187913313766, guid: 51eee87f8348c6f428294bebc62f3c0f, type: 3}
   hasSceneData: 1
   hasAnimationData: 1
   hasMaterialData: 1
@@ -68,12 +68,10 @@ ScriptedImporter:
   - name: lookRight
   - name: lookUp
   - name: lookDown
+  - name: aa
+  - name: happy
   - name: texFx
   _extensions:
-  - name: KHR_materials_unlit
-    supported: 1
-    used: 1
-    required: 1
   - name: KHR_texture_transform
     supported: 1
     used: 1
@@ -90,12 +88,36 @@ ScriptedImporter:
     supported: 1
     used: 1
     required: 0
+  - name: KHR_character_expression_morphtarget
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_joint
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_texture
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_mask
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_mapping
+    supported: 1
+    used: 1
+    required: 0
   _textures:
-  - texture: {instanceID: 0}
+  - texture: {fileID: -3590282578597461233, guid: 51eee87f8348c6f428294bebc62f3c0f, type: 3}
     shouldBeLinear: 0
     shouldBeNormalMap: 0
-  - texture: {instanceID: 0}
+  - texture: {fileID: -5971162187913313766, guid: 51eee87f8348c6f428294bebc62f3c0f, type: 3}
     shouldBeLinear: 1
     shouldBeNormalMap: 0
   _mainAssetIdentifier: scenes/SC-FacePlus
-  _importPlugins: []
+  _importPlugins:
+  - typeName: UnityGLTF.KhrCharacter.KhrCharacterImportPlugin
+    overrideEnabled: 1
+    enabled: 1
+    jsonSettings: 

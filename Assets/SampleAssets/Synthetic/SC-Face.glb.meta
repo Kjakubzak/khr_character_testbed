@@ -52,7 +52,7 @@ ScriptedImporter:
 '
   optimizeGameObjects: 0
   materials:
-  - {instanceID: 0}
+  - {fileID: -3366485159237516975, guid: ee3457794d91bed47a4e07e82096b1cb, type: 3}
   textures: []
   hasSceneData: 1
   hasAnimationData: 1
@@ -65,6 +65,8 @@ ScriptedImporter:
   - name: lookRight
   - name: lookUp
   - name: lookDown
+  - name: aa
+  - name: happy
   _extensions:
   - name: KHR_character
     supported: 1
@@ -78,6 +80,26 @@ ScriptedImporter:
     supported: 1
     used: 1
     required: 0
+  - name: KHR_character_expression_morphtarget
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_joint
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_mask
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_mapping
+    supported: 1
+    used: 1
+    required: 0
   _textures: []
   _mainAssetIdentifier: scenes/SC-Face
-  _importPlugins: []
+  _importPlugins:
+  - typeName: UnityGLTF.KhrCharacter.KhrCharacterImportPlugin
+    overrideEnabled: 1
+    enabled: 0
+    jsonSettings: 
