@@ -29,5 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Samples/KhrCharacter/Scenes/CharacterShowcase.unity
     guid: 7fc42cab92302fb4cb0f7473a2f18636
+  - enabled: 1
+    path: Assets/Samples/VisibilityHints/Scenes/VisibilityHints.unity
+    guid: 7c01343559672e046bbec0112513f5d6
   m_configObjects: {}
-  m_UseUCBPForAssetBundles: 0
