@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 using Samples.Shared;
 using Samples.GlbViewer;
 using Samples.Characters;
+using Samples.VisibilityHints;
 
 namespace Samples.Editor
 {
@@ -26,6 +27,7 @@ namespace Samples.Editor
         private const string RoundTripScenePath = "Assets/Samples/KhrCharacter/Scenes/RoundTrip.unity";
         private const string HealthScenePath = "Assets/Samples/KhrCharacter/Scenes/Health.unity";
         private const string ShowcaseScenePath = "Assets/Samples/KhrCharacter/Scenes/CharacterShowcase.unity";
+        private const string VisibilityHintsScenePath = "Assets/Samples/VisibilityHints/Scenes/VisibilityHints.unity";
 
         [MenuItem("Assets/UnityGLTF/KHR Character/Build Sample Scenes")]
         public static void BuildAllScenes()
@@ -42,16 +44,17 @@ namespace Samples.Editor
             BuildScene<RoundTripController>(RoundTripScenePath, "RoundTrip", addOrbit: true);
             BuildScene<HealthController>(HealthScenePath, "Health", addOrbit: true);
             BuildScene<CharacterShowcaseController>(ShowcaseScenePath, "CharacterShowcase", addOrbit: true);
+            BuildScene<VisibilityHintsController>(VisibilityHintsScenePath, "VisibilityHints", addOrbit: true);
 
             RegisterBuildScenes(HubScenePath, GlbViewerScenePath, ExpressionsScenePath, GazeScenePath, RigScenePath,
-                RoundTripScenePath, HealthScenePath, ShowcaseScenePath);
+                RoundTripScenePath, HealthScenePath, ShowcaseScenePath, VisibilityHintsScenePath);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log("[Samples] Built sample scenes: SampleHub, GlbViewer, Expressions, GazeAndCamera, RigAndPose, RoundTrip, Health, CharacterShowcase (added to Build Settings).");
+            Debug.Log("[Samples] Built sample scenes: SampleHub, GlbViewer, Expressions, GazeAndCamera, RigAndPose, RoundTrip, Health, CharacterShowcase, VisibilityHints (added to Build Settings).");
             if (!Application.isBatchMode)
                 EditorUtility.DisplayDialog("Build Sample Scenes",
-                    "Built all sample scenes (incl. CharacterShowcase) and added them to Build Settings.", "OK");
+                    "Built all sample scenes (incl. CharacterShowcase and VisibilityHints) and added them to Build Settings.", "OK");
         }
 
         private static void BuildScene<TController>(string scenePath, string controllerName, bool addOrbit)

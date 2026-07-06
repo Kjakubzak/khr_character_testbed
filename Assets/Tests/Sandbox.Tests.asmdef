@@ -5,6 +5,7 @@
         "Samples.Shared",
         "UnityGLTF.KhrCharacter.Runtime",
         "UnityGLTF.KhrCharacter.Schema",
+        "UnityGLTF.VisibilityHints.Runtime",
         "UnityGLTFScripts",
         "GLTFSerialization",
         "UnityEngine.TestRunner",

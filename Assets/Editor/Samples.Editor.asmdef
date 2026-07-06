@@ -5,10 +5,12 @@
         "Samples.Shared",
         "Samples.GlbViewer",
         "Samples.KhrCharacter",
+        "Samples.VisibilityHints",
         "UnityGLTFScripts",
         "GLTFSerialization",
         "UnityGLTF.KhrCharacter.Runtime",
         "UnityGLTF.KhrCharacter.Schema",
+        "UnityGLTF.VisibilityHints.Runtime",
         "UnityGLTFEditor",
         "UnityGLTF.KhrCharacter.Editor"
     ],

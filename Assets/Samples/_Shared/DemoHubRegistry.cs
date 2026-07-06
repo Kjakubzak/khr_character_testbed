@@ -32,6 +32,7 @@ namespace Samples.Shared
             new DemoEntry("RigAndPose", "Rig & Pose", "Switch rig mode and apply the reference pose."),
             new DemoEntry("RoundTrip", "Round Trip", "Export, re-import, and compare the result."),
             new DemoEntry("Health", "Health", "Inspect capability health and graceful degradation."),
+            new DemoEntry("VisibilityHints", "Visibility Hints", "First/third-person view context via KHR visibility hints (node + primitive)."),
         };
     }
 }
