@@ -241,6 +241,7 @@ MonoBehaviour:
   - {fileID: 3354059074467448115}
   - {fileID: 4927665137043107140}
   - {fileID: -5655306569189375831}
+  - {fileID: 5075980400549186311}
   ExportPlugins:
   - {fileID: 1925060670421365638}
   - {fileID: -2010698973615527103}
@@ -257,6 +258,7 @@ MonoBehaviour:
   - {fileID: 7979128371216551547}
   - {fileID: 2594341554564710220}
   - {fileID: -5877304076583654520}
+  - {fileID: 7630660350994822966}
   exportNames: 1
   exportFullPath: 0
   EditorExportTransformMode: 0
@@ -423,6 +425,19 @@ MonoBehaviour:
   m_Name: AudioImport
   m_EditorClassIdentifier: 
   enabled: 0
+--- !u!114 &5075980400549186311
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be19d1bf57884368af4eb4380c6a5333, type: 3}
+  m_Name: VisibilityHintImportPlugin
+  m_EditorClassIdentifier: 
+  enabled: 1
 --- !u!114 &5892536572506140997
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -460,6 +475,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b6d87ebf60834245a388cd150253839d, type: 3}
   m_Name: AnimationPointerExport
+  m_EditorClassIdentifier: 
+  enabled: 1
+--- !u!114 &7630660350994822966
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3ee658b541b4169a3e01c7d78be12f8, type: 3}
+  m_Name: VisibilityHintExportPlugin
   m_EditorClassIdentifier: 
   enabled: 1
 --- !u!114 &7979128371216551547

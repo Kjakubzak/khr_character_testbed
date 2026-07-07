@@ -11,6 +11,7 @@
         "UnityGLTF.KhrCharacter.Runtime",
         "UnityGLTF.KhrCharacter.Schema",
         "UnityGLTF.VisibilityHints.Runtime",
+        "UnityGLTF.VisibilityHints.Schema",
         "UnityGLTFEditor",
         "UnityGLTF.KhrCharacter.Editor"
     ],

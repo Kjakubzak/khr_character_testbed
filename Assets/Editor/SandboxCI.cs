@@ -7,12 +7,13 @@ using UnityEngine.Rendering;
 using UnityGLTF;
 using UnityGLTF.KhrCharacter;
 using UnityGLTF.Plugins;
+using UnityGLTF.VisibilityHints;
 
 namespace Samples.Editor
 {
     /// <summary>
     /// Headless CI seam invoked via Unity's <c>-executeMethod</c>. It enables the needed plugins IN CODE (never
-    /// trusting the committed settings asset), regenerates the SC-* fixtures, and writes normalized wire snapshots
+    /// trusting the committed settings asset), regenerates the SC-*/VH-* fixtures, and writes normalized wire snapshots
     /// for the golden gate. The Tools/ci scripts call these methods.
     /// </summary>
     public static class SandboxCI
@@ -33,6 +34,9 @@ namespace Samples.Editor
             ("SC-Partial", SampleCharacterFactory.GenerateSCPartial),
             ("SC-PseudoVRM", SampleCharacterFactory.GenerateSCPseudoVRM),
             ("SC-ExprEdge", SampleCharacterFactory.GenerateSCExprEdge),
+            ("VH-Node", SampleCharacterFactory.GenerateVHNode),
+            ("VH-Primitive", SampleCharacterFactory.GenerateVHPrimitive),
+            ("VH-ViewContext", SampleCharacterFactory.GenerateVHViewContext),
         };
 
         // ── URP nightly cell (Phase 5): create + (de)activate a URP pipeline asset ──────────────────────────────
@@ -114,7 +118,7 @@ namespace Samples.Editor
             Debug.Log($"[SandboxCI] active render pipeline = {(rp != null ? rp.name : "Built-in")}.");
         }
 
-        /// <summary>Enable the KHR Character import + export plugins (and AnimationPointer) on the shared settings.</summary>
+        /// <summary>Enable the KHR Character and Visibility Hint import + export plugins (and AnimationPointer) on the shared settings.</summary>
         public static void EnablePlugins()
         {
             var settings = GLTFSettings.GetOrCreateSettings();
@@ -123,17 +127,17 @@ namespace Samples.Editor
             int updated = 0;
             if (settings.ImportPlugins != null)
                 foreach (var plugin in settings.ImportPlugins)
-                    if (plugin is KhrCharacterImportPlugin) updated += SetEnabled(plugin);
+                    if (plugin is KhrCharacterImportPlugin || plugin is VisibilityHintImportPlugin) updated += SetEnabled(plugin);
             if (settings.ExportPlugins != null)
                 foreach (var plugin in settings.ExportPlugins)
-                    if (plugin is KhrCharacterExportPlugin || plugin is AnimationPointerExport) updated += SetEnabled(plugin);
+                    if (plugin is KhrCharacterExportPlugin || plugin is AnimationPointerExport || plugin is VisibilityHintExportPlugin) updated += SetEnabled(plugin);
 
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             Debug.Log($"[SandboxCI] EnablePlugins: {updated} plugin(s) enabled.");
         }
 
-        /// <summary>Regenerate the committed SC-* GLB fixtures under Assets/SampleAssets/Synthetic.</summary>
+        /// <summary>Regenerate the committed SC-*/VH-* GLB fixtures under Assets/SampleAssets/Synthetic.</summary>
         public static void ExportAllFixtures()
         {
             EnablePlugins();

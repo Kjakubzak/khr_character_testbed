@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityGLTF;
 using UnityGLTF.KhrCharacter;
 using UnityGLTF.Plugins;
+using UnityGLTF.VisibilityHints;
 
 namespace Samples.Editor
 {
@@ -24,6 +25,9 @@ namespace Samples.Editor
     /// - SC-Partial    : a KHR_character root with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
     /// - SC-PseudoVRM  : SC-Partial post-processed to carry synthetic VRMC_* vendor tokens (always-on neutralization gate).
     /// - SC-ExprEdge   : two morph expressions where one BLOCK-masks the other (mask-domain edge: block vs blend).
+    /// - VH-Node       : a Head node carrying KHR_node_visibility_hint (third_person_only) - a node-scoped hint only.
+    /// - VH-Primitive  : a two-sub-mesh Body whose sub-mesh 1 carries KHR_mesh_primitive_visibility_hint (first_person_only).
+    /// - VH-ViewContext: both visibility-hint extensions on one hierarchy (Head node hint + Body sub-mesh hint).
     /// </summary>
     public static class SampleCharacterFactory
     {
@@ -156,6 +160,51 @@ namespace Samples.Editor
                 temps.Add(root);
 
                 return ExportAndImport(root, outputDirectory, "SC-ExprEdge");
+            }
+            finally { Cleanup(temps); }
+        }
+
+        /// <summary>Build VH-Node (KHR_node_visibility_hint on a single-mesh Head) and export it to VH-Node.glb.</summary>
+        public static string GenerateVHNode(string outputDirectory)
+        {
+            outputDirectory = Normalize(outputDirectory);
+            var temps = new List<Object>();
+            try
+            {
+                var root = AssembleVHNode(temps);
+                temps.Add(root);
+
+                return ExportAndImport(root, outputDirectory, "VH-Node");
+            }
+            finally { Cleanup(temps); }
+        }
+
+        /// <summary>Build VH-Primitive (KHR_mesh_primitive_visibility_hint on Body sub-mesh 1) and export it to VH-Primitive.glb.</summary>
+        public static string GenerateVHPrimitive(string outputDirectory)
+        {
+            outputDirectory = Normalize(outputDirectory);
+            var temps = new List<Object>();
+            try
+            {
+                var root = AssembleVHPrimitive(temps);
+                temps.Add(root);
+
+                return ExportAndImport(root, outputDirectory, "VH-Primitive");
+            }
+            finally { Cleanup(temps); }
+        }
+
+        /// <summary>Build VH-ViewContext (both visibility-hint extensions on one hierarchy) and export it to VH-ViewContext.glb.</summary>
+        public static string GenerateVHViewContext(string outputDirectory)
+        {
+            outputDirectory = Normalize(outputDirectory);
+            var temps = new List<Object>();
+            try
+            {
+                var root = AssembleVHViewContext(temps);
+                temps.Add(root);
+
+                return ExportAndImport(root, outputDirectory, "VH-ViewContext");
             }
             finally { Cleanup(temps); }
         }
@@ -554,6 +603,155 @@ namespace Samples.Editor
             return mesh;
         }
 
+        // ── Visibility-hint assembly (VH-Node / VH-Primitive / VH-ViewContext) ─
+
+        // VH-Node: a single-mesh "Head" node carrying KHR_node_visibility_hint (third_person_only), authored on a
+        // NodeVisibilityHintSet. In the default third-person view a third_person_only node stays visible, so nothing
+        // is toggled; the exporter emits the hint from the serialized entry and no other extension appears.
+        private static GameObject AssembleVHNode(List<Object> temps)
+        {
+            var root = new GameObject("VH-Node") { hideFlags = HideFlags.HideAndDontSave };
+            root.AddComponent<ViewContextController>();
+
+            var mesh = BuildVHTriangleMesh("VH-Node-Mesh");
+            temps.Add(mesh);
+            var head = AddMeshChild(root.transform, "Head", mesh, CreateVHMaterial("VH-Node-Mat", temps));
+
+            root.AddComponent<NodeVisibilityHintSet>().Bind(new List<NodeVisibilityHintSet.NodeVisibilityEntry>
+            {
+                new NodeVisibilityHintSet.NodeVisibilityEntry
+                {
+                    Node = head.transform,
+                    Role = VisibilityHintExtensionNames.RoleThirdPersonOnly,
+                    Label = "Head",
+                },
+            });
+
+            return root;
+        }
+
+        // VH-Primitive: a two-sub-mesh "Body" whose sub-mesh 1 carries KHR_mesh_primitive_visibility_hint
+        // (first_person_only). Bind resolves the hint and, in the default third-person view, swaps sub-mesh 1 to the
+        // shared invisible material; we restore the authored materials before export so the wire carries the real
+        // materials (the exporter reads the role from the serialized entry, not from live material state).
+        private static GameObject AssembleVHPrimitive(List<Object> temps)
+        {
+            var root = new GameObject("VH-Primitive") { hideFlags = HideFlags.HideAndDontSave };
+            root.AddComponent<ViewContextController>();
+
+            var mesh = BuildVHTwoSubMeshMesh("VH-Primitive-Mesh");
+            temps.Add(mesh);
+            var mat0 = CreateVHMaterial("VH-Primitive-Mat0", temps);
+            var mat1 = CreateVHMaterial("VH-Primitive-Mat1", temps);
+            var body = AddMeshChild(root.transform, "Body", mesh, mat0, mat1);
+
+            root.AddComponent<PrimitiveVisibilityHintSet>().Bind(new List<PrimitiveVisibilityHintSet.PrimitiveVisibilityEntry>
+            {
+                new PrimitiveVisibilityHintSet.PrimitiveVisibilityEntry
+                {
+                    Mesh = mesh,
+                    SubMesh = 1,
+                    Role = VisibilityHintExtensionNames.RoleFirstPersonOnly,
+                    Label = "BodyArms",
+                },
+            });
+            body.GetComponent<MeshRenderer>().sharedMaterials = new[] { mat0, mat1 };
+
+            return root;
+        }
+
+        // VH-ViewContext: the combined fixture - a Head node hint (third_person_only) AND a Body sub-mesh-1 primitive
+        // hint (first_person_only), so both extensions appear in one wire. As in AssembleVHPrimitive, the Body's
+        // authored materials are restored after Bind (the third-person view would otherwise swap sub-mesh 1).
+        private static GameObject AssembleVHViewContext(List<Object> temps)
+        {
+            var root = new GameObject("VH-ViewContext") { hideFlags = HideFlags.HideAndDontSave };
+            root.AddComponent<ViewContextController>();
+
+            var headMesh = BuildVHTriangleMesh("VH-ViewContext-Head-Mesh");
+            temps.Add(headMesh);
+            var head = AddMeshChild(root.transform, "Head", headMesh, CreateVHMaterial("VH-ViewContext-Head-Mat", temps));
+
+            var bodyMesh = BuildVHTwoSubMeshMesh("VH-ViewContext-Body-Mesh");
+            temps.Add(bodyMesh);
+            var bodyMat0 = CreateVHMaterial("VH-ViewContext-Body-Mat0", temps);
+            var bodyMat1 = CreateVHMaterial("VH-ViewContext-Body-Mat1", temps);
+            var body = AddMeshChild(root.transform, "Body", bodyMesh, bodyMat0, bodyMat1);
+
+            root.AddComponent<NodeVisibilityHintSet>().Bind(new List<NodeVisibilityHintSet.NodeVisibilityEntry>
+            {
+                new NodeVisibilityHintSet.NodeVisibilityEntry
+                {
+                    Node = head.transform,
+                    Role = VisibilityHintExtensionNames.RoleThirdPersonOnly,
+                    Label = "Head",
+                },
+            });
+
+            root.AddComponent<PrimitiveVisibilityHintSet>().Bind(new List<PrimitiveVisibilityHintSet.PrimitiveVisibilityEntry>
+            {
+                new PrimitiveVisibilityHintSet.PrimitiveVisibilityEntry
+                {
+                    Mesh = bodyMesh,
+                    SubMesh = 1,
+                    Role = VisibilityHintExtensionNames.RoleFirstPersonOnly,
+                    Label = "BodyArms",
+                },
+            });
+            body.GetComponent<MeshRenderer>().sharedMaterials = new[] { bodyMat0, bodyMat1 };
+
+            return root;
+        }
+
+        // A child GameObject with a MeshFilter + MeshRenderer (one material per sub-mesh). Mirrors the plugin's
+        // VisibilityHintSampleGenerator.MakeMeshChild; the child is destroyed with its root, so it isn't tracked.
+        private static GameObject AddMeshChild(Transform parent, string name, Mesh mesh, params Material[] materials)
+        {
+            var go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer)) { hideFlags = HideFlags.HideAndDontSave };
+            go.transform.SetParent(parent, false);
+            go.GetComponent<MeshFilter>().sharedMesh = mesh;
+            go.GetComponent<MeshRenderer>().sharedMaterials = materials;
+            return go;
+        }
+
+        // A single triangle (one sub-mesh) - the minimal renderable for a node-level visibility hint.
+        private static Mesh BuildVHTriangleMesh(string name)
+        {
+            var mesh = new Mesh { name = name, hideFlags = HideFlags.HideAndDontSave };
+            mesh.SetVertices(new List<Vector3> { Vector3.zero, Vector3.right, Vector3.up });
+            mesh.SetTriangles(new List<int> { 0, 1, 2 }, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        // Two disjoint triangles as two sub-meshes, so a per-primitive hint can target sub-mesh 1 (== glTF primitive 1).
+        private static Mesh BuildVHTwoSubMeshMesh(string name)
+        {
+            var mesh = new Mesh { name = name, hideFlags = HideFlags.HideAndDontSave };
+            mesh.SetVertices(new List<Vector3>
+            {
+                Vector3.zero, Vector3.right, Vector3.up,                                   // sub-mesh 0
+                new Vector3(1f, 0f, 0f), new Vector3(2f, 0f, 0f), new Vector3(1f, 1f, 0f), // sub-mesh 1
+            });
+            mesh.subMeshCount = 2;
+            mesh.SetTriangles(new List<int> { 0, 1, 2 }, 0);
+            mesh.SetTriangles(new List<int> { 3, 4, 5 }, 1);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        // A plain lit material (Standard on Built-in, URP Lit under URP) with a fixed name for a stable golden. Falls
+        // back to a guaranteed non-null shader because a null material would make the exporter skip the sub-mesh.
+        private static Material CreateVHMaterial(string name, List<Object> temps)
+        {
+            Shader shader = RenderPipelineUtil.LitShader() ?? Shader.Find("Hidden/InternalErrorShader");
+            var material = new Material(shader) { name = name, hideFlags = HideFlags.HideAndDontSave };
+            temps.Add(material);
+            return material;
+        }
+
         // ── Export ──────────────────────────────────────
 
         private static string ExportAndImport(GameObject root, string outputDirectory, string fileName)
@@ -569,7 +767,7 @@ namespace Samples.Editor
         {
             var settings = GLTFSettings.GetDefaultSettings();
             foreach (var plugin in settings.ExportPlugins)
-                if (plugin is KhrCharacterExportPlugin || plugin is AnimationPointerExport)
+                if (plugin is KhrCharacterExportPlugin || plugin is AnimationPointerExport || plugin is VisibilityHintExportPlugin)
                     plugin.Enabled = true;
 
             var exporter = new GLTFSceneExporter(new[] { root.transform }, new ExportContext(settings));
