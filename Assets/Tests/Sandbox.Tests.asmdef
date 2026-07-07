@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Samples.Shared",
+        "Samples.VisibilityHints",
         "UnityGLTF.KhrCharacter.Runtime",
         "UnityGLTF.KhrCharacter.Schema",
         "UnityGLTF.VisibilityHints.Runtime",
