@@ -2215,25 +2215,25 @@
     "KHR_character_skeleton_mapping": {
       "skeletalRigMappings": {
         "unityHumanoid": {
-          "chest": "Chest",
-          "head": "Head",
-          "hips": "Hips",
-          "leftFoot": "LeftFoot",
-          "leftHand": "LeftHand",
-          "leftLowerArm": "LeftLowerArm",
-          "leftLowerLeg": "LeftLowerLeg",
-          "leftShoulder": "LeftShoulder",
-          "leftUpperArm": "LeftUpperArm",
-          "leftUpperLeg": "LeftUpperLeg",
-          "neck": "Neck",
-          "rightFoot": "RightFoot",
-          "rightHand": "RightHand",
-          "rightLowerArm": "RightLowerArm",
-          "rightLowerLeg": "RightLowerLeg",
-          "rightShoulder": "RightShoulder",
-          "rightUpperArm": "RightUpperArm",
-          "rightUpperLeg": "RightUpperLeg",
-          "spine": "Spine"
+          "chest": 3,
+          "head": 5,
+          "hips": 1,
+          "leftFoot": 16,
+          "leftHand": 9,
+          "leftLowerArm": 8,
+          "leftLowerLeg": 15,
+          "leftShoulder": 6,
+          "leftUpperArm": 7,
+          "leftUpperLeg": 14,
+          "neck": 4,
+          "rightFoot": 19,
+          "rightHand": 13,
+          "rightLowerArm": 12,
+          "rightLowerLeg": 18,
+          "rightShoulder": 10,
+          "rightUpperArm": 11,
+          "rightUpperLeg": 17,
+          "spine": 2
         }
       }
     }

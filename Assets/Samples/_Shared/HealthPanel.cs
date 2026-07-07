@@ -29,7 +29,6 @@ namespace Samples.Shared
 
             var sb = new System.Text.StringBuilder();
             sb.AppendLine($"Expressions: {report.ExpressionCount}");
-            sb.AppendLine($"Skeleton: {report.SkeletonDirection}");
             foreach (var capability in report.Capabilities)
                 sb.AppendLine($"  {capability.Capability}: {capability.Status}");
             _text.text = sb.ToString();

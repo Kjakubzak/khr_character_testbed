@@ -214,7 +214,6 @@ namespace Samples.Characters
             sb.AppendLine("A vs B (re-imported):");
             sb.AppendLine($"  KhrCharacter: {(_a != null)} vs {(_b != null)}");
             sb.AppendLine($"  Expressions: {(a != null ? a.ExpressionCount : 0)} vs {(b != null ? b.ExpressionCount : 0)}");
-            sb.AppendLine($"  Skeleton dir: {(a != null ? a.SkeletonDirection.ToString() : "-")} vs {(b != null ? b.SkeletonDirection.ToString() : "-")}");
             sb.AppendLine($"  Capabilities: {(a != null ? a.Capabilities.Count : 0)} vs {(b != null ? b.Capabilities.Count : 0)}");
             _diff.text = sb.ToString();
         }

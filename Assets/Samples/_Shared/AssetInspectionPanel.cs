@@ -118,7 +118,6 @@ namespace Samples.Shared
             var report = _hub.GetHealth();
             if (report == null) { _ui.AddLabel("(no health data)"); return; }
 
-            _ui.AddLabel($"Skeleton dir: {report.SkeletonDirection}");
             _ui.AddLabel($"Expressions: {report.ExpressionCount}");
             foreach (var capability in report.Capabilities)
                 _ui.AddLabel($"  {capability.Capability}: {capability.Status}");
@@ -174,7 +173,6 @@ namespace Samples.Shared
             int bones = skeleton.Result != null && skeleton.Result.Bones != null ? skeleton.Result.Bones.Count : 0;
             _ui.AddLabel($"Bones: {bones}");
             _ui.AddLabel($"Humanoid: {skeleton.HumanoidAvailable}");
-            _ui.AddLabel($"Direction: {skeleton.DetectedDirection}");
             if (skeleton.RigVocabularies != null && skeleton.RigVocabularies.Count > 0)
                 _ui.AddLabel($"Rig: {string.Join(", ", skeleton.RigVocabularies)}");
         }

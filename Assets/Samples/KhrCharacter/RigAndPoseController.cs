@@ -92,7 +92,7 @@ namespace Samples.Characters
         private void Refresh()
         {
             if (_skeleton == null || _status == null) return;
-            _status.text = $"HumanoidAvailable: {_skeleton.HumanoidAvailable}    Direction: {_skeleton.DetectedDirection}";
+            _status.text = $"HumanoidAvailable: {_skeleton.HumanoidAvailable}";
         }
 
         private void PlayReferencePose()

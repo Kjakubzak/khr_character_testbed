@@ -163,7 +163,7 @@ namespace Samples.Characters
         private void RefreshRig()
         {
             if (_skeleton == null || _rigStatus == null) return;
-            _rigStatus.text = $"HumanoidAvailable: {_skeleton.HumanoidAvailable}    Direction: {_skeleton.DetectedDirection}";
+            _rigStatus.text = $"HumanoidAvailable: {_skeleton.HumanoidAvailable}";
         }
 
         private void ApplyHint(string role)

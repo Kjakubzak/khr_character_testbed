@@ -110,7 +110,6 @@ namespace Samples.GlbViewer
 
             var sb = new System.Text.StringBuilder();
             sb.AppendLine($"Expressions: {report.ExpressionCount}");
-            sb.AppendLine($"Skeleton direction: {report.SkeletonDirection}");
             foreach (var capability in report.Capabilities)
                 sb.AppendLine($"  {capability.Capability}: {capability.Status}");
             _capabilities.text = sb.ToString();
