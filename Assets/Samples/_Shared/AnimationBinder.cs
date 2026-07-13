@@ -142,15 +142,30 @@ namespace Samples.Shared
             if (skeleton == null) return null;
             bool ok = skeleton.SwitchRigMode(RigImportMode.Humanoid);
             if (!ok) return null; // Humanoid rejected — plugin logs the reason.
-            var animator = character.GetComponent<Animator>() ?? character.AddComponent<Animator>();
+            // Explicit `== null` check for consistency with BindGeneric — Unity's overloaded ==
+            // handles the destroyed-object case correctly.
+            var animator = character.GetComponent<Animator>();
+            if (animator == null) animator = character.AddComponent<Animator>();
             return animator;
         }
 
         private static Animator BindGeneric(GameObject character)
         {
-            var animator = character.GetComponent<Animator>() ?? character.AddComponent<Animator>();
-            // Generic: no Avatar assignment. Clips target transform paths by name.
-            animator.avatar = null;
+            // On KHR characters, delegate the animator + avatar wiring to
+            // SkeletonMap.SwitchRigMode(Generic) — the plugin knows how to (a) not fight prior
+            // Humanoid state (nulls the humanoid Avatar on the Animator without removing the
+            // component itself), (b) destroy the leaked _lastBuiltAvatar. On non-KHR characters
+            // (plain glbs), just add a bare Animator.
+            //
+            // Uses explicit `== null` checks (Unity's overloaded operator handles fake-null
+            // from destroyed native objects correctly, whereas `??` uses C# reference nullity
+            // and would silently pass a destroyed-but-referenced Animator through).
+            var hub = character.GetComponent<KhrCharacter>();
+            var skeleton = hub != null ? hub.Skeleton : null;
+            if (skeleton != null) skeleton.SwitchRigMode(RigImportMode.Generic);
+
+            var animator = character.GetComponent<Animator>();
+            if (animator == null) animator = character.AddComponent<Animator>();
             return animator;
         }
     }

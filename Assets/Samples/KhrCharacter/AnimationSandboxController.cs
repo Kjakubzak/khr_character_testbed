@@ -244,5 +244,13 @@ namespace Samples.Characters
             if (!SceneBoundsUtil.TryAggregate(scene, out var bounds)) return;
             rig.FrameAndFace(bounds, scene.transform);
         }
+
+        // Drop the per-character clip source we registered on load so its Func closure over
+        // _currentCharacter doesn't keep enumerating from a dead GameObject after the scene
+        // unloads. Idempotent — Remove no-ops if the source isn't registered.
+        private void OnDestroy()
+        {
+            AnimationClipCatalog.Remove("Character");
+        }
     }
 }

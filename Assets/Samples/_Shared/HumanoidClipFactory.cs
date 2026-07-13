@@ -69,12 +69,18 @@ namespace Samples.Shared
         {
             var clip = new AnimationClip { frameRate = 30f };
             clip.wrapMode = WrapMode.Loop;
-            // Hips Y bob: ±1 cm over a 4 s cosine cycle.
+            // Hips Y bob: ±1 cm over a 4 s cosine cycle. Adds curves under both the KHR-vocab
+            // path ("hips") AND the PascalCase node-name convention ("Hips") so the clip drives
+            // whichever naming the character actually uses. SC-Body's transforms are PascalCase
+            // (see SampleCharacterFactory.Bone(vocab, nodeName, ...): the second arg is the GO
+            // name), Mixamo characters use "mixamorig:Hips", VRoid uses "J_Bip_C_Hips", etc.
+            // Covering multiple conventions here is cheap (dead curves are silent no-ops).
             var hipsY = SineCurve(period: 4f, amplitude: 0.01f, offset: 0f, samples: 33);
-            clip.SetCurve("hips", typeof(Transform), "localPosition.y", hipsY);
-            // Spine roll: ±3° over a 4 s sine cycle (out of phase with the bob).
+            foreach (var path in new[] { "hips", "Hips" })
+                clip.SetCurve(path, typeof(Transform), "localPosition.y", hipsY);
             var spineRoll = SineCurve(period: 4f, amplitude: 0.026f, offset: Mathf.PI / 2, samples: 33);
-            clip.SetCurve("spine", typeof(Transform), "localRotation.z", spineRoll);
+            foreach (var path in new[] { "spine", "Spine" })
+                clip.SetCurve(path, typeof(Transform), "localRotation.z", spineRoll);
             return clip;
         }
 
@@ -82,16 +88,15 @@ namespace Samples.Shared
         {
             var clip = new AnimationClip { frameRate = 30f };
             clip.wrapMode = WrapMode.Once;
-            // Right shoulder / arm raise: rotate rightUpperArm.z from 0 to ~90° and back.
-            // Multiple bone-name variants tried (rightUpperArm / RightShoulder / RightArm) via
-            // additive curves so the clip works across common naming conventions the KHR
-            // skeleton mapping surfaces.
+            // Right shoulder / arm raise: rotate around .z from 0 to ~90° and back. Multiple
+            // path variants tried via additive curves so the clip works across common naming
+            // conventions (vocab / PascalCase / Mixamo-adjacent).
             var raise = new AnimationCurve(
                 new Keyframe(0f, 0f, 0f, 0f),
                 new Keyframe(0.5f, 0.7f, 0f, 0f),
                 new Keyframe(1.5f, 0.7f, 0f, 0f),
                 new Keyframe(2f, 0f, 0f, 0f));
-            foreach (var path in new[] { "rightUpperArm", "RightUpperArm", "RightShoulder", "rightShoulder", "RightArm" })
+            foreach (var path in new[] { "rightUpperArm", "RightUpperArm", "rightShoulder", "RightShoulder", "RightArm" })
                 clip.SetCurve(path, typeof(Transform), "localRotation.z", raise);
             return clip;
         }
@@ -102,10 +107,11 @@ namespace Samples.Shared
             clip.wrapMode = WrapMode.Once;
             var nod = new AnimationCurve(
                 new Keyframe(0f, 0f, 0f, 0f),
-                new Keyframe(0.5f, 0.13f, 0f, 0f),   // ~15° pitch (0.13 rad → 7.5° in quat.x approx)
+                new Keyframe(0.5f, 0.13f, 0f, 0f),   // ~15° pitch (0.13 rad in quat.x approx)
                 new Keyframe(1f, -0.13f, 0f, 0f),
                 new Keyframe(1.5f, 0f, 0f, 0f));
-            clip.SetCurve("head", typeof(Transform), "localRotation.x", nod);
+            foreach (var path in new[] { "head", "Head" })
+                clip.SetCurve(path, typeof(Transform), "localRotation.x", nod);
             return clip;
         }
 
@@ -127,9 +133,9 @@ namespace Samples.Shared
                 clip.SetCurve(l, typeof(Transform), "localRotation.x", leftLeg);
             foreach (var r in new[] { "rightUpperLeg", "RightUpperLeg", "RightLeg" })
                 clip.SetCurve(r, typeof(Transform), "localRotation.x", rightLeg);
-            // Slight hips-Y bob synchronised with the step.
             var hipsBob = SineCurve(period: 0.6f, amplitude: 0.015f, offset: 0f, samples: 25);
-            clip.SetCurve("hips", typeof(Transform), "localPosition.y", hipsBob);
+            foreach (var path in new[] { "hips", "Hips" })
+                clip.SetCurve(path, typeof(Transform), "localPosition.y", hipsBob);
             return clip;
         }
 
