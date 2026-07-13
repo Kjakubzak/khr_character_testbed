@@ -24,7 +24,7 @@ namespace Samples.Shared
                 : "KHR Character plugins are DISABLED - run Assets > UnityGLTF > KHR Character > Enable Plugins.");
             banner.color = pluginsOn ? new Color(0.4f, 0.9f, 0.45f) : new Color(0.95f, 0.4f, 0.4f);
 
-            foreach (var demo in DemoHubRegistry.Demos)
+            foreach (var demo in DemoCatalog.HubDemos)
             {
                 string sceneName = demo.SceneName;
                 ui.AddButton(demo.Title, () => Launch(sceneName));

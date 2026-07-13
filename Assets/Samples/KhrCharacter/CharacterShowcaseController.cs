@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityGLTF.KhrCharacter;
 using Samples.Shared;
@@ -46,7 +47,10 @@ namespace Samples.Characters
             _gazeTarget = targetGo.transform;
 
             _ui = DemoUiBuilder.Create("Character Showcase");
-            _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, "SC-FacePlus"));
+            string sceneName = SceneManager.GetActiveScene().name;
+            string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-FacePlus.glb");
+            string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-FacePlus");
+            _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
 
             var content = new GameObject("LoadedContent");
             content.transform.SetParent(transform, false);
@@ -55,7 +59,7 @@ namespace Samples.Characters
             try
             {
                 scene = string.IsNullOrEmpty(HeroGlbPath)
-                    ? await CharacterLoader.LoadDemoCharacterAsync(content.transform, "SC-FacePlus.glb")
+                    ? await CharacterLoader.LoadDemoCharacterAsync(content.transform, fallbackFile)
                     : await CharacterLoader.LoadAsync(HeroGlbPath, content.transform);
             }
             catch (System.Exception e) { Debug.LogException(e); _ui.AddLabel("Load failed: " + e.Message); AddBack(); return; }

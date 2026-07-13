@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,44 +9,155 @@ using Samples.Shared;
 namespace Samples.GlbViewer
 {
     /// <summary>
-    /// M1 — runtime "load + inspect a GLB". Loads a GLB by absolute path (default: the committed SC-Face), frames
-    /// it with the orbit camera, and lists discovered capabilities from <see cref="KhrCharacter.GetHealth"/>. A
-    /// plain glTF with no character hub shows "no KHR Character data". Everything is null-checked.
+    /// M1 — runtime "load + inspect a GLB". Loads a GLB by absolute path (default: the local hero if
+    /// present, else the first entry in the preset dropdown), frames it with the orbit camera, and
+    /// lists discovered capabilities from <see cref="KhrCharacter.GetHealth"/>. A plain glTF with no
+    /// character hub shows "no KHR Character data". Everything is null-checked.
+    ///
+    /// The preset dropdown enumerates the <see cref="CharacterLoader.AssetSourceCatalog"/>: every
+    /// registered directory contributes its ``.glb`` / ``.gltf`` files, prefixed by the source's
+    /// label. Two default sources auto-register (Synthetic, FromBlender); users can add ad-hoc
+    /// directories at runtime via the "Add source folder" panel — persisted per-user in PlayerPrefs
+    /// so the folder survives session restart. No hardcoded preset list here.
     /// </summary>
     public class GlbViewerController : MonoBehaviour
     {
-        [Tooltip("Absolute path to the GLB/glTF to load. Defaults to the committed synthetic SC-Face.")]
+        [Tooltip("Absolute path to the GLB/glTF to load. Defaults to the local hero if present, else the first preset in the catalog.")]
         public string GlbPath;
 
         private DemoUiBuilder _ui;
         private InputField _pathField;
+        private Dropdown _presetDropdown;
+        private InputField _newSourceLabelField;
+        private InputField _newSourceDirField;
+        private Text _sourceStatus;
         private Text _status;
         private Text _capabilities;
         private Transform _contentRoot;
         private GameObject _current;
         private bool _loading;
 
+        // Parallel arrays: dropdown index → path. Rebuilt when the catalog changes.
+        private readonly List<string> _presetPaths = new List<string>();
+
         private async void Start()
         {
-            // Default the initial load to the local hero when present, else the committed SC-Face.
-            if (string.IsNullOrEmpty(GlbPath))
-                GlbPath = CharacterLoader.HeroExists ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-Face.glb");
-
             var content = new GameObject("LoadedContent");
             content.transform.SetParent(transform, false);
             _contentRoot = content.transform;
 
             _ui = DemoUiBuilder.Create("GLB Viewer");
             _ui.AddLabel("Load a glTF/GLB and inspect its KHR Character capabilities.");
-            _pathField = _ui.AddInputField("Path", GlbPath, value => GlbPath = value);
+
+            // Preset dropdown — populated from the AssetSourceCatalog. The initial options list
+            // determines the default selection: prefer the hero if present, else the first entry.
+            _presetDropdown = _ui.AddDropdown("Preset", BuildPresetOptions(), OnPresetChanged, 0);
+
+            _pathField = _ui.AddInputField("Path", string.Empty, value => GlbPath = value);
             _ui.AddButton("Load", () => { _ = LoadAndShow(GlbPath); });
             _status = _ui.AddLabel(string.Empty);
             _capabilities = _ui.AddLabel(string.Empty);
 
+            // ── Add-source panel: any generalized folder can be added at runtime ─────
+            _ui.AddLabel("── Asset sources ──");
+            _ui.AddButton("Refresh preset list", RefreshPresetDropdown);
+            _newSourceLabelField = _ui.AddInputField("New label", string.Empty, _ => { });
+            _newSourceDirField = _ui.AddInputField("New directory", string.Empty, _ => { });
+            _ui.AddButton("Add source folder", OnAddSource);
+            _sourceStatus = _ui.AddLabel(string.Empty);
+
             var back = gameObject.AddComponent<BackToHubButton>();
             _ui.AddButton("Back to Hub", back.GoToHub);
 
-            await LoadAndShow(GlbPath);
+            // Initial load: use GlbPath if the user pre-set one; else the current dropdown selection.
+            if (string.IsNullOrEmpty(GlbPath))
+            {
+                GlbPath = CharacterLoader.HeroExists
+                    ? CharacterLoader.HeroAbsolutePath
+                    : (_presetPaths.Count > 0 ? _presetPaths[0] : string.Empty);
+            }
+            if (_pathField != null) _pathField.text = GlbPath;
+
+            if (!string.IsNullOrEmpty(GlbPath) && File.Exists(GlbPath))
+                await LoadAndShow(GlbPath);
+            else if (_status != null)
+                _status.text = "No preset asset found. Add a source folder to point at your .glb files.";
+        }
+
+        // Build the dropdown option list from the catalog. Populates ``_presetPaths`` in parallel so
+        // OnPresetChanged can look up the path by dropdown index.
+        private List<string> BuildPresetOptions()
+        {
+            var options = new List<string>();
+            _presetPaths.Clear();
+
+            // Hero as a special "single file" entry (not a directory — stays outside the catalog).
+            if (CharacterLoader.HeroExists)
+            {
+                options.Add("Hero: khr-character-example");
+                _presetPaths.Add(CharacterLoader.HeroAbsolutePath);
+            }
+
+            // Every source contributes its files, one dropdown entry per file. Files are labeled
+            // ``<source label>: <filename-without-ext>`` so the origin is obvious.
+            foreach (var (source, path) in CharacterLoader.AssetSourceCatalog.EnumerateAll())
+            {
+                options.Add($"{source.Label}: {Path.GetFileNameWithoutExtension(path)}");
+                _presetPaths.Add(path);
+            }
+
+            if (options.Count == 0)
+                options.Add("(no assets discovered — add a source folder)");
+
+            return options;
+        }
+
+        private void OnPresetChanged(int index)
+        {
+            if (index < 0 || index >= _presetPaths.Count) return;
+            var path = _presetPaths[index];
+            GlbPath = path;
+            if (_pathField != null) _pathField.text = path;
+            _ = LoadAndShow(path);
+        }
+
+        private void OnAddSource()
+        {
+            if (_newSourceLabelField == null || _newSourceDirField == null) return;
+            string label = _newSourceLabelField.text?.Trim();
+            string dir = _newSourceDirField.text?.Trim();
+
+            if (string.IsNullOrEmpty(label) || string.IsNullOrEmpty(dir))
+            {
+                if (_sourceStatus != null) _sourceStatus.text = "Add: label and directory both required.";
+                return;
+            }
+            if (!Directory.Exists(dir))
+            {
+                if (_sourceStatus != null) _sourceStatus.text = $"Add: '{dir}' does not exist.";
+                return;
+            }
+
+            bool added = CharacterLoader.AssetSourceCatalog.TryRegister(label, dir, autoDetected: false);
+            if (!added)
+            {
+                if (_sourceStatus != null) _sourceStatus.text = $"Add: '{dir}' already registered.";
+                return;
+            }
+
+            // Refresh the dropdown so the new source's contents appear.
+            RefreshPresetDropdown();
+            if (_sourceStatus != null)
+                _sourceStatus.text = $"Added '{label}' → {dir} (persisted to PlayerPrefs).";
+            _newSourceLabelField.text = string.Empty;
+            _newSourceDirField.text = string.Empty;
+        }
+
+        private void RefreshPresetDropdown()
+        {
+            if (_presetDropdown == null) return;
+            _presetDropdown.ClearOptions();
+            _presetDropdown.AddOptions(BuildPresetOptions());
         }
 
         private async Task LoadAndShow(string path)

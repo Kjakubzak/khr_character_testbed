@@ -13,7 +13,7 @@ namespace KhrCharacterTestbed.Tests
     /// (bounded async wait, scene resolution + cleanup registration, synthetic-fixture load) and share ONE
     /// definition of the Khronos-neutral extension allow-list. Lives in the test assembly so every suite can use it.
     /// </summary>
-    internal static class SandboxTestUtil
+    public static class SandboxTestUtil
     {
         // ── Bounded async + scene resolution ─────────────────────────────────
 
@@ -40,19 +40,57 @@ namespace KhrCharacterTestbed.Tests
         /// <summary>Load a committed synthetic fixture and yield until ready; exposes the scene root via .Current.</summary>
         public static SceneLoad LoadSynthetic(string fileName, List<Object> created) => new SceneLoad(fileName, created);
 
+        /// <summary>Load a FromBlender fixture by file name (see <c>Assets/SampleAssets/FromBlender</c>)
+        /// and yield until ready; exposes the scene root via .Current. Complements
+        /// <see cref="LoadSynthetic"/> — same wait/timeout/teardown behaviour.</summary>
+        public static SceneLoad LoadFromBlender(string fileName, List<Object> created)
+            => new SceneLoad(CharacterLoader.FromBlenderPath(fileName), fileName, created);
+
+        /// <summary>Load a fixture by absolute path. Used by the "iterate every catalog fixture"
+        /// tests via <see cref="AllCatalogFixturePaths"/>.</summary>
+        public static SceneLoad LoadFromAbsolutePath(string absolutePath, List<Object> created)
+            => new SceneLoad(absolutePath, System.IO.Path.GetFileName(absolutePath), created);
+
+        /// <summary>Enumerate absolute paths of every fixture across every registered
+        /// <see cref="CharacterLoader.AssetSourceCatalog"/> source. Used with NUnit's
+        /// <c>[ValueSource]</c> for tests that iterate the full universe of discovered fixtures.
+        ///
+        /// The result is a stable, sorted array so NUnit's per-run test discovery names each
+        /// case deterministically.</summary>
+        public static string[] AllCatalogFixturePaths()
+        {
+            var list = new List<string>();
+            foreach (var pair in CharacterLoader.AssetSourceCatalog.EnumerateAll())
+                list.Add(pair.Path);
+            list.Sort(System.StringComparer.Ordinal);
+            return list.ToArray();
+        }
+
         public sealed class SceneLoad : CustomYieldInstruction
         {
             private readonly Task<GameObject> _task;
             private readonly float _deadline;
             private readonly List<Object> _created;
-            public GameObject Current { get; private set; }
+            /// <summary>The imported scene root once <see cref="keepWaiting"/> flips false. Uses
+            /// <c>new</c> to shadow <see cref="CustomYieldInstruction.Current"/> — CustomYieldInstruction's
+            /// Current is a yield-instruction protocol member (a nullable "value to yield"); ours is
+            /// the loaded GameObject. Rename would break every caller.</summary>
+            public new GameObject Current { get; private set; }
 
             public SceneLoad(string fileName, List<Object> created)
+                : this(CharacterLoader.SyntheticPath(fileName), fileName, created) {}
+
+            // Absolute-path constructor — used by LoadFromBlender + any future non-Synthetic loader.
+            // Keeps LoadSynthetic's existence-guard message so failure output points at the missing file
+            // regardless of which fixture set the caller was after.
+            internal SceneLoad(string absolutePath, string displayName, List<Object> created)
             {
                 _created = created;
-                string path = CharacterLoader.SyntheticPath(fileName);
-                Assert.IsTrue(File.Exists(path), $"{fileName} not found at '{path}'. Run Generate Sample Characters first.");
-                _task = CharacterLoader.LoadAsync(path, null);
+                Assert.IsTrue(File.Exists(absolutePath),
+                    $"{displayName} not found at '{absolutePath}'. " +
+                    "Run the appropriate regenerator (Generate Sample Characters for SC-*, " +
+                    "or tests/fixtures/regenerate.py in the khr_character_blender repo for FromBlender/*).");
+                _task = CharacterLoader.LoadAsync(absolutePath, null);
                 _deadline = Time.realtimeSinceStartup + 30f;
             }
 
@@ -79,21 +117,42 @@ namespace KhrCharacterTestbed.Tests
         // ADOBE_, AGI_, GODOT_, CESIUM_, ...). All three core entries are themselves KHR_-prefixed today (so they
         // already pass the ^KHR_ rule); they are listed explicitly to document intent and keep the door open for a
         // future ratified non-KHR token without weakening the check.
-        public static readonly string[] CoreNeutralAllowList =
+        //
+        // The allow-list is a mutable HashSet so a test suite (or a downstream fork with different policy) can add
+        // entries at runtime via ``RegisterNeutralExtension``. The initial contents match the hardcoded defaults
+        // that shipped in the pre-refactor version, so behaviour is unchanged unless a caller opts in.
+        private static readonly HashSet<string> _neutralAllowList = new HashSet<string>(
+            System.StringComparer.Ordinal)
         {
             "KHR_materials_unlit",
             "KHR_texture_transform",
             "KHR_animation_pointer",
         };
 
-        /// <summary>True when an extension token is Khronos-neutral (^KHR_ or on the short core allow-list).</summary>
+        /// <summary>Read-only view of the mutable core-neutral allow-list. Kept as a
+        /// <see cref="string"/>[] for source-level backwards compat with pre-refactor consumers
+        /// that iterated the array; new consumers should call <see cref="IsNeutralExtension"/> or
+        /// <see cref="RegisterNeutralExtension"/> instead of touching this directly.</summary>
+        public static string[] CoreNeutralAllowList
+        {
+            get { var arr = new string[_neutralAllowList.Count]; _neutralAllowList.CopyTo(arr); return arr; }
+        }
+
+        /// <summary>Add an extension token to the core-neutral allow-list. Idempotent. Meant for
+        /// tests or downstream forks that want to permit additional non-KHR tokens without
+        /// modifying source. Returns false when the token is null/empty or already present.</summary>
+        public static bool RegisterNeutralExtension(string extension)
+        {
+            if (string.IsNullOrEmpty(extension)) return false;
+            return _neutralAllowList.Add(extension);
+        }
+
+        /// <summary>True when an extension token is Khronos-neutral (^KHR_ or on the core allow-list).</summary>
         public static bool IsNeutralExtension(string extension)
         {
             if (string.IsNullOrEmpty(extension)) return false;
             if (extension.StartsWith("KHR_", System.StringComparison.Ordinal)) return true;
-            foreach (var allowed in CoreNeutralAllowList)
-                if (extension == allowed) return true;
-            return false;
+            return _neutralAllowList.Contains(extension);
         }
 
         /// <summary>True when an extension token is NOT Khronos-neutral (would taint a public-clean wire).</summary>

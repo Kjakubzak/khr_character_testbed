@@ -3,8 +3,10 @@ using System.Collections.Generic;
 namespace Samples.Shared
 {
     /// <summary>
-    /// Neutral registry of the sample scenes the hub launcher lists. Scene names are loaded by name through the
-    /// SceneManager, so each entry's <see cref="DemoEntry.SceneName"/> must match a scene added to Build Settings.
+    /// Thin catalog-backed shim preserving the pre-refactor <c>DemoHubRegistry.Demos</c> API for any
+    /// consumer that still references it. New code should read <see cref="DemoCatalog.HubDemos"/>
+    /// directly — this shim exists so downstream users of this project (or forks) don't get a
+    /// compile break from the rename.
     /// </summary>
     public static class DemoHubRegistry
     {
@@ -13,7 +15,6 @@ namespace Samples.Shared
             public readonly string SceneName;
             public readonly string Title;
             public readonly string Description;
-
             public DemoEntry(string sceneName, string title, string description)
             {
                 SceneName = sceneName;
@@ -22,17 +23,17 @@ namespace Samples.Shared
             }
         }
 
-        /// <summary>The ordered set of demo scenes shown on the hub.</summary>
-        public static readonly IReadOnlyList<DemoEntry> Demos = new List<DemoEntry>
+        /// <summary>Backed by <see cref="DemoCatalog.HubDemos"/>. Populated lazily so descriptor
+        /// changes at authoring time survive without recompiling this file.</summary>
+        public static IReadOnlyList<DemoEntry> Demos
         {
-            new DemoEntry("CharacterShowcase", "Character Showcase", "Drive a full character through every KHR_character capability."),
-            new DemoEntry("GlbViewer", "GLB Viewer", "Load and inspect any glTF/GLB at runtime."),
-            new DemoEntry("Expressions", "Expressions", "Drive morph, joint, and texture expressions live."),
-            new DemoEntry("GazeAndCamera", "Gaze & Camera", "Gaze targeting, camera hints, and view mode."),
-            new DemoEntry("RigAndPose", "Rig & Pose", "Switch rig mode and apply the reference pose."),
-            new DemoEntry("RoundTrip", "Round Trip", "Export, re-import, and compare the result."),
-            new DemoEntry("Health", "Health", "Inspect capability health and graceful degradation."),
-            new DemoEntry("VisibilityHints", "Visibility Hints", "First/third-person view context via KHR visibility hints (node + primitive)."),
-        };
+            get
+            {
+                var list = new List<DemoEntry>();
+                foreach (var d in DemoCatalog.HubDemos)
+                    list.Add(new DemoEntry(d.SceneName, d.Title, d.Description));
+                return list;
+            }
+        }
     }
 }

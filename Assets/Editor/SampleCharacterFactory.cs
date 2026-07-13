@@ -42,6 +42,7 @@ namespace Samples.Editor
         // ── Public entry points ──────────────────────────────────────────────
 
         /// <summary>Build SC-Face and export it to <paramref name="outputDirectory"/>/SC-Face.glb.</summary>
+        [SampleCharacter("SC-Face")]
         public static string GenerateSCFace(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);
@@ -62,6 +63,7 @@ namespace Samples.Editor
         }
 
         /// <summary>Build SC-FacePlus (SC-Face + joint + texture) and export it to SC-FacePlus.glb.</summary>
+        [SampleCharacter("SC-FacePlus")]
         public static string GenerateSCFacePlus(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);
@@ -82,6 +84,7 @@ namespace Samples.Editor
         }
 
         /// <summary>Build SC-Body (humanoid skeleton + reference pose + camera hint) and export it to SC-Body.glb.</summary>
+        [SampleCharacter("SC-Body")]
         public static string GenerateSCBody(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);
@@ -97,6 +100,7 @@ namespace Samples.Editor
         }
 
         /// <summary>Build SC-LookAt (KHR_node_lookat_target authored focus points) and export it to SC-LookAt.glb.</summary>
+        [SampleCharacter("SC-LookAt")]
         public static string GenerateSCLookAt(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);
@@ -112,6 +116,7 @@ namespace Samples.Editor
         }
 
         /// <summary>Build SC-Partial (KHR_character + a single morph expression only) and export it to SC-Partial.glb.</summary>
+        [SampleCharacter("SC-Partial")]
         public static string GenerateSCPartial(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);
@@ -132,6 +137,7 @@ namespace Samples.Editor
         /// so it reads like a VRM-origin asset. CC0/synthetic - NOT a real VRM. Used by the always-on neutralization
         /// gate (source carries VRMC_*; a KHR re-export drops them).
         /// </summary>
+        [SampleCharacter("SC-PseudoVRM")]
         public static string GenerateSCPseudoVRM(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);
@@ -150,6 +156,7 @@ namespace Samples.Editor
         }
 
         /// <summary>Build SC-ExprEdge (two morph expressions where one BLOCK-masks the other) and export to SC-ExprEdge.glb.</summary>
+        [SampleCharacter("SC-ExprEdge")]
         public static string GenerateSCExprEdge(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);
@@ -165,6 +172,7 @@ namespace Samples.Editor
         }
 
         /// <summary>Build VH-Node (KHR_node_visibility_hint on a single-mesh Head) and export it to VH-Node.glb.</summary>
+        [SampleCharacter("VH-Node")]
         public static string GenerateVHNode(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);
@@ -180,6 +188,7 @@ namespace Samples.Editor
         }
 
         /// <summary>Build VH-Primitive (KHR_mesh_primitive_visibility_hint on Body sub-mesh 1) and export it to VH-Primitive.glb.</summary>
+        [SampleCharacter("VH-Primitive")]
         public static string GenerateVHPrimitive(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);
@@ -195,6 +204,7 @@ namespace Samples.Editor
         }
 
         /// <summary>Build VH-ViewContext (both visibility-hint extensions on one hierarchy) and export it to VH-ViewContext.glb.</summary>
+        [SampleCharacter("VH-ViewContext")]
         public static string GenerateVHViewContext(string outputDirectory)
         {
             outputDirectory = Normalize(outputDirectory);

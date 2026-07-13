@@ -15,6 +15,32 @@ These files are produced entirely from procedural geometry created in this proje
 third-party, vendor, or scanned content. They are dedicated to the public domain under
 [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
 
+## FromBlender/ — authored in `khr_character_blender`, committed
+
+Ten canonical KHR-Character `.glb` variations exported by the
+[`khr_character_blender`](https://github.com/kenjimeta/khr_character_blender)
+Blender addon (specifically [`tests/fixtures/regenerate.py`](https://github.com/kenjimeta/khr_character_blender/blob/master/tests/fixtures/regenerate.py)),
+one per extension-combination shape. See [`FromBlender/README.md`](./FromBlender/README.md)
+for the full matrix, per-fixture extensions, and how to consume them.
+
+| Asset | Source | License (SPDX) | Notes |
+|---|---|---|---|
+| `FromBlender/minimal.glb` | `khr_character_blender::build_minimal` | `CC0-1.0` | Just `KHR_character` on an empty root — smallest possible signal. |
+| `FromBlender/skeleton.glb` | `khr_character_blender::build_skeleton` | `CC0-1.0` | + `KHR_character_skeleton_mapping` (5 humanoid joints). No mesh, no ref pose. |
+| `FromBlender/skeleton_refpose.glb` | `khr_character_blender::build_skeleton_refpose` | `CC0-1.0` | + `KHR_character_reference_pose` (TPose) on the armature action. |
+| `FromBlender/expressions_morph.glb` | `khr_character_blender::build_expressions_morph` | `CC0-1.0` | Root + head with `smile`/`frown` shape keys + two morph expressions. Emits `KHR_character_expression` + `_morphtarget`. |
+| `FromBlender/expressions_joint.glb` | `khr_character_blender::build_expressions_joint` | `CC0-1.0` | Root + armature + one bone-driven expression (`nod`). Emits `KHR_character_expression` + `_joint`. |
+| `FromBlender/expressions_mask.glb` | `khr_character_blender::build_expressions_mask` | `CC0-1.0` | Morph expressions where `smile` blocks `frown` via a mask. `+ _expression_mask`. |
+| `FromBlender/expressions_mapping.glb` | `khr_character_blender::build_expressions_mapping` | `CC0-1.0` | Morph expression + ARKit routing (`mouthSmileLeft`/`mouthSmileRight` → local `smile` at 0.5 each). `+ _expression_mapping`. |
+| `FromBlender/node_hints.glb` | `khr_character_blender::build_node_hints` | `CC0-1.0` | Root + camera hint ("portrait" role) + lookat target ("eyes" hint). Emits `KHR_node_camera_hint` + `KHR_node_lookat_target`. |
+| `FromBlender/full.glb` | `khr_character_blender::build_full` | `CC0-1.0` | Everything above combined — 10/11 KHR Character extensions. Only `_texture` absent (needs `KHR_animation_pointer` material channels, outside the addon's surface). |
+| `FromBlender/starter.glb` | `khr_character_blender::samples/generate_starter.py` | `CC0-1.0` | The canonical "typical character" — matches `samples/generate_starter.py` output (armature + skeleton mapping + TPose ref pose + head with smile/frown). |
+
+All files procedurally generated from primitive meshes and synthetic
+armatures — no third-party content. Regeneration: `blender -b --python
+tests/fixtures/regenerate.py` in the `khr_character_blender` checkout,
+then copy the resulting `tests/fixtures/*.glb` into this folder.
+
 ## Hero character — committed (Git LFS)
 
 | Asset | Source | License (SPDX) | Notes |

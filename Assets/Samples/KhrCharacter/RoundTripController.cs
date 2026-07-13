@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GLTF.Schema;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityGLTF.KhrCharacter;
 using Samples.Shared;
@@ -41,10 +42,13 @@ namespace Samples.Characters
         private async void Start()
         {
             bool usingHero = string.IsNullOrEmpty(GlbPath) && CharacterLoader.HeroExists;
+            string sceneName = SceneManager.GetActiveScene().name;
+            string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-FacePlus.glb");
+            string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-FacePlus");
 
             _ui = DemoUiBuilder.Create("Round Trip");
             _ui.AddLabel("Export character A in memory, re-import it as B, and compare.");
-            _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, "SC-FacePlus"));
+            _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             _ui.AddButton("Export A (in memory)", ExportA);
             _ui.AddButton("Re-import as B", () => { _ = ReimportB(); });
             _ui.AddButton("Save GLB + open web viewer [N6]", SaveAndOpenViewer);
@@ -58,7 +62,7 @@ namespace Samples.Characters
             try
             {
                 sceneA = string.IsNullOrEmpty(GlbPath)
-                    ? await CharacterLoader.LoadDemoCharacterAsync(aRoot.transform, "SC-FacePlus.glb")
+                    ? await CharacterLoader.LoadDemoCharacterAsync(aRoot.transform, fallbackFile)
                     : await CharacterLoader.LoadAsync(GlbPath, aRoot.transform);
             }
             catch (System.Exception e) { Debug.LogException(e); _diff.text = "Load failed: " + e.Message; return; }

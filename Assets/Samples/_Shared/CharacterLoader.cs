@@ -32,11 +32,263 @@ namespace Samples.Shared
         /// <summary>Absolute, runtime-readable path of the committed synthetic sample.</summary>
         public static string DefaultAbsolutePath => Path.Combine(Application.dataPath, DefaultRelativePath);
 
-        /// <summary>Absolute directory of the committed synthetic samples.</summary>
-        public static string SyntheticDirectory => Path.Combine(Application.dataPath, "SampleAssets/Synthetic");
+        // Default absolute directories (fallbacks used when the catalog has no matching source
+        // registered — first-touch, or the user removed the auto-detected default).
+        private static string DefaultSyntheticDirectory =>
+            Path.Combine(Application.dataPath, "SampleAssets/Synthetic");
+        private static string DefaultFromBlenderDirectory =>
+            Path.Combine(Application.dataPath, "SampleAssets/FromBlender");
 
-        /// <summary>Absolute path of a committed synthetic sample by file name (e.g. "SC-Body.glb").</summary>
-        public static string SyntheticPath(string fileName) => Path.Combine(SyntheticDirectory, fileName);
+        /// <summary>Absolute directory of the committed synthetic samples. Consults the catalog's
+        /// "Synthetic" source if registered; falls back to the hardcoded project path otherwise —
+        /// so a user who renames the source via the runtime UI has this property track the rename.</summary>
+        public static string SyntheticDirectory =>
+            AssetSourceCatalog.ResolveDirectory("Synthetic", DefaultSyntheticDirectory);
+        /// <summary>Absolute path of a committed synthetic sample by file name (e.g. "SC-Body.glb").
+        /// Catalog-backed (see <see cref="SyntheticDirectory"/>).</summary>
+        public static string SyntheticPath(string fileName) =>
+            AssetSourceCatalog.Resolve("Synthetic", fileName, DefaultSyntheticDirectory);
+        /// <summary>Absolute directory of the FromBlender fixture matrix (exported by the sibling
+        /// <c>khr_character_blender</c> addon's <c>tests/fixtures/regenerate.py</c>). Ten canonical
+        /// KHR-Character `.glb` variations; see <c>FromBlender/README.md</c>. Catalog-backed like
+        /// <see cref="SyntheticDirectory"/>.</summary>
+        public static string FromBlenderDirectory =>
+            AssetSourceCatalog.ResolveDirectory("FromBlender", DefaultFromBlenderDirectory);
+        /// <summary>Absolute path of a FromBlender fixture by file name (e.g. "full.glb").
+        /// Catalog-backed (see <see cref="FromBlenderDirectory"/>).</summary>
+        public static string FromBlenderPath(string fileName) =>
+            AssetSourceCatalog.Resolve("FromBlender", fileName, DefaultFromBlenderDirectory);
+
+        // ── Asset source catalog ──────────────────────────────────────────────────────
+        //
+        // Rather than hardcoding "Synthetic" and "FromBlender" as first-class named paths that every
+        // consumer knows about, the catalog is a registry of (label, directory) pairs — one entry per
+        // "place we look for .glb / .gltf". Consumers enumerate the catalog to build UI (GlbViewer's
+        // preset dropdown) or drive tests (SandboxFromBlenderTests fixture matrix). New sources are
+        // added via the runtime UI (which persists to PlayerPrefs so an added folder survives session
+        // restart) or programmatically via ``AssetSourceCatalog.TryRegister``.
+        //
+        // Two default sources auto-register on first access if their directories exist:
+        //   * ``Synthetic``   — SampleCharacterFactory output (SC-*, VH-*). Registers whether or not
+        //                       the SC-* / VH-* fixtures have been generated yet; if the directory
+        //                       is empty, its enumeration is empty and no dropdown entries appear.
+        //                       Once you run "Generate Sample Characters" the entries populate.
+        //   * ``FromBlender`` — the khr_character_blender addon's fixture matrix.
+        //
+        // The hero character is a single FILE, not a directory, so it stays out of the catalog and
+        // remains a first-class named path via ``HeroAbsolutePath``. Everything else that's directory-
+        // shaped goes through the catalog.
+
+        /// <summary>One entry in the <see cref="AssetSourceCatalog"/> — a labeled directory that
+        /// may hold ``.glb`` / ``.gltf`` assets.</summary>
+        public sealed class AssetSource
+        {
+            /// <summary>Display label (e.g. "Synthetic", "FromBlender", "My local characters").</summary>
+            public string Label;
+            /// <summary>Absolute directory path.</summary>
+            public string Directory;
+            /// <summary>True when the entry was created by the built-in default registration (Synthetic,
+            /// FromBlender). Auto-detected entries cannot be removed via the runtime UI — they'll just
+            /// re-register on next session — but they can be hidden by clearing PlayerPrefs.</summary>
+            public bool AutoDetected;
+
+            /// <summary>Enumerate every ``.glb`` / ``.gltf`` file directly under this source
+            /// (non-recursive). Returns empty if the directory is missing.</summary>
+            public IEnumerable<string> EnumerateAssets()
+            {
+                if (string.IsNullOrEmpty(Directory) || !System.IO.Directory.Exists(Directory))
+                    yield break;
+                foreach (var f in System.IO.Directory.EnumerateFiles(Directory, "*.glb"))
+                    yield return f;
+                foreach (var f in System.IO.Directory.EnumerateFiles(Directory, "*.gltf"))
+                    yield return f;
+            }
+        }
+
+        /// <summary>Registry of asset-source directories consumers (GlbViewer, tests) enumerate to find
+        /// loadable assets. Thread-safe lazy init on first access.</summary>
+        public static class AssetSourceCatalog
+        {
+            private const string PrefsKey = "KhrCharacterTestbed.UserAssetSources.v1";
+            private static readonly object _sync = new object();
+            private static List<AssetSource> _sources;
+
+            /// <summary>All registered sources (auto-detected + user-added). Lazily initialized on
+            /// first access.</summary>
+            public static IReadOnlyList<AssetSource> Sources
+            {
+                get { EnsureInitialized(); return _sources; }
+            }
+
+            /// <summary>Enumerate every asset across every registered source as
+            /// ``(source, absolutePath)`` pairs. Missing directories contribute nothing (silent).</summary>
+            public static IEnumerable<(AssetSource Source, string Path)> EnumerateAll()
+            {
+                EnsureInitialized();
+                foreach (var src in _sources)
+                    foreach (var p in src.EnumerateAssets())
+                        yield return (src, p);
+            }
+
+            /// <summary>Resolve a fixture path from a labeled source in the catalog. Returns the
+            /// catalog-driven absolute path when a source with <paramref name="sourceLabel"/> is
+            /// registered; otherwise falls back to <paramref name="fallbackDirectory"/>. Tests and
+            /// legacy callers use this to stay UI-configurable — if the user renames a source via
+            /// the runtime UI the resolved path tracks the rename, but the hardcoded fallback
+            /// keeps determinism when the catalog isn't yet initialized.</summary>
+            public static string Resolve(string sourceLabel, string fileName, string fallbackDirectory)
+            {
+                if (string.IsNullOrEmpty(fileName)) return string.Empty;
+                return System.IO.Path.Combine(ResolveDirectory(sourceLabel, fallbackDirectory), fileName);
+            }
+
+            /// <summary>Resolve the DIRECTORY for a labeled source. Returns the catalog-driven
+            /// absolute path when registered, otherwise <paramref name="fallbackDirectory"/>.</summary>
+            public static string ResolveDirectory(string sourceLabel, string fallbackDirectory)
+            {
+                EnsureInitialized();
+                lock (_sync)
+                {
+                    foreach (var s in _sources)
+                        if (string.Equals(s.Label, sourceLabel, System.StringComparison.OrdinalIgnoreCase))
+                            return s.Directory;
+                }
+                return fallbackDirectory;
+            }
+
+            /// <summary>Register a source directory. Returns false when the directory is already
+            /// registered (deduped case-insensitively) or the label/path is empty. Persists user-added
+            /// (non-auto-detected) entries to PlayerPrefs so they survive session restart.</summary>
+            public static bool TryRegister(string label, string absoluteDirectory, bool autoDetected = false)
+            {
+                EnsureInitialized();
+                if (string.IsNullOrWhiteSpace(label) || string.IsNullOrWhiteSpace(absoluteDirectory))
+                    return false;
+                lock (_sync)
+                {
+                    foreach (var existing in _sources)
+                        if (string.Equals(existing.Directory, absoluteDirectory,
+                                System.StringComparison.OrdinalIgnoreCase))
+                            return false;
+                    _sources.Add(new AssetSource
+                    {
+                        Label = label.Trim(),
+                        Directory = absoluteDirectory.Trim(),
+                        AutoDetected = autoDetected,
+                    });
+                    if (!autoDetected) SaveUserSources();
+                }
+                return true;
+            }
+
+            /// <summary>Remove a user-added source. Auto-detected defaults cannot be removed
+            /// (they'd re-register on next session anyway).</summary>
+            public static bool Remove(AssetSource source)
+            {
+                if (source == null || source.AutoDetected) return false;
+                EnsureInitialized();
+                lock (_sync)
+                {
+                    bool removed = _sources.Remove(source);
+                    if (removed) SaveUserSources();
+                    return removed;
+                }
+            }
+
+            /// <summary>Wipe all user-added sources (auto-detected defaults survive on next re-init).</summary>
+            public static void ClearUserSources()
+            {
+                EnsureInitialized();
+                lock (_sync)
+                {
+                    _sources.RemoveAll(s => !s.AutoDetected);
+                    SaveUserSources();
+                }
+            }
+
+            /// <summary>Force a re-initialization on next access — useful in tests or when
+            /// generation just landed new files and we want the catalog to re-check.</summary>
+            public static void Invalidate()
+            {
+                lock (_sync) _sources = null;
+            }
+
+            private static void EnsureInitialized()
+            {
+                if (_sources != null) return;
+                lock (_sync)
+                {
+                    if (_sources != null) return;
+                    _sources = new List<AssetSource>();
+                    RegisterDefaults();
+                    LoadUserSources();
+                }
+            }
+
+            private static void RegisterDefaults()
+            {
+                // Use the raw Default* directories (not the catalog-consulting SyntheticDirectory /
+                // FromBlenderDirectory properties) to avoid a circular init: those properties call
+                // back into ResolveDirectory, which calls EnsureInitialized, which we're inside.
+                RegisterDefaultInternal("Synthetic", DefaultSyntheticDirectory);
+                RegisterDefaultInternal("FromBlender", DefaultFromBlenderDirectory);
+            }
+
+            private static void RegisterDefaultInternal(string label, string dir)
+            {
+                foreach (var s in _sources)
+                    if (string.Equals(s.Directory, dir, System.StringComparison.OrdinalIgnoreCase))
+                        return;
+                _sources.Add(new AssetSource
+                {
+                    Label = label, Directory = dir, AutoDetected = true,
+                });
+            }
+
+            // ── PlayerPrefs persistence ─────────────────────────────────────
+            //
+            // Format: newline-separated "label|absolutePath". PlayerPrefs is fine for per-user local
+            // additions; if we ever want committed shared sources, ship a JSON asset that
+            // RegisterDefaults reads on top of the two built-ins.
+
+            private static void LoadUserSources()
+            {
+                string raw = PlayerPrefs.GetString(PrefsKey, string.Empty);
+                if (string.IsNullOrEmpty(raw)) return;
+                foreach (var line in raw.Split('\n'))
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    int pipe = line.IndexOf('|');
+                    if (pipe <= 0) continue;
+                    string label = line.Substring(0, pipe).Trim();
+                    string path = line.Substring(pipe + 1).Trim();
+                    if (string.IsNullOrEmpty(label) || string.IsNullOrEmpty(path)) continue;
+                    // Dedupe against the (potentially-just-registered) defaults.
+                    bool dup = false;
+                    foreach (var existing in _sources)
+                        if (string.Equals(existing.Directory, path,
+                                System.StringComparison.OrdinalIgnoreCase))
+                        { dup = true; break; }
+                    if (dup) continue;
+                    _sources.Add(new AssetSource
+                    {
+                        Label = label, Directory = path, AutoDetected = false,
+                    });
+                }
+            }
+
+            private static void SaveUserSources()
+            {
+                var sb = new System.Text.StringBuilder();
+                foreach (var s in _sources)
+                {
+                    if (s.AutoDetected) continue;
+                    sb.Append(s.Label).Append('|').Append(s.Directory).Append('\n');
+                }
+                PlayerPrefs.SetString(PrefsKey, sb.ToString());
+                PlayerPrefs.Save();
+            }
+        }
 
         /// <summary>Project-relative path of the "hero" character (VRM-origin, committed via Git LFS).</summary>
         public const string HeroRelativePath = "SampleAssets/khr-character-example.glb";

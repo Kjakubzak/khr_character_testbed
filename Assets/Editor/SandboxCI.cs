@@ -24,20 +24,50 @@ namespace Samples.Editor
         private static string GlbStagingDir => Path.Combine(ProjectRoot, "Artifacts", "glb");
         private static string SnapshotDir => Path.Combine(ProjectRoot, "Artifacts", "snapshots");
 
-        // Fixtures the harness exports + snapshots. Add new fixtures here (and they flow into goldens automatically).
-        private static readonly (string Name, System.Func<string, string> Generate)[] Fixtures =
+        // Fixtures the harness exports + snapshots. Discovered reflectively from
+        // ``SampleCharacterFactory`` — every public-static method decorated with
+        // ``[SampleCharacter("NAME")]`` becomes an entry automatically. Adding a new SC-*/VH-*
+        // fixture is now ONE code touch: define the generator method + attribute; SandboxCI picks
+        // it up without a second edit here.
+        //
+        // Order is stable across runs (sorted by attribute Name) so golden diffs stay comparable
+        // across regenerations. The lazy static ensures reflection runs once per editor session.
+        private static readonly System.Lazy<(string Name, System.Func<string, string> Generate)[]> _fixtures =
+            new System.Lazy<(string, System.Func<string, string>)[]>(DiscoverFixtures);
+
+        private static (string Name, System.Func<string, string> Generate)[] Fixtures => _fixtures.Value;
+
+        private static (string Name, System.Func<string, string> Generate)[] DiscoverFixtures()
         {
-            ("SC-Face", SampleCharacterFactory.GenerateSCFace),
-            ("SC-FacePlus", SampleCharacterFactory.GenerateSCFacePlus),
-            ("SC-Body", SampleCharacterFactory.GenerateSCBody),
-            ("SC-LookAt", SampleCharacterFactory.GenerateSCLookAt),
-            ("SC-Partial", SampleCharacterFactory.GenerateSCPartial),
-            ("SC-PseudoVRM", SampleCharacterFactory.GenerateSCPseudoVRM),
-            ("SC-ExprEdge", SampleCharacterFactory.GenerateSCExprEdge),
-            ("VH-Node", SampleCharacterFactory.GenerateVHNode),
-            ("VH-Primitive", SampleCharacterFactory.GenerateVHPrimitive),
-            ("VH-ViewContext", SampleCharacterFactory.GenerateVHViewContext),
-        };
+            var found = new List<(string Name, System.Func<string, string> Generate)>();
+            var factoryType = typeof(SampleCharacterFactory);
+            foreach (var method in factoryType.GetMethods(
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static))
+            {
+                var attr = System.Attribute.GetCustomAttribute(method, typeof(SampleCharacterAttribute))
+                    as SampleCharacterAttribute;
+                if (attr == null) continue;
+
+                // Contract: string Generate(string outputDirectory). Anything else is a
+                // decoration bug; log + skip so a bad decoration can't wedge fixture generation.
+                var parameters = method.GetParameters();
+                if (method.ReturnType != typeof(string) || parameters.Length != 1
+                    || parameters[0].ParameterType != typeof(string))
+                {
+                    Debug.LogError($"[SandboxCI] [SampleCharacter(\"{attr.Name}\")] method " +
+                                   $"'{method.Name}' has wrong signature — expected " +
+                                   "'public static string Generate(string outputDirectory)'.");
+                    continue;
+                }
+
+                var name = attr.Name;
+                var m = method;
+                found.Add((name, dir => (string)m.Invoke(null, new object[] { dir })));
+            }
+            // Stable ordering — sort by name so goldens diff cleanly across regenerations.
+            found.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
+            return found.ToArray();
+        }
 
         // ── URP nightly cell (Phase 5): create + (de)activate a URP pipeline asset ──────────────────────────────
         // Creation via reflection + activation via the base RenderPipelineAsset type, so this (Built-in) editor

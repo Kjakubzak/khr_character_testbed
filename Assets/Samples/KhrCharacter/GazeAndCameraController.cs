@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityGLTF.KhrCharacter;
 using Samples.Shared;
@@ -34,25 +35,25 @@ namespace Samples.Characters
         {
             if (string.IsNullOrEmpty(BodyGlbPath)) BodyGlbPath = CharacterLoader.SyntheticPath("SC-Body.glb");
             bool usingHero = string.IsNullOrEmpty(FaceGlbPath) && CharacterLoader.HeroExists;
+            string sceneName = SceneManager.GetActiveScene().name;
+            string faceFallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-Face.glb");
+            string faceFallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-Face");
 
             _rig = Object.FindFirstObjectByType<OrbitCameraRig>();
-
             var targetGo = new GameObject("GazeTarget");
             targetGo.transform.SetParent(transform, false);
             targetGo.transform.position = _targetAnchor;
             _gazeTarget = targetGo.transform;
-
             _ui = DemoUiBuilder.Create("Gaze & Camera");
             _ui.AddLabel("Gaze: move the target and the face follows. Camera: pick a hint role.");
-            _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, "SC-Face"));
+            _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, faceFallbackDisplay));
             BuildGazeControls();
-
-            // The demo character drives gaze (the hero when present, else SC-Face). SC-Body still provides the
-            // camera hints below, so the fallback demoes both gaze and hints.
+            // The demo character drives gaze (the hero when present, else the catalog's face fallback).
+            // SC-Body still provides the camera hints below, so the fallback demoes both gaze and hints.
             var faceRoot = new GameObject("FaceRoot");
             faceRoot.transform.SetParent(transform, false);
             string facePath = !string.IsNullOrEmpty(FaceGlbPath) ? FaceGlbPath
-                : (CharacterLoader.HeroExists ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-Face.glb"));
+                : (CharacterLoader.HeroExists ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath(faceFallbackFile));
             await LoadInto(facePath, faceRoot.transform, WireGaze);
 
             // SC-Body carries the camera hints (placed to the side so both are visible).

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityGLTF.KhrCharacter;
 using Samples.Shared;
 
@@ -17,10 +18,13 @@ namespace Samples.Characters
         private async void Start()
         {
             bool usingHero = string.IsNullOrEmpty(GlbPath) && CharacterLoader.HeroExists;
+            string sceneName = SceneManager.GetActiveScene().name;
+            string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-Face.glb");
+            string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-Face");
 
             var ui = DemoUiBuilder.Create("Health");
             ui.AddLabel("Capability health for the loaded character (Active / Degraded / Inert).");
-            ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, "SC-Face"));
+            ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             var healthText = ui.AddLabel("Loading ...");
 
             var root = new GameObject("CharacterRoot");
@@ -30,7 +34,7 @@ namespace Samples.Characters
             try
             {
                 scene = string.IsNullOrEmpty(GlbPath)
-                    ? await CharacterLoader.LoadDemoCharacterAsync(root.transform, "SC-Face.glb")
+                    ? await CharacterLoader.LoadDemoCharacterAsync(root.transform, fallbackFile)
                     : await CharacterLoader.LoadAsync(GlbPath, root.transform);
             }
             catch (System.Exception e) { Debug.LogException(e); healthText.text = "Load failed: " + e.Message; return; }

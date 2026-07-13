@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityGLTF.KhrCharacter;
 using Samples.Shared;
@@ -25,10 +26,13 @@ namespace Samples.Characters
         private async void Start()
         {
             bool usingHero = string.IsNullOrEmpty(BodyGlbPath) && CharacterLoader.HeroExists;
+            string sceneName = SceneManager.GetActiveScene().name;
+            string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-Body.glb");
+            string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-Body");
 
             _ui = DemoUiBuilder.Create("Rig & Pose");
             _ui.AddLabel("Switch Generic/Humanoid and apply the reference pose. Humanoid is best-effort.");
-            _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, "SC-Body"));
+            _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             _status = _ui.AddLabel("Loading ...");
 
             var bodyRoot = new GameObject("BodyRoot");
@@ -38,7 +42,7 @@ namespace Samples.Characters
             try
             {
                 scene = string.IsNullOrEmpty(BodyGlbPath)
-                    ? await CharacterLoader.LoadDemoCharacterAsync(bodyRoot.transform, "SC-Body.glb")
+                    ? await CharacterLoader.LoadDemoCharacterAsync(bodyRoot.transform, fallbackFile)
                     : await CharacterLoader.LoadAsync(BodyGlbPath, bodyRoot.transform);
             }
             catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }

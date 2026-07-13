@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityGLTF.KhrCharacter;
 using Samples.Shared;
 
@@ -24,6 +25,9 @@ namespace Samples.Characters
         private async void Start()
         {
             bool usingHero = string.IsNullOrEmpty(GlbPath) && CharacterLoader.HeroExists;
+            string sceneName = SceneManager.GetActiveScene().name;
+            string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-FacePlus.glb");
+            string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-FacePlus");
 
             var content = new GameObject("LoadedContent");
             content.transform.SetParent(transform, false);
@@ -35,7 +39,7 @@ namespace Samples.Characters
             try
             {
                 scene = string.IsNullOrEmpty(GlbPath)
-                    ? await CharacterLoader.LoadDemoCharacterAsync(_contentRoot, "SC-FacePlus.glb")
+                    ? await CharacterLoader.LoadDemoCharacterAsync(_contentRoot, fallbackFile)
                     : await CharacterLoader.LoadAsync(GlbPath, _contentRoot);
             }
             catch (System.Exception e)
@@ -54,7 +58,7 @@ namespace Samples.Characters
             // Ui exists synchronously afterwards and we can append the N1/N2 controls + a Back-to-Hub button.
             var panel = gameObject.AddComponent<ExpressionControlPanel>();
             panel.Bind(hub);
-            if (panel.Ui != null) panel.Ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, "SC-FacePlus"));
+            if (panel.Ui != null) panel.Ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
 
             var controller = hub.Expressions;
             if (panel.Ui != null && controller != null)
