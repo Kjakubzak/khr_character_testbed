@@ -32,4 +32,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Samples/VisibilityHints/Scenes/VisibilityHints.unity
     guid: 7c01343559672e046bbec0112513f5d6
+  - enabled: 1
+    path: Assets/Samples/KhrCharacter/Scenes/HumanoidAnimation.unity
+    guid: 63f8b3e067f10c343855ca8ad4a1cccb
+  - enabled: 1
+    path: Assets/Samples/KhrCharacter/Scenes/AnimationRigging.unity
+    guid: 8c613605dd4fbba46a6b439279148a68
+  - enabled: 1
+    path: Assets/Samples/KhrCharacter/Scenes/AnimationSandbox.unity
+    guid: cda51f8af3e78e94e872da5ebe348318
   m_configObjects: {}

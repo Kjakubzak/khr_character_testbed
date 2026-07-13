@@ -18,12 +18,16 @@ namespace KhrCharacterTestbed.Tests
     /// </summary>
     public class SandboxSceneSmokeTests
     {
-        // The committed demo scenes (must match EditorBuildSettings / SceneBuilder output).
-        private static readonly string[] SceneNames =
+        // Every scene declared in DemoCatalog.All. Catalog-driven — adding a new demo entry auto-
+        // enrols it in this smoke suite via NUnit's [ValueSource] test-collection discovery.
+        // (Old behaviour: hardcoded 9-scene string array duplicating what SceneBuilder + the hub
+        // registry already knew. Removed as part of the DemoCatalog generalization.)
+        public static string[] SceneNames()
         {
-            "SampleHub", "GlbViewer", "Expressions", "GazeAndCamera", "RigAndPose", "RoundTrip", "Health",
-            "CharacterShowcase", "VisibilityHints",
-        };
+            var names = new System.Collections.Generic.List<string>();
+            foreach (var d in DemoCatalog.All) names.Add(d.SceneName);
+            return names.ToArray();
+        }
 
         private Scene _loaded;
 

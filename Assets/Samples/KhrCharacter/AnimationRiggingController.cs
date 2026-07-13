@@ -1,0 +1,180 @@
+using UnityEngine;
+using UnityEngine.Animations.Rigging;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityGLTF.KhrCharacter;
+using Samples.Shared;
+
+namespace Samples.Characters
+{
+    /// <summary>
+    /// AnimationRigging demo (Tier 3). Stacks Unity Animation Rigging constraints ON TOP of a
+    /// procedural humanoid clip: an <see cref="AnimationBinder"/>-driven idle loop provides the
+    /// base motion, and a <see cref="MultiAimConstraint"/> makes the head bone track a movable
+    /// target. Layered animation — the character breathes / walks in place while its head follows
+    /// where you point. The KHR gaze target (if the character has one) is used as the aim source
+    /// so this pairs naturally with the GazeAndCamera demo's affordances.
+    ///
+    /// Requires <c>com.unity.animation.rigging</c> (added to Packages/manifest.json). Falls back
+    /// gracefully to base playback (no aim) when the character has no head bone the constraint
+    /// can bind to.
+    /// </summary>
+    public class AnimationRiggingController : MonoBehaviour
+    {
+        public string BodyGlbPath;
+
+        private DemoUiBuilder _ui;
+        private Text _status;
+        private Animator _animator;
+        private GameObject _character;
+        private Transform _aimTarget;
+        private RigBuilder _rigBuilder;
+
+        private async void Start()
+        {
+            bool usingHero = string.IsNullOrEmpty(BodyGlbPath) && CharacterLoader.HeroExists;
+            string sceneName = SceneManager.GetActiveScene().name;
+            string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-Body.glb");
+            string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-Body");
+
+            _ui = DemoUiBuilder.Create("Animation Rigging");
+            _ui.AddLabel("Layer a MultiAimConstraint (head look-at) on top of a base humanoid clip.");
+            _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
+            _status = _ui.AddLabel("Loading ...");
+
+            var root = new GameObject("CharacterRoot");
+            root.transform.SetParent(transform, false);
+
+            GameObject scene;
+            try
+            {
+                scene = string.IsNullOrEmpty(BodyGlbPath)
+                    ? await CharacterLoader.LoadDemoCharacterAsync(root.transform, fallbackFile)
+                    : await CharacterLoader.LoadAsync(BodyGlbPath, root.transform);
+            }
+            catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }
+            if (scene == null) { _status.text = "Load failed."; return; }
+
+            _character = scene;
+            FrameScene(scene);
+
+            // Bind Humanoid (preferred — gives us the head bone via Avatar). Fall back to Generic
+            // if the character rejects Humanoid; the rig setup below finds the head bone by name
+            // in that case too.
+            _animator = AnimationBinder.Bind(_character, RigMode.Humanoid)
+                ?? AnimationBinder.Bind(_character, RigMode.Generic);
+            if (_animator == null)
+            {
+                _status.text = "No animator could be bound. Check character load.";
+                return;
+            }
+
+            // The aim target — an Empty the user can move around via a runtime widget. The widget
+            // moves the GameObject it's attached to, so the target IS the widget's transform.
+            var targetGo = new GameObject("AimTarget");
+            targetGo.transform.SetParent(transform, false);
+            targetGo.transform.position = new Vector3(0.5f, 1.6f, 1.5f);
+            _aimTarget = targetGo.transform;
+            targetGo.AddComponent<RuntimeMoveWidget>();
+
+            SetupRig();
+
+            // Start the idle so the aim constraint has something to layer on top of.
+            AnimationBinder.Play(_animator, HumanoidClipFactory.IdleSway);
+            _status.text = _rigBuilder != null
+                ? "Idle base + head aim active. Move the yellow target."
+                : "Idle base playing; head aim disabled (no head bone found).";
+
+            BuildClipButtons();
+
+            var back = gameObject.AddComponent<BackToHubButton>();
+            _ui.AddButton("Back to Hub", back.GoToHub);
+        }
+
+        // Wire a MultiAimConstraint on the character's head bone. The rig builder / rig / constraint
+        // trio is Unity Animation Rigging's runtime setup pattern.
+        private void SetupRig()
+        {
+            var headBone = FindHeadBone(_character);
+            if (headBone == null) return; // graceful skip; base clip still plays
+
+            _rigBuilder = _character.GetComponent<RigBuilder>() ?? _character.AddComponent<RigBuilder>();
+
+            var rigGo = new GameObject("AimRig");
+            rigGo.transform.SetParent(_character.transform, false);
+            var rig = rigGo.AddComponent<Rig>();
+
+            var constraintGo = new GameObject("HeadAim");
+            constraintGo.transform.SetParent(rigGo.transform, false);
+            var aim = constraintGo.AddComponent<MultiAimConstraint>();
+            var data = aim.data;
+            data.constrainedObject = headBone;
+            var sources = new WeightedTransformArray(0);
+            sources.Add(new WeightedTransform(_aimTarget, 1f));
+            data.sourceObjects = sources;
+            data.aimAxis = MultiAimConstraintData.Axis.Z;   // most humanoid faces point +Z
+            data.upAxis = MultiAimConstraintData.Axis.Y;
+            data.worldUpType = MultiAimConstraintData.WorldUpType.SceneUp;
+            // Modest range so the head can turn but doesn't spin like an owl on aim targets that
+            // stray far behind the character.
+            data.limits = new Vector2(-70f, 70f);
+            data.constrainedXAxis = true;
+            data.constrainedYAxis = true;
+            data.constrainedZAxis = false;
+            aim.data = data;
+            aim.weight = 1f;
+
+            _rigBuilder.layers.Add(new RigLayer(rig, true));
+            _rigBuilder.Build();
+        }
+
+        // Try common humanoid-vocabulary head-bone names; the KHR skeleton_mapping populates one
+        // of these depending on the source rig. Case-insensitive to handle both "head" and "Head".
+        private static Transform FindHeadBone(GameObject character)
+        {
+            var candidates = new[] { "head", "Head", "HeadTop_End" };
+            foreach (var name in candidates)
+            {
+                var t = FindDeep(character.transform, name);
+                if (t != null) return t;
+            }
+            return null;
+        }
+
+        private static Transform FindDeep(Transform parent, string name)
+        {
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var child = parent.GetChild(i);
+                if (string.Equals(child.name, name, System.StringComparison.OrdinalIgnoreCase))
+                    return child;
+                var deep = FindDeep(child, name);
+                if (deep != null) return deep;
+            }
+            return null;
+        }
+
+        private void BuildClipButtons()
+        {
+            _ui.AddLabel("── Base clip (aim layered on top) ──");
+            foreach (var clip in HumanoidClipFactory.All())
+            {
+                var captured = clip;
+                _ui.AddButton(clip.name, () =>
+                {
+                    if (_animator == null || captured == null) return;
+                    AnimationBinder.Play(_animator, captured);
+                    if (_status != null) _status.text = $"Base: {captured.name} (aim: {(_rigBuilder != null ? "on" : "n/a")})";
+                });
+            }
+        }
+
+        private void FrameScene(GameObject scene)
+        {
+            var rig = Object.FindFirstObjectByType<OrbitCameraRig>();
+            if (rig == null || scene == null) return;
+            if (!SceneBoundsUtil.TryAggregate(scene, out var bounds)) return;
+            rig.FrameAndFace(bounds, scene.transform);
+        }
+    }
+}

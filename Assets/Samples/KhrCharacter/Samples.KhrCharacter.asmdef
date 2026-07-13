@@ -7,7 +7,8 @@
         "GLTFSerialization",
         "UnityGLTF.KhrCharacter.Runtime",
         "UnityGLTF.KhrCharacter.Schema",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "Unity.Animation.Rigging"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

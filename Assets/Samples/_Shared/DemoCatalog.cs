@@ -161,6 +161,33 @@ namespace Samples.Shared
                 controllerTypeName: "Samples.VisibilityHints.VisibilityHintsController, " + VisibilityHintsAsm,
                 addOrbit: true,
                 registerInHub: true),
+            new DemoDescriptor(
+                sceneName: "HumanoidAnimation",
+                title: "Humanoid Animation",
+                description: "Play procedural humanoid clips via the Playables API on a KHR-bound Avatar.",
+                fallbackFile: "SC-Body.glb",
+                scenePath: "Assets/Samples/KhrCharacter/Scenes/HumanoidAnimation.unity",
+                controllerTypeName: "Samples.Characters.HumanoidAnimationController, " + CharactersAsm,
+                addOrbit: true,
+                registerInHub: true),
+            new DemoDescriptor(
+                sceneName: "AnimationRigging",
+                title: "Animation Rigging",
+                description: "MultiAimConstraint head look-at layered on top of a procedural idle clip.",
+                fallbackFile: "SC-Body.glb",
+                scenePath: "Assets/Samples/KhrCharacter/Scenes/AnimationRigging.unity",
+                controllerTypeName: "Samples.Characters.AnimationRiggingController, " + CharactersAsm,
+                addOrbit: true,
+                registerInHub: true),
+            new DemoDescriptor(
+                sceneName: "AnimationSandbox",
+                title: "Animation Sandbox",
+                description: "Any character + any rig mode + any clip. Registry-driven, no hardcoded combos.",
+                fallbackFile: "",  // user picks via dropdown
+                scenePath: "Assets/Samples/KhrCharacter/Scenes/AnimationSandbox.unity",
+                controllerTypeName: "Samples.Characters.AnimationSandboxController, " + CharactersAsm,
+                addOrbit: true,
+                registerInHub: true),
         };
 
         /// <summary>Just the entries with <see cref="DemoDescriptor.RegisterInHub"/> set — the hub

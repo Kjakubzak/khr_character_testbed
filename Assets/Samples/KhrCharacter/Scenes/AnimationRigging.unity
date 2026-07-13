@@ -338,7 +338,7 @@ GameObject:
   - component: {fileID: 1622585540}
   - component: {fileID: 1622585539}
   m_Layer: 0
-  m_Name: Expressions
+  m_Name: AnimationRigging
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -353,10 +353,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1622585538}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b56d761e2b43ec54aa0b415f1c08f2d7, type: 3}
+  m_Script: {fileID: 11500000, guid: 6dc73d37001ca7b47b1970e42b4ace01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlbPath: 
+  BodyGlbPath: 
 --- !u!4 &1622585540
 Transform:
   m_ObjectHideFlags: 0
