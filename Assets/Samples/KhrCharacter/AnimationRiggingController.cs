@@ -58,11 +58,11 @@ namespace Samples.Characters
             _character = scene;
             FrameScene(scene);
 
-            // Bind Humanoid (preferred — gives us the head bone via Avatar). Fall back to Generic
-            // if the character rejects Humanoid; the rig setup below finds the head bone by name
-            // in that case too.
-            _animator = AnimationBinder.Bind(_character, RigMode.Humanoid)
-                ?? AnimationBinder.Bind(_character, RigMode.Generic);
+            // Bind Generic — same reasoning as HumanoidAnimationController: our procedural
+            // idle clip is transform-based, and playing it on a Humanoid Avatar produces a
+            // mangled pose. MultiAimConstraint (below) works fine on the Generic rig — it
+            // constrains transforms directly, no Avatar dependency.
+            _animator = AnimationBinder.Bind(_character, RigMode.Generic);
             if (_animator == null)
             {
                 _status.text = "No animator could be bound. Check character load.";
@@ -79,8 +79,10 @@ namespace Samples.Characters
 
             SetupRig();
 
-            // Start the idle so the aim constraint has something to layer on top of.
-            AnimationBinder.Play(_animator, HumanoidClipFactory.IdleSway);
+            // Start the idle so the aim constraint has something to layer on top of. Uses the
+            // per-character clip so paths resolve from the KHR skeleton_mapping (works on VRoid /
+            // Mixamo / custom rigs, not just SC-Body's PascalCase convention).
+            AnimationBinder.Play(_animator, HumanoidClipFactory.BuildForCharacter("IdleSway", _character));
             _status.text = _rigBuilder != null
                 ? "Idle base + head aim active. Move the yellow target."
                 : "Idle base playing; head aim disabled (no head bone found).";
@@ -157,10 +159,10 @@ namespace Samples.Characters
         private void BuildClipButtons()
         {
             _ui.AddLabel("── Base clip (aim layered on top) ──");
-            foreach (var clip in HumanoidClipFactory.All())
+            foreach (var clip in HumanoidClipFactory.AllForCharacter(_character))
             {
                 var captured = clip;
-                _ui.AddButton(clip.name, () =>
+                _ui.AddButton(clip.name.Contains("@") ? clip.name.Split('@')[0] : clip.name, () =>
                 {
                     if (_animator == null || captured == null) return;
                     AnimationBinder.Play(_animator, captured);

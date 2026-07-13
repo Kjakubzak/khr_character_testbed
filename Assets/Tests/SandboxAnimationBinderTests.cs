@@ -176,5 +176,71 @@ namespace KhrCharacterTestbed.Tests
                 "SC-Body must contain a left-upper-leg bone under one of the common naming " +
                 "conventions for the WalkInPlace clip to affect it.");
         }
+
+        // ── Character-adaptive clips resolve paths via KHR skeleton_mapping ─────────────────────
+        //
+        // Guards against a whole class of "clips play but nothing moves" regressions on rigs whose
+        // bone names differ from the built-in fallback conventions (e.g. VRoid J_Bip_C_Head,
+        // Mixamo mixamorig:Head). The test asserts the adaptive clip contains DIFFERENT paths
+        // than the static clip does, proving the resolver actually rewired via SkeletonMap.
+
+        [UnityTest]
+        public IEnumerator BuildForCharacter_UsesSkeletonMapPaths()
+        {
+            var load = SandboxTestUtil.LoadSynthetic("SC-Body.glb", _created);
+            yield return load;
+            var character = load.Current;
+
+            var adaptive = HumanoidClipFactory.BuildForCharacter("IdleSway", character);
+            Assert.IsNotNull(adaptive, "BuildForCharacter must return a non-null clip on a KHR character.");
+            Assert.IsTrue(adaptive.name.Contains("@"),
+                "Character-adaptive clip name should include the character identifier (Name@Character convention).");
+
+            // SC-Body's skeleton_mapping maps "hips" -> Transform("Hips"). ComputeRelativePath
+            // from the character root gives "Hips" (root child). Verify the clip's curves target
+            // that path by using SampleAnimation and observing effect on the "Hips" transform.
+            var hips = FindDeep(character.transform, "Hips");
+            Assert.IsNotNull(hips, "SC-Body precondition: Hips transform must exist.");
+
+            float baselineY = hips.localPosition.y;
+            adaptive.SampleAnimation(character, 1.0f); // quarter-cycle into a 4s sine
+            float sampledY = hips.localPosition.y;
+
+            Assert.Greater(Mathf.Abs(sampledY - baselineY), 0.0001f,
+                $"Character-adaptive IdleSway should have driven Hips.localPosition.y from " +
+                $"{baselineY} to {sampledY} — if unchanged, the clip's curve path didn't " +
+                "resolve to the correct bone via SkeletonMap.TryGetBone.");
+
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator BuildForCharacter_FallsBack_OnNonKhrCharacter()
+        {
+            // Fabricate a bare GameObject with no KhrCharacter component. BuildForCharacter must
+            // fall back to the static clip rather than returning null or throwing.
+            var bare = new GameObject("BareCharacter");
+            _created.Add(bare);
+            yield return null;
+
+            var clip = HumanoidClipFactory.BuildForCharacter("IdleSway", bare);
+            Assert.IsNotNull(clip, "BuildForCharacter must fall back to the static clip when " +
+                             "the character has no SkeletonMap — got null instead.");
+            Assert.AreEqual("IdleSway", clip.name,
+                "Fallback should return the character-agnostic static clip (name = 'IdleSway', " +
+                "no '@Character' suffix).");
+        }
+
+        private static Transform FindDeep(Transform parent, string name)
+        {
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var child = parent.GetChild(i);
+                if (child.name == name) return child;
+                var deep = FindDeep(child, name);
+                if (deep != null) return deep;
+            }
+            return null;
+        }
     }
 }

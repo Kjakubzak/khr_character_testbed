@@ -47,6 +47,7 @@ namespace Samples.Characters
         {
             _ui = DemoUiBuilder.Create("Animation Sandbox");
             _ui.AddLabel("Any character + any rig mode + any clip. All three dropdowns are registry-backed.");
+            _ui.AddLabel("Note: procedural + character-embedded clips use TRANSFORM curves — pair them with Generic mode. Humanoid mode is for muscle-format clips (Mixamo FBX etc.); pairing generic clips with Humanoid produces a mangled pose.");
 
             var content = new GameObject("LoadedContent");
             content.transform.SetParent(transform, false);
@@ -152,8 +153,9 @@ namespace Samples.Characters
             // Tear down previous character before loading the next.
             if (_currentCharacter != null)
             {
-                // Also drop the per-character clip source we registered last time (if any).
+                // Also drop the per-character clip sources we registered last time (if any).
                 AnimationClipCatalog.Remove("Character");
+                AnimationClipCatalog.Remove("Procedural (character-adaptive)");
                 Destroy(_currentCharacter);
                 _currentCharacter = null;
                 _currentAnimator = null;
@@ -176,6 +178,14 @@ namespace Samples.Characters
             var captured = _currentCharacter;
             AnimationClipCatalog.TryRegister("Character",
                 () => AnimationBinder.EnumerateCharacterClips(captured), autoDetected: false);
+
+            // Register a per-character PROCEDURAL source that resolves paths from the KHR
+            // skeleton_mapping — so procedural clips actually drive the loaded character's bones
+            // regardless of its naming convention (VRoid, Mixamo, PascalCase, etc.). Removed on
+            // next load. The character-agnostic "Procedural" source stays in the catalog too;
+            // this per-character one adds character-adaptive variants of the same clips.
+            AnimationClipCatalog.TryRegister("Procedural (character-adaptive)",
+                () => HumanoidClipFactory.AllForCharacter(captured), autoDetected: false);
 
             RefreshModeDropdown();
             RefreshClipDropdown();
@@ -245,12 +255,13 @@ namespace Samples.Characters
             rig.FrameAndFace(bounds, scene.transform);
         }
 
-        // Drop the per-character clip source we registered on load so its Func closure over
-        // _currentCharacter doesn't keep enumerating from a dead GameObject after the scene
+        // Drop the per-character clip sources we registered on load so their Func closures over
+        // _currentCharacter don't keep enumerating from a dead GameObject after the scene
         // unloads. Idempotent — Remove no-ops if the source isn't registered.
         private void OnDestroy()
         {
             AnimationClipCatalog.Remove("Character");
+            AnimationClipCatalog.Remove("Procedural (character-adaptive)");
         }
     }
 }

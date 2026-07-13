@@ -1,41 +1,111 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityGLTF.KhrCharacter;
 
 namespace Samples.Shared
 {
     /// <summary>
     /// Procedural humanoid-adjacent <see cref="AnimationClip"/>s generated in code, so the testbed
-    /// ships committed motion without any third-party asset dependency (Mixamo etc.). Every clip
-    /// targets bone-name paths that match the KHR humanoid vocabulary
-    /// (<c>hips/spine/chest/neck/head</c> and their common variants), which is what
-    /// <see cref="KhrCharacter.SkeletonMap"/> populates when
-    /// <see cref="KhrCharacter.SkeletonMap.SwitchRigMode"/> is called with either Generic or
-    /// Humanoid. The clips are Legacy (playable via <c>Animation</c>) AND compatible with a Generic
-    /// <c>Animator</c> — they don't rely on Mecanim's Humanoid muscle system, so they work with any
-    /// character whose bones use the expected names, without requiring Avatar retargeting.
+    /// ships committed motion without any third-party asset dependency (Mixamo etc.). Two flavours:
     ///
-    /// Clip inventory (all ~0.1-1 KB at Unity's default keyframe density):
-    /// * IdleSway     : gentle hips Y bob + spine roll — a 4 s loop that reads as "breathing".
-    /// * Wave         : right-shoulder pitch/yaw for a 2 s wave gesture.
-    /// * Nod          : head-bone pitch nod (0/+15/-15/0 over 1.5 s).
-    /// * WalkInPlace  : alternating hip/knee TRS — a 1.2 s two-step loop.
+    ///   * <see cref="IdleSway"/> / <see cref="Wave"/> / <see cref="Nod"/> / <see cref="WalkInPlace"/>
+    ///     (or <see cref="All"/>) — character-agnostic clips using vocab-key + PascalCase-node paths.
+    ///     Works on characters whose bone names match one of the built-in conventions (SC-Body
+    ///     PascalCase, KHR-vocab lowercase). Cached, shared across scenes.
+    ///   * <see cref="BuildForCharacter"/> / <see cref="AllForCharacter"/> — clips whose curve paths
+    ///     are resolved against the character's actual bone names via
+    ///     <see cref="SkeletonMap.TryGetBone"/>. Works on ANY KHR character regardless of naming
+    ///     convention (VRoid <c>J_Bip_C_Head</c>, Mixamo <c>mixamorig:Head</c>, custom rigs). Freshly
+    ///     built per character (not cached across characters).
+    ///
+    /// Clip inventory:
+    ///   * IdleSway     : gentle hips Y bob + spine roll — a 4 s loop that reads as "breathing".
+    ///   * Wave         : right-shoulder pitch/yaw for a 2 s wave gesture.
+    ///   * Nod          : head-bone pitch nod (0/+15/-15/0 over 1.5 s).
+    ///   * WalkInPlace  : alternating hip/knee TRS — a 1.2 s two-step loop.
     ///
     /// Clips are NON-legacy — playable via <see cref="Animator"/> + Playables API. The
     /// <see cref="RigMode.Legacy"/> playback path in <see cref="AnimationBinder"/> is intended for
     /// glb-embedded clips (which UnityGLTF's KHR-Character importer surfaces as legacy
     /// <see cref="Animation"/> clips on the character root); pointing Legacy playback at a
     /// procedural clip logs a warning and no-ops.
-    ///
-    /// The factory is a static cache: each clip is generated exactly once per Unity domain reload
-    /// and returned by reference on subsequent calls. Callers may safely share the reference across
-    /// scenes; the cached clips are marked <c>hideFlags = HideAndDontSave</c> so they survive
-    /// scene loads and don't leak into the Editor's Project window.
     /// </summary>
     public static class HumanoidClipFactory
     {
-        private static readonly Dictionary<string, AnimationClip> _cache = new Dictionary<string, AnimationClip>();
+        // ── Authoring data: curves keyed by KHR vocab, retargeted per character on demand ─────
+        //
+        // Storing curves ONCE keyed by vocab (rather than by path) lets us build both character-
+        // agnostic clips (paths = fallback conventions) AND character-adaptive clips (paths =
+        // actual bone names resolved via SkeletonMap.TryGetBone) from the same source of truth.
 
-        /// <summary>Every procedural clip, in stable declaration order (matches the dropdown UI).</summary>
+        private sealed class ClipData
+        {
+            public string Name;
+            public float FrameRate = 30f;
+            public WrapMode WrapMode = WrapMode.Loop;
+            public List<CurveData> Curves = new List<CurveData>();
+        }
+
+        private sealed class CurveData
+        {
+            public string VocabKey;        // e.g. "hips" — a KHR skeleton_mapping vocabulary joint
+            public System.Type Type;
+            public string Property;        // e.g. "localPosition.y"
+            public AnimationCurve Curve;
+        }
+
+        private static ClipData _idleSway, _wave, _nod, _walkInPlace;
+
+        private static ClipData IdleSwayData => _idleSway ?? (_idleSway = new ClipData
+        {
+            Name = "IdleSway",
+            WrapMode = WrapMode.Loop,
+            Curves = {
+                new CurveData { VocabKey = "hips", Type = typeof(Transform),
+                    Property = "localPosition.y", Curve = SineCurve(4f, 0.01f, 0f, 33) },
+                new CurveData { VocabKey = "spine", Type = typeof(Transform),
+                    Property = "localRotation.z", Curve = SineCurve(4f, 0.026f, Mathf.PI / 2, 33) },
+            },
+        });
+
+        private static ClipData WaveData => _wave ?? (_wave = new ClipData
+        {
+            Name = "Wave",
+            WrapMode = WrapMode.Once,
+            Curves = {
+                new CurveData { VocabKey = "rightUpperArm", Type = typeof(Transform),
+                    Property = "localRotation.z", Curve = WaveCurve() },
+            },
+        });
+
+        private static ClipData NodData => _nod ?? (_nod = new ClipData
+        {
+            Name = "Nod",
+            WrapMode = WrapMode.Once,
+            Curves = {
+                new CurveData { VocabKey = "head", Type = typeof(Transform),
+                    Property = "localRotation.x", Curve = NodCurve() },
+            },
+        });
+
+        private static ClipData WalkInPlaceData => _walkInPlace ?? (_walkInPlace = new ClipData
+        {
+            Name = "WalkInPlace",
+            WrapMode = WrapMode.Loop,
+            Curves = {
+                new CurveData { VocabKey = "leftUpperLeg", Type = typeof(Transform),
+                    Property = "localRotation.x", Curve = LeftLegCurve() },
+                new CurveData { VocabKey = "rightUpperLeg", Type = typeof(Transform),
+                    Property = "localRotation.x", Curve = RightLegCurve() },
+                new CurveData { VocabKey = "hips", Type = typeof(Transform),
+                    Property = "localPosition.y", Curve = SineCurve(0.6f, 0.015f, 0f, 25) },
+            },
+        });
+
+        // ── Character-agnostic clip API (static cache, shared) ────────────────────────────────
+
+        private static readonly Dictionary<string, AnimationClip> _staticCache = new Dictionary<string, AnimationClip>();
+
         public static IEnumerable<AnimationClip> All()
         {
             yield return IdleSway;
@@ -44,105 +114,119 @@ namespace Samples.Shared
             yield return WalkInPlace;
         }
 
-        public static AnimationClip IdleSway     => GetOrBuild("IdleSway", BuildIdleSway);
-        public static AnimationClip Wave         => GetOrBuild("Wave", BuildWave);
-        public static AnimationClip Nod          => GetOrBuild("Nod", BuildNod);
-        public static AnimationClip WalkInPlace  => GetOrBuild("WalkInPlace", BuildWalkInPlace);
+        public static AnimationClip IdleSway    => GetOrBuildStatic(IdleSwayData);
+        public static AnimationClip Wave        => GetOrBuildStatic(WaveData);
+        public static AnimationClip Nod         => GetOrBuildStatic(NodData);
+        public static AnimationClip WalkInPlace => GetOrBuildStatic(WalkInPlaceData);
 
-        private static AnimationClip GetOrBuild(string name, System.Func<AnimationClip> build)
+        private static AnimationClip GetOrBuildStatic(ClipData data)
         {
-            if (_cache.TryGetValue(name, out var cached) && cached != null) return cached;
-            var clip = build();
-            clip.name = name;
-            // NON-legacy: modern Animator / Playables API requires legacy=false; the sandbox's
-            // Legacy playback path is intended for glb-embedded clips (which import as legacy
-            // via UnityGLTF). Procedural clips play through Humanoid / Generic modes only.
+            if (_staticCache.TryGetValue(data.Name, out var cached) && cached != null) return cached;
+            var clip = BuildClip(data, ResolveStaticPath);
+            _staticCache[data.Name] = clip;
+            return clip;
+        }
+
+        // Fallback path resolution when no SkeletonMap is available. Tries the vocab key AND the
+        // PascalCase-node variant (which SC-Body / most in-code synthetic rigs use). Dead paths
+        // are silent no-ops on the animator, so returning multiple paths per vocab is cheap.
+        private static IEnumerable<string> ResolveStaticPath(string vocabKey, GameObject _)
+        {
+            yield return vocabKey;
+            if (!string.IsNullOrEmpty(vocabKey) && char.IsLower(vocabKey[0]))
+                yield return char.ToUpper(vocabKey[0]) + vocabKey.Substring(1);
+        }
+
+        // ── Character-adaptive clip API (per-character resolution via SkeletonMap) ─────────────
+
+        /// <summary>Build all procedural clips with paths resolved against
+        /// <paramref name="character"/>'s KHR skeleton mapping. Each returned clip has curves
+        /// that target the character's ACTUAL bone names (e.g. VRoid <c>J_Bip_C_Head</c>,
+        /// Mixamo <c>mixamorig:Head</c>) — so procedural motion produces visible results on any
+        /// rig, not just the ones whose bone names match built-in conventions.
+        ///
+        /// Falls back to the static clip when the character has no <see cref="SkeletonMap"/>
+        /// (e.g. a plain glb loaded via GlbViewer that isn't a KHR character).</summary>
+        public static IEnumerable<AnimationClip> AllForCharacter(GameObject character)
+        {
+            yield return BuildForCharacter("IdleSway", character);
+            yield return BuildForCharacter("Wave", character);
+            yield return BuildForCharacter("Nod", character);
+            yield return BuildForCharacter("WalkInPlace", character);
+        }
+
+        /// <summary>Build one clip by name with paths resolved for <paramref name="character"/>.
+        /// Valid names: <c>IdleSway</c>, <c>Wave</c>, <c>Nod</c>, <c>WalkInPlace</c>.</summary>
+        public static AnimationClip BuildForCharacter(string clipName, GameObject character)
+        {
+            ClipData data = clipName switch
+            {
+                "IdleSway" => IdleSwayData,
+                "Wave" => WaveData,
+                "Nod" => NodData,
+                "WalkInPlace" => WalkInPlaceData,
+                _ => null,
+            };
+            if (data == null || character == null) return null;
+            var hub = character.GetComponent<KhrCharacter>();
+            var skeleton = hub != null ? hub.Skeleton : null;
+            if (skeleton == null) return GetOrBuildStatic(data); // no map, use fallback clip
+
+            System.Func<string, GameObject, IEnumerable<string>> resolve = (vocabKey, ch) =>
+                ResolveSkeletonPath(vocabKey, ch, skeleton);
+            var clip = BuildClip(data, resolve, character, characterAdaptive: true);
+            return clip;
+        }
+
+        // Resolve a vocab key to the character-relative path via SkeletonMap. Falls back to
+        // static conventions if the vocab key isn't in the skeleton map (e.g. the character's
+        // KHR skeleton doesn't declare a "rightUpperArm").
+        private static IEnumerable<string> ResolveSkeletonPath(string vocabKey, GameObject character, SkeletonMap skeleton)
+        {
+            if (skeleton.TryGetBone(vocabKey, out var bone) && bone != null)
+            {
+                var rel = ComputeRelativePath(character.transform, bone);
+                if (!string.IsNullOrEmpty(rel)) { yield return rel; yield break; }
+            }
+            foreach (var p in ResolveStaticPath(vocabKey, character)) yield return p;
+        }
+
+        // ── Common clip builder ───────────────────────────────────────────────────────────────
+
+        private static AnimationClip BuildClip(
+            ClipData data,
+            System.Func<string, GameObject, IEnumerable<string>> resolvePaths,
+            GameObject character = null,
+            bool characterAdaptive = false)
+        {
+            var clip = new AnimationClip { frameRate = data.FrameRate };
+            clip.wrapMode = data.WrapMode;
             clip.legacy = false;
+            clip.name = characterAdaptive && character != null
+                ? $"{data.Name}@{character.name}"
+                : data.Name;
             clip.hideFlags = HideFlags.HideAndDontSave;
-            _cache[name] = clip;
+            foreach (var curve in data.Curves)
+                foreach (var path in resolvePaths(curve.VocabKey, character))
+                    clip.SetCurve(path, curve.Type, curve.Property, curve.Curve);
             return clip;
         }
 
-        // ── Individual clip builders ────────────────────────────────────
+        // ── Path arithmetic + shared curve authors ─────────────────────────────────────────────
 
-        private static AnimationClip BuildIdleSway()
+        internal static string ComputeRelativePath(Transform root, Transform target)
         {
-            var clip = new AnimationClip { frameRate = 30f };
-            clip.wrapMode = WrapMode.Loop;
-            // Hips Y bob: ±1 cm over a 4 s cosine cycle. Adds curves under both the KHR-vocab
-            // path ("hips") AND the PascalCase node-name convention ("Hips") so the clip drives
-            // whichever naming the character actually uses. SC-Body's transforms are PascalCase
-            // (see SampleCharacterFactory.Bone(vocab, nodeName, ...): the second arg is the GO
-            // name), Mixamo characters use "mixamorig:Hips", VRoid uses "J_Bip_C_Hips", etc.
-            // Covering multiple conventions here is cheap (dead curves are silent no-ops).
-            var hipsY = SineCurve(period: 4f, amplitude: 0.01f, offset: 0f, samples: 33);
-            foreach (var path in new[] { "hips", "Hips" })
-                clip.SetCurve(path, typeof(Transform), "localPosition.y", hipsY);
-            var spineRoll = SineCurve(period: 4f, amplitude: 0.026f, offset: Mathf.PI / 2, samples: 33);
-            foreach (var path in new[] { "spine", "Spine" })
-                clip.SetCurve(path, typeof(Transform), "localRotation.z", spineRoll);
-            return clip;
+            if (root == null || target == null || target == root) return string.Empty;
+            var parts = new List<string>();
+            var t = target;
+            while (t != null && t != root)
+            {
+                parts.Insert(0, t.name);
+                t = t.parent;
+            }
+            return t == root ? string.Join("/", parts) : string.Empty;
         }
 
-        private static AnimationClip BuildWave()
-        {
-            var clip = new AnimationClip { frameRate = 30f };
-            clip.wrapMode = WrapMode.Once;
-            // Right shoulder / arm raise: rotate around .z from 0 to ~90° and back. Multiple
-            // path variants tried via additive curves so the clip works across common naming
-            // conventions (vocab / PascalCase / Mixamo-adjacent).
-            var raise = new AnimationCurve(
-                new Keyframe(0f, 0f, 0f, 0f),
-                new Keyframe(0.5f, 0.7f, 0f, 0f),
-                new Keyframe(1.5f, 0.7f, 0f, 0f),
-                new Keyframe(2f, 0f, 0f, 0f));
-            foreach (var path in new[] { "rightUpperArm", "RightUpperArm", "rightShoulder", "RightShoulder", "RightArm" })
-                clip.SetCurve(path, typeof(Transform), "localRotation.z", raise);
-            return clip;
-        }
-
-        private static AnimationClip BuildNod()
-        {
-            var clip = new AnimationClip { frameRate = 30f };
-            clip.wrapMode = WrapMode.Once;
-            var nod = new AnimationCurve(
-                new Keyframe(0f, 0f, 0f, 0f),
-                new Keyframe(0.5f, 0.13f, 0f, 0f),   // ~15° pitch (0.13 rad in quat.x approx)
-                new Keyframe(1f, -0.13f, 0f, 0f),
-                new Keyframe(1.5f, 0f, 0f, 0f));
-            foreach (var path in new[] { "head", "Head" })
-                clip.SetCurve(path, typeof(Transform), "localRotation.x", nod);
-            return clip;
-        }
-
-        private static AnimationClip BuildWalkInPlace()
-        {
-            var clip = new AnimationClip { frameRate = 30f };
-            clip.wrapMode = WrapMode.Loop;
-            // Alternating leg lift: left hip pitches forward while right pitches back and vice
-            // versa. 1.2 s two-step cycle.
-            var leftLeg = new AnimationCurve(
-                new Keyframe(0f, 0f), new Keyframe(0.3f, 0.3f),
-                new Keyframe(0.6f, 0f), new Keyframe(0.9f, -0.3f),
-                new Keyframe(1.2f, 0f));
-            var rightLeg = new AnimationCurve(
-                new Keyframe(0f, 0f), new Keyframe(0.3f, -0.3f),
-                new Keyframe(0.6f, 0f), new Keyframe(0.9f, 0.3f),
-                new Keyframe(1.2f, 0f));
-            foreach (var l in new[] { "leftUpperLeg", "LeftUpperLeg", "LeftLeg" })
-                clip.SetCurve(l, typeof(Transform), "localRotation.x", leftLeg);
-            foreach (var r in new[] { "rightUpperLeg", "RightUpperLeg", "RightLeg" })
-                clip.SetCurve(r, typeof(Transform), "localRotation.x", rightLeg);
-            var hipsBob = SineCurve(period: 0.6f, amplitude: 0.015f, offset: 0f, samples: 25);
-            foreach (var path in new[] { "hips", "Hips" })
-                clip.SetCurve(path, typeof(Transform), "localPosition.y", hipsBob);
-            return clip;
-        }
-
-        // ── Small helpers ───────────────────────────────────────────────
-
-        /// <summary>Build a sampled sine curve: <c>amplitude * sin((2π/period) * t + offset)</c>
-        /// over <c>[0, period]</c>, with <paramref name="samples"/> uniformly-spaced keyframes.</summary>
         private static AnimationCurve SineCurve(float period, float amplitude, float offset, int samples)
         {
             var keys = new Keyframe[samples];
@@ -156,5 +240,23 @@ namespace Samples.Shared
             for (int i = 0; i < samples; i++) c.SmoothTangents(i, 0f);
             return c;
         }
+
+        private static AnimationCurve WaveCurve() => new AnimationCurve(
+            new Keyframe(0f, 0f), new Keyframe(0.5f, 0.7f),
+            new Keyframe(1.5f, 0.7f), new Keyframe(2f, 0f));
+
+        private static AnimationCurve NodCurve() => new AnimationCurve(
+            new Keyframe(0f, 0f), new Keyframe(0.5f, 0.13f),
+            new Keyframe(1f, -0.13f), new Keyframe(1.5f, 0f));
+
+        private static AnimationCurve LeftLegCurve() => new AnimationCurve(
+            new Keyframe(0f, 0f), new Keyframe(0.3f, 0.3f),
+            new Keyframe(0.6f, 0f), new Keyframe(0.9f, -0.3f),
+            new Keyframe(1.2f, 0f));
+
+        private static AnimationCurve RightLegCurve() => new AnimationCurve(
+            new Keyframe(0f, 0f), new Keyframe(0.3f, -0.3f),
+            new Keyframe(0.6f, 0f), new Keyframe(0.9f, 0.3f),
+            new Keyframe(1.2f, 0f));
     }
 }

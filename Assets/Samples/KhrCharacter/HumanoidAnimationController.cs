@@ -53,18 +53,23 @@ namespace Samples.Characters
             _character = scene;
             FrameScene(scene);
 
-            // Bind Humanoid; if Unity rejects the rig, fall back to Generic (which always works —
-            // it just doesn't get muscle-based retargeting).
-            _animator = AnimationBinder.Bind(_character, RigMode.Humanoid);
+            // Procedural clips from HumanoidClipFactory are TRANSFORM-BASED (curves target bone
+            // paths directly, e.g. head.localRotation.x). Humanoid mode assigns a Mecanim
+            // Avatar which would reinterpret the clip through the muscle system — since our
+            // clips have no muscle data, the Animator would fill in a default muscle pose,
+            // producing a mangled hybrid. Generic mode leaves the Avatar null so transform
+            // curves apply directly to bones. The character stays a KHR humanoid; we just
+            // don't need Mecanim's Avatar for transform-based clips.
+            //
+            // Use Humanoid mode when playing humanoid-format clips (FBX imports with muscle
+            // curves, e.g. Mixamo). The Animation Sandbox scene demonstrates both flavours.
+            _animator = AnimationBinder.Bind(_character, RigMode.Generic);
             if (_animator == null)
             {
-                _animator = AnimationBinder.Bind(_character, RigMode.Generic);
-                _status.text = "Humanoid rig not available; using Generic mode. Procedural clips still play.";
+                _status.text = "Failed to bind Generic mode. This is unexpected — Generic should always work.";
+                return;
             }
-            else
-            {
-                _status.text = "Humanoid Avatar bound. Ready to play.";
-            }
+            _status.text = "Generic mode bound. Ready to play procedural transform-based clips.";
 
             BuildClipButtons();
 
@@ -74,11 +79,11 @@ namespace Samples.Characters
 
         private void BuildClipButtons()
         {
-            _ui.AddLabel("── Procedural clips ──");
-            foreach (var clip in HumanoidClipFactory.All())
+            _ui.AddLabel("── Procedural clips (paths resolved from KHR skeleton_mapping) ──");
+            foreach (var clip in HumanoidClipFactory.AllForCharacter(_character))
             {
                 var captured = clip; // capture for closure
-                _ui.AddButton(clip.name, () =>
+                _ui.AddButton(clip.name.Contains("@") ? clip.name.Split('@')[0] : clip.name, () =>
                 {
                     if (_animator == null || captured == null) return;
                     AnimationBinder.Play(_animator, captured);

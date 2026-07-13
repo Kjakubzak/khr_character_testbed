@@ -222,6 +222,23 @@ namespace Samples.Shared
             if (onChanged != null) dropdown.onValueChanged.AddListener(onChanged);
 
             ApplyFont(go);
+
+            // Guarantee the caption + item labels render dark against the default (light)
+            // dropdown-template background. Without this, custom uGUI setups can end up with
+            // white-on-white invisible captions on some Unity versions.
+            if (dropdown.captionText != null)
+            {
+                dropdown.captionText.color = Color.black;
+                if (options != null && options.Count > 0)
+                    dropdown.captionText.text = options[Mathf.Clamp(value, 0, options.Count - 1)];
+            }
+            if (dropdown.itemText != null) dropdown.itemText.color = Color.black;
+
+            // Force a caption refresh AFTER font + color setup — Unity's Dropdown.Set only
+            // fires RefreshShownValue when value CHANGES; if value=0 and default was 0,
+            // caption may not have been populated on setup.
+            dropdown.RefreshShownValue();
+
             return dropdown;
         }
 
