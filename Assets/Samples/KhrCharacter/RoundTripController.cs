@@ -119,7 +119,7 @@ namespace Samples.Characters
 
         private static string ResolveExternalDefault()
         {
-            string vroid = Path.Combine(Application.dataPath, "SampleAssets/khr-character-example.glb");
+            string vroid = Path.Combine(Application.dataPath, "SampleAssets/VRM_KHR_Examples/khr-character-example.glb");
             return File.Exists(vroid) ? vroid : CharacterLoader.SyntheticPath("SC-Body.glb");
         }
 

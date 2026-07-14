@@ -107,7 +107,7 @@
       "extensions": {
         "KHR_node_visibility_hint": {
           "label": "Head",
-          "role": "third_person_only"
+          "role": "third_person"
         }
       },
       "mesh": 0,

@@ -291,10 +291,35 @@ namespace Samples.Shared
         }
 
         /// <summary>Project-relative path of the "hero" character (VRM-origin, committed via Git LFS).</summary>
-        public const string HeroRelativePath = "SampleAssets/khr-character-example.glb";
+        public const string HeroRelativePath = "SampleAssets/VRM_KHR_Examples/khr-character-example.glb";
 
         /// <summary>Absolute, runtime-readable path of the local hero character.</summary>
         public static string HeroAbsolutePath => Path.Combine(Application.dataPath, HeroRelativePath);
+
+        /// <summary>Project-relative paths of the per-role visibility-hint variants of the hero
+        /// (built by tools/make_hero_variants.py). Each isolates one <c>KHR_node_visibility_hint</c>
+        /// role; the third_person one also carries a <c>KHR_mesh_primitive_visibility_hint</c> example.</summary>
+        public static readonly string[] HeroVariantRelativePaths =
+        {
+            "SampleAssets/VRM_KHR_Examples/khr-character-example-always.glb",
+            "SampleAssets/VRM_KHR_Examples/khr-character-example-first-person.glb",
+            "SampleAssets/VRM_KHR_Examples/khr-character-example-third-person.glb",
+        };
+
+        /// <summary>Yields <c>(label, absolutePath)</c> for the hero and each per-role variant present on
+        /// disk. Label form: <c>"Hero: &lt;filename-without-ext&gt;"</c>. Shared by the GlbViewer and Animation
+        /// Sandbox pickers so the hero family shows as single-file entries outside the directory-based catalog.</summary>
+        public static IEnumerable<(string Label, string Path)> EnumerateHeroFiles()
+        {
+            if (HeroExists)
+                yield return ("Hero: khr-character-example", HeroAbsolutePath);
+            foreach (var rel in HeroVariantRelativePaths)
+            {
+                string abs = System.IO.Path.Combine(Application.dataPath, rel);
+                if (File.Exists(abs))
+                    yield return ($"Hero: {System.IO.Path.GetFileNameWithoutExtension(rel)}", abs);
+            }
+        }
 
         /// <summary>True when the hero file is present on disk (does NOT prove it is a real GLB — see
         /// <see cref="HeroIsRealGlb"/>; an un-smudged Git LFS pointer also passes File.Exists).</summary>

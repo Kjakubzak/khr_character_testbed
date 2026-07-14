@@ -1,6 +1,6 @@
 # FromBlender/ — KHR Character fixtures authored in the Blender addon
 
-Ten canonical `.glb` fixtures produced by the
+Eleven canonical `.glb` fixtures produced by the
 [`khr_character_blender`](https://github.com/kenjimeta/khr_character_blender)
 addon (specifically [`tests/fixtures/regenerate.py`](https://github.com/kenjimeta/khr_character_blender/blob/master/tests/fixtures/regenerate.py)),
 each isolating a specific KHR Character extension combination.
@@ -28,6 +28,7 @@ cubes. All primitives — no third-party content.
 | `expressions_mask.glb` | 30 KB | morph exprs + smile blocks frown (`+ _expression_mask`) |
 | `expressions_mapping.glb` | 29 KB | morph expr + ARKit routing `mouthSmileLeft/Right → smile` at 0.5 each (`+ _expression_mapping`) |
 | `node_hints.glb` | 496 B | root + camera hint ("portrait" role) + lookat target ("eyes" hint) — no geometry (`KHR_node_camera_hint + KHR_node_lookat_target`) |
+| `visibility_hints.glb` | 2.7 KB | root + a `first_person` node hint (on an empty view-model) + a 2-primitive cube whose accent primitive is `third_person` (`KHR_node_visibility_hint + KHR_mesh_primitive_visibility_hint`) |
 | `full.glb` | 46 KB | Everything above combined — 10/11 KHR Character extensions |
 | `starter.glb` | 42 KB | The canonical starter (matches `samples/generate_starter.py` output — character + humanoid armature + TPose ref pose + shape-keyed head + morph exprs) |
 
@@ -77,7 +78,7 @@ correctly surfaces each fixture's extensions.
 ## Provenance & regeneration
 
 Every file here was exported from the `khr_character_blender` addon on
-Blender 4.5.0 via:
+Blender 4.5.11 via:
 
 ```
 blender -b --python tests/fixtures/regenerate.py

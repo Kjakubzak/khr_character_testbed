@@ -25,8 +25,8 @@ namespace Samples.Editor
     /// - SC-Partial    : a KHR_character root with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
     /// - SC-PseudoVRM  : SC-Partial post-processed to carry synthetic VRMC_* vendor tokens (always-on neutralization gate).
     /// - SC-ExprEdge   : two morph expressions where one BLOCK-masks the other (mask-domain edge: block vs blend).
-    /// - VH-Node       : a Head node carrying KHR_node_visibility_hint (third_person_only) - a node-scoped hint only.
-    /// - VH-Primitive  : a two-sub-mesh Body whose sub-mesh 1 carries KHR_mesh_primitive_visibility_hint (first_person_only).
+    /// - VH-Node       : a Head node carrying KHR_node_visibility_hint (third_person) - a node-scoped hint only.
+    /// - VH-Primitive  : a two-sub-mesh Body whose sub-mesh 1 carries KHR_mesh_primitive_visibility_hint (first_person).
     /// - VH-ViewContext: both visibility-hint extensions on one hierarchy (Head node hint + Body sub-mesh hint).
     /// </summary>
     public static class SampleCharacterFactory
@@ -615,8 +615,8 @@ namespace Samples.Editor
 
         // ── Visibility-hint assembly (VH-Node / VH-Primitive / VH-ViewContext) ─
 
-        // VH-Node: a single-mesh "Head" node carrying KHR_node_visibility_hint (third_person_only), authored on a
-        // NodeVisibilityHintSet. In the default third-person view a third_person_only node stays visible, so nothing
+        // VH-Node: a single-mesh "Head" node carrying KHR_node_visibility_hint (third_person), authored on a
+        // NodeVisibilityHintSet. In the default third-person view a third_person node stays visible, so nothing
         // is toggled; the exporter emits the hint from the serialized entry and no other extension appears.
         private static GameObject AssembleVHNode(List<Object> temps)
         {
@@ -632,7 +632,7 @@ namespace Samples.Editor
                 new NodeVisibilityHintSet.NodeVisibilityEntry
                 {
                     Node = head.transform,
-                    Role = VisibilityHintExtensionNames.RoleThirdPersonOnly,
+                    Role = VisibilityHintExtensionNames.RoleThirdPerson,
                     Label = "Head",
                 },
             });
@@ -641,7 +641,7 @@ namespace Samples.Editor
         }
 
         // VH-Primitive: a two-sub-mesh "Body" whose sub-mesh 1 carries KHR_mesh_primitive_visibility_hint
-        // (first_person_only). Bind resolves the hint and, in the default third-person view, swaps sub-mesh 1 to the
+        // (first_person). Bind resolves the hint and, in the default third-person view, swaps sub-mesh 1 to the
         // shared invisible material; we restore the authored materials before export so the wire carries the real
         // materials (the exporter reads the role from the serialized entry, not from live material state).
         private static GameObject AssembleVHPrimitive(List<Object> temps)
@@ -661,7 +661,7 @@ namespace Samples.Editor
                 {
                     Mesh = mesh,
                     SubMesh = 1,
-                    Role = VisibilityHintExtensionNames.RoleFirstPersonOnly,
+                    Role = VisibilityHintExtensionNames.RoleFirstPerson,
                     Label = "BodyArms",
                 },
             });
@@ -670,8 +670,8 @@ namespace Samples.Editor
             return root;
         }
 
-        // VH-ViewContext: the combined fixture - a Head node hint (third_person_only) AND a Body sub-mesh-1 primitive
-        // hint (first_person_only), so both extensions appear in one wire. As in AssembleVHPrimitive, the Body's
+        // VH-ViewContext: the combined fixture - a Head node hint (third_person) AND a Body sub-mesh-1 primitive
+        // hint (first_person), so both extensions appear in one wire. As in AssembleVHPrimitive, the Body's
         // authored materials are restored after Bind (the third-person view would otherwise swap sub-mesh 1).
         private static GameObject AssembleVHViewContext(List<Object> temps)
         {
@@ -693,7 +693,7 @@ namespace Samples.Editor
                 new NodeVisibilityHintSet.NodeVisibilityEntry
                 {
                     Node = head.transform,
-                    Role = VisibilityHintExtensionNames.RoleThirdPersonOnly,
+                    Role = VisibilityHintExtensionNames.RoleThirdPerson,
                     Label = "Head",
                 },
             });
@@ -704,7 +704,7 @@ namespace Samples.Editor
                 {
                     Mesh = bodyMesh,
                     SubMesh = 1,
-                    Role = VisibilityHintExtensionNames.RoleFirstPersonOnly,
+                    Role = VisibilityHintExtensionNames.RoleFirstPerson,
                     Label = "BodyArms",
                 },
             });

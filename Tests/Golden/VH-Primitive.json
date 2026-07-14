@@ -142,7 +142,7 @@
           "extensions": {
             "KHR_mesh_primitive_visibility_hint": {
               "label": "BodyArms",
-              "role": "first_person_only"
+              "role": "first_person"
             }
           },
           "indices": 3,

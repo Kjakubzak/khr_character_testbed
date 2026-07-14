@@ -51,6 +51,7 @@ namespace KhrCharacterTestbed.Tests
                 "expressions_mask.glb",
                 "expressions_mapping.glb",
                 "node_hints.glb",
+                "visibility_hints.glb",
                 "full.glb",
                 "starter.glb")] string fixture)
         {

@@ -13,10 +13,10 @@ namespace KhrCharacterTestbed.Tests
     /// runtime wiring a runtime-imported VH asset uses). Complements <see cref="SandboxVisibilityHintsTests"/> (which
     /// only checks one node hint on the demo scene): here both node roles and the primitive hint are asserted.
     /// <list type="bullet">
-    /// <item>Node hint <c>third_person_only</c> (Head): <c>renderer.enabled</c> follows ThirdPerson.</item>
-    /// <item>Node hint <c>first_person_only</c> (Arms): <c>renderer.enabled</c> follows FirstPerson.</item>
-    /// <item>Primitive hint <c>first_person_only</c> (Visor sub-mesh 1): the sub-mesh material swaps to/from the
-    /// shared invisible material.</item>
+    /// <item>Node hint <c>third_person</c> (Head): <c>renderer.enabled</c> follows ThirdPerson.</item>
+    /// <item>Node hint <c>first_person</c> (Arms): <c>renderer.enabled</c> follows FirstPerson.</item>
+    /// <item>Primitive hint <c>third_person</c> (Mask sub-mesh 1): the faceplate sub-mesh material swaps to/from
+    /// the shared invisible material (visible in third person, hidden in first person).</item>
     /// </list>
     /// </summary>
     public class VisibilityHintsFigureToggleTests
@@ -43,20 +43,20 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(_figure.GetComponent<NodeVisibilityHintSet>(), "the figure should carry a NodeVisibilityHintSet.");
             Assert.IsNotNull(_figure.GetComponent<PrimitiveVisibilityHintSet>(), "the figure should carry a PrimitiveVisibilityHintSet.");
 
-            var head = RendererFor("Head");    // node hint: third_person_only
-            var arms = RendererFor("Arms");    // node hint: first_person_only
-            var visor = RendererFor("Visor");  // primitive hint on sub-mesh 1: first_person_only
+            var head = RendererFor("Head");    // node hint: third_person
+            var arms = RendererFor("Arms");    // node hint: first_person
+            var mask = RendererFor("Mask");    // primitive hint on sub-mesh 1: third_person
             var torso = RendererFor("Torso");  // no hint: always visible
-            Assert.AreEqual(2, visor.sharedMaterials.Length, "Visor should have two sub-mesh material slots.");
+            Assert.AreEqual(2, mask.sharedMaterials.Length, "Mask should have two sub-mesh material slots.");
 
             var invisible = InvisibleMaterialCache.Get();
-            bool VisorAccentHidden() => ReferenceEquals(visor.sharedMaterials[1], invisible);
+            bool MaskShellHidden() => ReferenceEquals(mask.sharedMaterials[1], invisible);
 
             // --- Default view: ThirdPerson ---
             Assert.AreEqual(ViewContextController.ViewContext.ThirdPerson, view.Mode, "figure should start in ThirdPerson.");
-            Assert.IsTrue(head.enabled, "node hint: third_person_only Head should be VISIBLE in ThirdPerson.");
-            Assert.IsFalse(arms.enabled, "node hint: first_person_only Arms should be HIDDEN in ThirdPerson.");
-            Assert.IsTrue(VisorAccentHidden(), "primitive hint: first_person_only Visor accent should be HIDDEN (invisible material) in ThirdPerson.");
+            Assert.IsTrue(head.enabled, "node hint: third_person Head should be VISIBLE in ThirdPerson.");
+            Assert.IsFalse(arms.enabled, "node hint: first_person Arms should be HIDDEN in ThirdPerson.");
+            Assert.IsFalse(MaskShellHidden(), "primitive hint: third_person Mask shell should be VISIBLE (authored material) in ThirdPerson.");
             Assert.IsTrue(torso.enabled, "unhinted Torso should always be visible.");
 
             // --- Toggle to FirstPerson ---
@@ -64,7 +64,7 @@ namespace KhrCharacterTestbed.Tests
             yield return null;
             Assert.IsFalse(head.enabled, "node hint: Head should HIDE in FirstPerson.");
             Assert.IsTrue(arms.enabled, "node hint: Arms should SHOW in FirstPerson.");
-            Assert.IsFalse(VisorAccentHidden(), "primitive hint: Visor accent should be VISIBLE (authored material) in FirstPerson.");
+            Assert.IsTrue(MaskShellHidden(), "primitive hint: Mask shell should HIDE (invisible material) in FirstPerson.");
             Assert.IsTrue(torso.enabled, "unhinted Torso should stay visible in FirstPerson.");
 
             // --- Toggle back to ThirdPerson ---
@@ -72,7 +72,7 @@ namespace KhrCharacterTestbed.Tests
             yield return null;
             Assert.IsTrue(head.enabled, "node hint: Head should RESTORE to visible in ThirdPerson.");
             Assert.IsFalse(arms.enabled, "node hint: Arms should HIDE again in ThirdPerson.");
-            Assert.IsTrue(VisorAccentHidden(), "primitive hint: Visor accent should HIDE again in ThirdPerson.");
+            Assert.IsFalse(MaskShellHidden(), "primitive hint: Mask shell should be VISIBLE again in ThirdPerson.");
         }
 
         private Renderer RendererFor(string name)

@@ -231,6 +231,125 @@ namespace KhrCharacterTestbed.Tests
                 "no '@Character' suffix).");
         }
 
+        // ── Rotation curves produce a small, valid rotation (not a quaternion-component flip) ────
+        //
+        // Regression net for the "totally warped" bug. HumanoidClipFactory previously authored
+        // rotation as a single raw quaternion component (e.g. localRotation.x), leaving w=0 so Unity
+        // snapped the bone to a ~180° flip. Rotations are now Euler-degree channels. This samples the
+        // Nod clip at its +15° peak (t=0.5s) and asserts the head lands at ~Euler(15,0,0). The
+        // path-resolution + scene-smoke suites can't catch this: they never inspect the resulting
+        // rotation magnitude, so a flipped-but-moving bone would sail past them.
+        [UnityTest]
+        public IEnumerator RotationClip_ProducesSmallValidRotation_NotQuaternionFlip()
+        {
+            var load = SandboxTestUtil.LoadSynthetic("SC-Body.glb", _created);
+            yield return load;
+            var character = load.Current;
+
+            var hub = character.GetComponent<KhrCharacter>();
+            Assert.IsNotNull(hub, "SC-Body precondition: KhrCharacter hub must be present.");
+            Assert.IsNotNull(hub.Skeleton, "SC-Body precondition: KhrCharacter must expose a SkeletonMap.");
+            bool resolved = hub.Skeleton.TryGetBone("head", out var head);
+            Assert.IsTrue(resolved && head != null,
+                "SC-Body precondition: skeleton mapping must resolve the 'head' bone.");
+
+            // Nod peaks at +15° about X at t=0.5s. SC-Body's bones have an IDENTITY bind rotation, so the
+            // bind-relative result (bind * Euler(15,0,0)) equals the absolute Euler(15,0,0) here — which is what
+            // we compare against. RotationClip_IsBindRelative_OnNonIdentityBindPose covers the non-identity
+            // (VRoid) case where bind-relative and absolute diverge.
+            var nod = HumanoidClipFactory.BuildForCharacter("Nod", character);
+            Assert.IsNotNull(nod, "BuildForCharacter('Nod') returned null on a KHR character.");
+            nod.SampleAnimation(character, 0.5f);
+
+            float fromExpected = Quaternion.Angle(head.localRotation, Quaternion.Euler(15f, 0f, 0f));
+            float fromIdentity = Quaternion.Angle(Quaternion.identity, head.localRotation);
+
+            Assert.Less(fromExpected, 2f,
+                $"Nod should place the head at ~Euler(15,0,0); it is {fromExpected:0.0}° away. A large " +
+                "value means the euler curve didn't apply, or the axis/amplitude changed.");
+            Assert.Less(fromIdentity, 45f,
+                $"Head rotated {fromIdentity:0.0}° from identity — a >45° swing is the old " +
+                "single-quaternion-component flip (w=0 → ~180°). Rotations must be Euler-degree channels.");
+            Assert.Greater(fromIdentity, 3f,
+                $"Head barely moved ({fromIdentity:0.0}°); the Nod curve didn't drive the head bone.");
+            yield return null;
+        }
+
+        // ── Position curves stay anchored to the bind pose (no root displacement) ────────────────
+        //
+        // Regression net for the "root displacement" bug. HumanoidClipFactory's hips bob is authored
+        // as a small delta around 0; played back as an ABSOLUTE clip it overwrote the hips' local
+        // position, snapping SC-Body's Hips from y=1.0 to y≈0 and dropping the whole character. The
+        // fix re-anchors position deltas on the bone's bind position. SC-Body's Hips bind y is 1.0
+        // and IdleSway's hips delta is 0 at t=0 — so a correct clip leaves Hips at y≈1.0 there.
+        [UnityTest]
+        public IEnumerator PositionClip_IsBindRelative_NoRootDisplacement()
+        {
+            var load = SandboxTestUtil.LoadSynthetic("SC-Body.glb", _created);
+            yield return load;
+            var character = load.Current;
+
+            var hub = character.GetComponent<KhrCharacter>();
+            Assert.IsNotNull(hub, "SC-Body precondition: KhrCharacter hub must be present.");
+            Assert.IsNotNull(hub.Skeleton, "SC-Body precondition: KhrCharacter must expose a SkeletonMap.");
+            bool ok = hub.Skeleton.TryGetBone("hips", out var hips);
+            Assert.IsTrue(ok && hips != null, "SC-Body precondition: skeleton mapping must resolve 'hips'.");
+
+            float bindY = hips.localPosition.y;
+            Assert.Greater(bindY, 0.1f,
+                $"SC-Body's Hips should sit above the origin (expected ~1.0, got {bindY}). If this " +
+                "fires, the fixture changed and this test can no longer detect root displacement.");
+
+            var idle = HumanoidClipFactory.BuildForCharacter("IdleSway", character);
+            Assert.IsNotNull(idle, "BuildForCharacter('IdleSway') returned null on a KHR character.");
+            idle.SampleAnimation(character, 0f); // IdleSway's hips delta is 0 at t=0
+
+            Assert.That(hips.localPosition.y, Is.EqualTo(bindY).Within(0.01f),
+                $"At t=0 Hips should remain at its bind height {bindY:0.###}; got " +
+                $"{hips.localPosition.y:0.###}. A value near 0 means the position curve is absolute " +
+                "(overwrites the bind pose) — the character drops/displaces from the root.");
+            yield return null;
+        }
+
+        // ── Rotation is bind-relative on a NON-identity bind pose (VRoid-collapse regression) ─────
+        //
+        // The character-adaptive clips bake bindRotation * Euler(delta) as quaternion curves. On a rig whose
+        // bones have non-identity bind rotations (VRoid J_Bip_*), applying the delta ABSOLUTELY would
+        // overwrite the bind pose and collapse the character. SC-Body's bind is identity, so we simulate a
+        // non-identity bind by rotating the head before building the clip (BuildForCharacter snapshots the
+        // current localRotation as the bind).
+        [UnityTest]
+        public IEnumerator RotationClip_IsBindRelative_OnNonIdentityBindPose()
+        {
+            var load = SandboxTestUtil.LoadSynthetic("SC-Body.glb", _created);
+            yield return load;
+            var character = load.Current;
+
+            var hub = character.GetComponent<KhrCharacter>();
+            Assert.IsNotNull(hub, "SC-Body precondition: KhrCharacter hub must be present.");
+            Assert.IsNotNull(hub.Skeleton, "SC-Body precondition: KhrCharacter must expose a SkeletonMap.");
+            bool resolved = hub.Skeleton.TryGetBone("head", out var head);
+            Assert.IsTrue(resolved && head != null, "SC-Body precondition: 'head' bone must resolve.");
+
+            var bind = Quaternion.Euler(0f, 40f, 20f); // stand-in for a VRoid non-identity bind rotation
+            head.localRotation = bind;
+
+            var nod = HumanoidClipFactory.BuildForCharacter("Nod", character);
+            Assert.IsNotNull(nod, "BuildForCharacter('Nod') returned null on a KHR character.");
+            nod.SampleAnimation(character, 0.5f); // Nod peaks at +15° about X at t=0.5s
+
+            float fromBindRelative = Quaternion.Angle(head.localRotation, bind * Quaternion.Euler(15f, 0f, 0f));
+            float fromAbsolute = Quaternion.Angle(head.localRotation, Quaternion.Euler(15f, 0f, 0f));
+
+            Assert.Less(fromBindRelative, 2f,
+                $"Nod should land the head at bind*Euler(15,0,0); it is {fromBindRelative:0.0}° away. A large " +
+                "value means rotation is applied absolutely and would collapse a non-identity bind rig (VRoid).");
+            Assert.Greater(fromAbsolute, 20f,
+                $"Head is only {fromAbsolute:0.0}° from the ABSOLUTE Euler(15,0,0) — rotation isn't bind-relative " +
+                "(the VRoid-collapse regression); expected it anchored on the ~44° bind instead.");
+            yield return null;
+        }
+
         private static Transform FindDeep(Transform parent, string name)
         {
             for (int i = 0; i < parent.childCount; i++)

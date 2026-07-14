@@ -43,6 +43,14 @@ namespace Samples.Characters
         private GameObject _currentCharacter;
         private Animator _currentAnimator;
 
+        // Snapshot of the loaded character's imported (bind) local TRS, restored before Bind/Play so a bad
+        // pose left by a previous clip can't persist (a clip only drives the bones it targets).
+        private struct BoneSnapshot { public Transform T; public Vector3 Pos; public Quaternion Rot; public Vector3 Scale; }
+        private readonly List<BoneSnapshot> _bindPose = new List<BoneSnapshot>();
+
+        private const string AgnosticProceduralLabel = "Procedural";
+        private const string AdaptiveProceduralLabel = "Procedural (character-adaptive)";
+
         private void Start()
         {
             _ui = DemoUiBuilder.Create("Animation Sandbox");
@@ -57,7 +65,10 @@ namespace Samples.Characters
             _ui.AddButton("Load character", async () => await LoadCurrentCharacter());
             _loaded = _ui.AddLabel("(no character loaded)");
 
-            _modeDropdown = _ui.AddDropdown("Rig mode", BuildModeOptions(), _ => { }, 0);
+            // Default to Generic and re-filter clips when the mode changes: the shipped clips are all
+            // transform/expression curves that only play correctly in Generic; Humanoid needs muscle-format
+            // clips. Filtering by mode removes the "generic clip in Humanoid = mangled pose" footgun.
+            _modeDropdown = _ui.AddDropdown("Rig mode", BuildModeOptions(), _ => RefreshClipDropdown(), DefaultModeIndex());
             _ui.AddButton("Bind rig", BindCurrentMode);
 
             _clipDropdown = _ui.AddDropdown("Clip", BuildClipOptions(), _ => { }, 0);
@@ -77,10 +88,10 @@ namespace Samples.Characters
             var options = new List<string>();
             _characterPaths.Clear();
 
-            if (CharacterLoader.HeroExists)
+            foreach (var (label, path) in CharacterLoader.EnumerateHeroFiles())
             {
-                options.Add("Hero: khr-character-example");
-                _characterPaths.Add(CharacterLoader.HeroAbsolutePath);
+                options.Add(label);
+                _characterPaths.Add(path);
             }
             foreach (var (source, path) in CharacterLoader.AssetSourceCatalog.EnumerateAll())
             {
@@ -109,14 +120,40 @@ namespace Samples.Characters
         {
             var options = new List<string>();
             _clips.Clear();
+
+            var mode = SelectedMode();
+            // Hide the character-agnostic "Procedural" source once a character-adaptive one exists (a KHR
+            // character is loaded): its vocab bone paths don't target the loaded rig, so it would no-op.
+            bool hasAdaptive = false;
+            foreach (var (source, _) in AnimationClipCatalog.EnumerateAll())
+                if (source.Label == AdaptiveProceduralLabel) { hasAdaptive = true; break; }
+
             foreach (var (source, clip) in AnimationClipCatalog.EnumerateAll())
             {
+                if (clip == null) continue;
+                if (hasAdaptive && source.Label == AgnosticProceduralLabel) continue;
+                // Humanoid plays muscle-format (humanMotion) clips; Generic/Legacy play transform-curve clips.
+                if (clip.humanMotion != (mode == RigMode.Humanoid)) continue;
                 options.Add($"{source.Label}: {clip.name}");
                 _clips.Add(clip);
             }
             if (options.Count == 0)
-                options.Add("(no clips discovered — check AnimationClipCatalog)");
+                options.Add(mode == RigMode.Humanoid
+                    ? "(no muscle-format clips — Humanoid needs Mixamo-style clips; use Generic for the shipped ones)"
+                    : "(no clips discovered — check AnimationClipCatalog)");
             return options;
+        }
+
+        private RigMode SelectedMode()
+        {
+            int i = _modeDropdown != null ? _modeDropdown.value : -1;
+            return (i >= 0 && i < _modeValues.Count) ? _modeValues[i] : RigMode.Generic;
+        }
+
+        private int DefaultModeIndex()
+        {
+            int i = _modeValues.IndexOf(RigMode.Generic);
+            return i >= 0 ? i : 0;
         }
 
         private void RefreshClipDropdown()
@@ -169,9 +206,10 @@ namespace Samples.Characters
             catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }
             if (_currentCharacter == null) { _status.text = "Load failed (no scene)."; return; }
 
+            CaptureBindPose(_currentCharacter);
             FrameScene(_currentCharacter);
             _loaded.text = $"Loaded: {System.IO.Path.GetFileName(path)}";
-            _status.text = "Character loaded. Pick a rig mode + clip and press Bind + Play.";
+            _status.text = "Character loaded. Rig mode defaults to Generic (right for the shipped clips). Bind + Play.";
 
             // Register a per-character clip source so its embedded animations flow into the clip
             // dropdown. Removed on the next character load (see above).
@@ -188,12 +226,14 @@ namespace Samples.Characters
                 () => HumanoidClipFactory.AllForCharacter(captured), autoDetected: false);
 
             RefreshModeDropdown();
+            if (_modeDropdown != null) _modeDropdown.SetValueWithoutNotify(DefaultModeIndex()); // prefer Generic
             RefreshClipDropdown();
         }
 
         private void BindCurrentMode()
         {
             if (_currentCharacter == null) { _status.text = "Load a character first."; return; }
+            ResetToBindPose(); // clear any pose left by a previous clip so binding starts clean
             int idx = _modeDropdown.value;
             if (idx < 0 || idx >= _modeValues.Count) return;
             var mode = _modeValues[idx];
@@ -222,6 +262,7 @@ namespace Samples.Characters
             if (idx < 0 || idx >= _clips.Count) { _status.text = "No clip selection."; return; }
             var clip = _clips[idx];
             if (clip == null) { _status.text = "Clip is null."; return; }
+            ResetToBindPose(); // start each clip from the bind pose so undriven bones don't keep a stale pose
 
             int modeIdx = _modeDropdown.value;
             var mode = (modeIdx >= 0 && modeIdx < _modeValues.Count) ? _modeValues[modeIdx] : RigMode.Generic;
@@ -245,6 +286,20 @@ namespace Samples.Characters
             }
             AnimationBinder.Play(_currentAnimator, clip);
             _status.text = $"Playing ({mode}): {clip.name}";
+        }
+
+        private void CaptureBindPose(GameObject character)
+        {
+            _bindPose.Clear();
+            if (character == null) return;
+            foreach (var t in character.GetComponentsInChildren<Transform>(true))
+                _bindPose.Add(new BoneSnapshot { T = t, Pos = t.localPosition, Rot = t.localRotation, Scale = t.localScale });
+        }
+
+        private void ResetToBindPose()
+        {
+            foreach (var s in _bindPose)
+                if (s.T != null) { s.T.localPosition = s.Pos; s.T.localRotation = s.Rot; s.T.localScale = s.Scale; }
         }
 
         private void FrameScene(GameObject scene)

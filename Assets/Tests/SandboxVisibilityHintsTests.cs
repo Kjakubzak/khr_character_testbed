@@ -49,22 +49,22 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(nodeSet, "the demo should add a NodeVisibilityHintSet.");
             Assert.IsNotNull(primSet, "the demo should add a PrimitiveVisibilityHintSet.");
 
-            // Head is hinted third_person_only: visible in the default ThirdPerson context, hidden in FirstPerson.
+            // Head is hinted third_person: visible in the default ThirdPerson context, hidden in FirstPerson.
             var head = FindDescendant(view.transform, "Head");
             Assert.IsNotNull(head, "the demo figure should contain a 'Head' part.");
             var headRenderer = head.GetComponent<Renderer>();
             Assert.IsNotNull(headRenderer, "the 'Head' part should have a Renderer.");
 
             Assert.AreEqual(ViewContextController.ViewContext.ThirdPerson, view.Mode, "demo should start in ThirdPerson.");
-            Assert.IsTrue(headRenderer.enabled, "third_person_only head should be visible in ThirdPerson.");
+            Assert.IsTrue(headRenderer.enabled, "third_person head should be visible in ThirdPerson.");
 
             view.Mode = ViewContextController.ViewContext.FirstPerson;
             yield return null;
-            Assert.IsFalse(headRenderer.enabled, "third_person_only head should hide in FirstPerson.");
+            Assert.IsFalse(headRenderer.enabled, "third_person head should hide in FirstPerson.");
 
             view.Mode = ViewContextController.ViewContext.ThirdPerson;
             yield return null;
-            Assert.IsTrue(headRenderer.enabled, "third_person_only head should restore in ThirdPerson.");
+            Assert.IsTrue(headRenderer.enabled, "third_person head should restore in ThirdPerson.");
         }
 
         private static void FindComponents(Scene scene, out ViewContextController view,

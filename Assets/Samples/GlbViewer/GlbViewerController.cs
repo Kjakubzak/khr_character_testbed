@@ -91,11 +91,12 @@ namespace Samples.GlbViewer
             var options = new List<string>();
             _presetPaths.Clear();
 
-            // Hero as a special "single file" entry (not a directory — stays outside the catalog).
-            if (CharacterLoader.HeroExists)
+            // Hero family as special "single file" entries (outside the directory-based catalog):
+            // the base hero + each per-role visibility-hint variant present on disk.
+            foreach (var (label, path) in CharacterLoader.EnumerateHeroFiles())
             {
-                options.Add("Hero: khr-character-example");
-                _presetPaths.Add(CharacterLoader.HeroAbsolutePath);
+                options.Add(label);
+                _presetPaths.Add(path);
             }
 
             // Every source contributes its files, one dropdown entry per file. Files are labeled

@@ -118,14 +118,19 @@ namespace Samples.Shared
                 Destroy(Content.GetChild(i).gameObject);
         }
 
-        /// <summary>Append a read-only text row.</summary>
+        /// <summary>Append a read-only text row. Long text wraps to multiple lines so it stays fully visible.</summary>
         public Text AddLabel(string text)
         {
             var row = NewRow("LabelRow");
             var t = MakeText(row, text);
+            // Labels wrap (MakeText defaults to single-line Overflow for controls' captions); a standalone label
+            // must wrap and grow vertically so the full text is visible within the panel width instead of being
+            // clipped where it overflows the panel's right edge.
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;
+            t.verticalOverflow = VerticalWrapMode.Overflow;
             var le = t.gameObject.AddComponent<LayoutElement>();
             le.flexibleWidth = 1f;
-            le.minHeight = RowHeight - 6f;
+            le.minHeight = RowHeight - 6f; // floor only; the row grows to the wrapped text's preferred height
             ApplyFont(t.gameObject);
             return t;
         }
@@ -210,6 +215,7 @@ namespace Samples.Shared
             ((RectTransform)go.transform).SetParent(row, false);
             var le = go.AddComponent<LayoutElement>();
             le.preferredWidth = ControlWidth;
+            le.flexibleWidth = 1f;   // fill the rest of the row so long option text has room
             le.minHeight = 22f;
 
             var dropdown = go.GetComponent<Dropdown>();
@@ -221,22 +227,40 @@ namespace Samples.Shared
             }
             if (onChanged != null) dropdown.onValueChanged.AddListener(onChanged);
 
-            ApplyFont(go);
-
-            // Guarantee the caption + item labels render dark against the default (light)
-            // dropdown-template background. Without this, custom uGUI setups can end up with
-            // white-on-white invisible captions on some Unity versions.
-            if (dropdown.captionText != null)
+            // DefaultControls names the always-visible caption Text "Label" and the popup item
+            // Text "Item Label". On some uGUI versions the Dropdown's captionText / itemText
+            // references come back unwired (null), so the selected value never renders and the
+            // control shows as a blank box (even for short values like "Humanoid"). Wire them
+            // explicitly by name when missing.
+            if (dropdown.captionText == null)
             {
-                dropdown.captionText.color = Color.black;
-                if (options != null && options.Count > 0)
-                    dropdown.captionText.text = options[Mathf.Clamp(value, 0, options.Count - 1)];
+                var lbl = go.transform.Find("Label");
+                if (lbl != null) dropdown.captionText = lbl.GetComponent<Text>();
             }
-            if (dropdown.itemText != null) dropdown.itemText.color = Color.black;
+            if (dropdown.itemText == null)
+            {
+                foreach (var t in go.GetComponentsInChildren<Text>(true))
+                    if (t.gameObject.name == "Item Label") { dropdown.itemText = t; break; }
+            }
 
-            // Force a caption refresh AFTER font + color setup — Unity's Dropdown.Set only
-            // fires RefreshShownValue when value CHANGES; if value=0 and default was 0,
-            // caption may not have been populated on setup.
+            // Every dropdown Text (caption + the inactive popup item template) must render dark,
+            // with a valid font, and WITHOUT horizontal clipping — the default template wraps and
+            // truncates, which on a narrow control shows blank/clipped text. Force overflow so the
+            // full "Source: filename" entry stays legible.
+            foreach (var t in go.GetComponentsInChildren<Text>(true))
+            {
+                t.font = UiFont();
+                t.color = Color.black;
+                t.horizontalOverflow = HorizontalWrapMode.Overflow;
+                t.verticalOverflow = VerticalWrapMode.Overflow;
+                t.alignment = TextAnchor.MiddleLeft;
+            }
+
+            // Set the caption explicitly then refresh — Unity's Dropdown.Set only fires
+            // RefreshShownValue when the value CHANGES, so an initial value of 0 can leave the
+            // caption unpopulated on first setup.
+            if (dropdown.captionText != null && options != null && options.Count > 0)
+                dropdown.captionText.text = options[Mathf.Clamp(value, 0, options.Count - 1)];
             dropdown.RefreshShownValue();
 
             return dropdown;

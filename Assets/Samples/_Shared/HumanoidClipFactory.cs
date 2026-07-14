@@ -32,6 +32,18 @@ namespace Samples.Shared
     /// </summary>
     public static class HumanoidClipFactory
     {
+        // Rotation curves are authored as Euler-angle channels in DEGREES, never as raw quaternion
+        // components. Animating a single quaternion component (e.g. "localRotation.z") leaves the
+        // other three — including w — at 0, so Unity reads a non-normalized quaternion and snaps the
+        // bone to a ~180° flip (the "totally warped" pose). Euler channels always build a valid,
+        // normalized rotation; BuildClip fills any untouched axis with a constant-0 curve so every
+        // rotation is fully specified.
+        private const string EulerPrefix = "localEulerAnglesRaw.";
+        private const string EulerX = EulerPrefix + "x";
+        private const string EulerZ = EulerPrefix + "z";
+        private const string PositionPrefix = "localPosition.";
+        private static readonly string[] EulerAxes = { "x", "y", "z" };
+
         // ── Authoring data: curves keyed by KHR vocab, retargeted per character on demand ─────
         //
         // Storing curves ONCE keyed by vocab (rather than by path) lets us build both character-
@@ -64,7 +76,7 @@ namespace Samples.Shared
                 new CurveData { VocabKey = "hips", Type = typeof(Transform),
                     Property = "localPosition.y", Curve = SineCurve(4f, 0.01f, 0f, 33) },
                 new CurveData { VocabKey = "spine", Type = typeof(Transform),
-                    Property = "localRotation.z", Curve = SineCurve(4f, 0.026f, Mathf.PI / 2, 33) },
+                    Property = EulerZ, Curve = SineCurve(4f, 3f, Mathf.PI / 2, 33) },
             },
         });
 
@@ -74,7 +86,7 @@ namespace Samples.Shared
             WrapMode = WrapMode.Once,
             Curves = {
                 new CurveData { VocabKey = "rightUpperArm", Type = typeof(Transform),
-                    Property = "localRotation.z", Curve = WaveCurve() },
+                    Property = EulerZ, Curve = WaveCurve() },
             },
         });
 
@@ -84,7 +96,7 @@ namespace Samples.Shared
             WrapMode = WrapMode.Once,
             Curves = {
                 new CurveData { VocabKey = "head", Type = typeof(Transform),
-                    Property = "localRotation.x", Curve = NodCurve() },
+                    Property = EulerX, Curve = NodCurve() },
             },
         });
 
@@ -94,9 +106,9 @@ namespace Samples.Shared
             WrapMode = WrapMode.Loop,
             Curves = {
                 new CurveData { VocabKey = "leftUpperLeg", Type = typeof(Transform),
-                    Property = "localRotation.x", Curve = LeftLegCurve() },
+                    Property = EulerX, Curve = LeftLegCurve() },
                 new CurveData { VocabKey = "rightUpperLeg", Type = typeof(Transform),
-                    Property = "localRotation.x", Curve = RightLegCurve() },
+                    Property = EulerX, Curve = RightLegCurve() },
                 new CurveData { VocabKey = "hips", Type = typeof(Transform),
                     Property = "localPosition.y", Curve = SineCurve(0.6f, 0.015f, 0f, 25) },
             },
@@ -174,7 +186,9 @@ namespace Samples.Shared
 
             System.Func<string, GameObject, IEnumerable<string>> resolve = (vocabKey, ch) =>
                 ResolveSkeletonPath(vocabKey, ch, skeleton);
-            var clip = BuildClip(data, resolve, character, characterAdaptive: true);
+            System.Func<string, Transform> resolveBone = vocabKey =>
+                skeleton.TryGetBone(vocabKey, out var b) ? b : null;
+            var clip = BuildClip(data, resolve, character, characterAdaptive: true, resolveBone: resolveBone);
             return clip;
         }
 
@@ -197,7 +211,8 @@ namespace Samples.Shared
             ClipData data,
             System.Func<string, GameObject, IEnumerable<string>> resolvePaths,
             GameObject character = null,
-            bool characterAdaptive = false)
+            bool characterAdaptive = false,
+            System.Func<string, Transform> resolveBone = null)
         {
             var clip = new AnimationClip { frameRate = data.FrameRate };
             clip.wrapMode = data.WrapMode;
@@ -206,10 +221,153 @@ namespace Samples.Shared
                 ? $"{data.Name}@{character.name}"
                 : data.Name;
             clip.hideFlags = HideFlags.HideAndDontSave;
+
+            // Group rotation (euler) curves by vocab. When we can resolve the ACTUAL bone we bake a
+            // BIND-RELATIVE rotation (bindRotation * Euler(delta)) into four quaternion component curves,
+            // because a clip's rotation is applied as an ABSOLUTE local rotation: authoring a small
+            // absolute euler would OVERWRITE a non-identity bind pose (VRoid J_Bip_* bones) and collapse
+            // the rig. On identity-bind synthetic rigs (or when no bone resolves) we keep the absolute
+            // euler channels (bind == identity, so absolute == bind-relative there).
+            var rotationByVocab = new Dictionary<string, List<CurveData>>();
+            var otherCurves = new List<CurveData>();
             foreach (var curve in data.Curves)
+            {
+                if (curve.Property.StartsWith(EulerPrefix))
+                {
+                    if (!rotationByVocab.TryGetValue(curve.VocabKey, out var list))
+                        rotationByVocab[curve.VocabKey] = list = new List<CurveData>();
+                    list.Add(curve);
+                }
+                else otherCurves.Add(curve);
+            }
+
+            float maxTime = 0f;
+
+            // Position (bind-relative offset — see OffsetCurve) + any other channels, applied verbatim.
+            foreach (var curve in otherCurves)
+            {
+                maxTime = Mathf.Max(maxTime, CurveDuration(curve.Curve));
+                var authored = curve.Curve;
+                if (curve.Property.StartsWith(PositionPrefix))
+                {
+                    var bone = resolveBone?.Invoke(curve.VocabKey);
+                    if (bone != null)
+                        authored = OffsetCurve(curve.Curve, BindComponent(bone.localPosition, curve.Property));
+                }
                 foreach (var path in resolvePaths(curve.VocabKey, character))
-                    clip.SetCurve(path, curve.Type, curve.Property, curve.Curve);
+                    clip.SetCurve(path, curve.Type, curve.Property, authored);
+            }
+
+            // Rotations: bind-relative quaternion bake when the bone resolves; else absolute euler.
+            var eulerAxesByPath = new Dictionary<string, HashSet<string>>();
+            foreach (var kv in rotationByVocab)
+            {
+                foreach (var c in kv.Value) maxTime = Mathf.Max(maxTime, CurveDuration(c.Curve));
+                var bone = resolveBone?.Invoke(kv.Key);
+                if (bone != null)
+                {
+                    BakeBindRelativeRotation(clip, resolvePaths(kv.Key, character), bone.localRotation, kv.Value);
+                    continue;
+                }
+                foreach (var c in kv.Value)
+                    foreach (var path in resolvePaths(kv.Key, character))
+                    {
+                        clip.SetCurve(path, c.Type, c.Property, c.Curve);
+                        if (!eulerAxesByPath.TryGetValue(path, out var axes))
+                            eulerAxesByPath[path] = axes = new HashSet<string>();
+                        axes.Add(c.Property.Substring(EulerPrefix.Length));
+                    }
+            }
+
+            // Complete partially-bound ABSOLUTE euler rotations (agnostic/unresolved paths only) with
+            // constant-0 fillers so the sampled rotation is fully specified (never a degenerate quaternion).
+            if (maxTime <= 0f) maxTime = 1f;
+            var zero = ConstantCurve(maxTime, 0f);
+            foreach (var kv in eulerAxesByPath)
+                foreach (var axis in EulerAxes)
+                    if (!kv.Value.Contains(axis))
+                        clip.SetCurve(kv.Key, typeof(Transform), EulerPrefix + axis, zero);
+
             return clip;
+        }
+
+        // Bake bindRotation * Euler(delta(t)) into four localRotation.{x,y,z,w} curves on each path.
+        // Sampling at the union of the source euler keyframe times preserves the authored motion; the
+        // full-quaternion output is normalized by Unity on playback and never triggers the single-component
+        // ~180° flip. Consecutive samples are kept on the same hemisphere so linear component interpolation
+        // takes the short way around.
+        private static void BakeBindRelativeRotation(
+            AnimationClip clip, IEnumerable<string> paths, Quaternion bind, List<CurveData> axisCurves)
+        {
+            AnimationCurve cx = null, cy = null, cz = null;
+            foreach (var c in axisCurves)
+            {
+                switch (c.Property.Substring(EulerPrefix.Length))
+                {
+                    case "x": cx = c.Curve; break;
+                    case "y": cy = c.Curve; break;
+                    case "z": cz = c.Curve; break;
+                }
+            }
+
+            var times = new SortedSet<float>();
+            foreach (var c in new[] { cx, cy, cz })
+                if (c != null)
+                    foreach (var k in c.keys) times.Add(k.time);
+            if (times.Count == 0) return;
+
+            var kx = new List<Keyframe>(); var ky = new List<Keyframe>();
+            var kz = new List<Keyframe>(); var kw = new List<Keyframe>();
+            Quaternion prev = Quaternion.identity; bool have = false;
+            foreach (float t in times)
+            {
+                float ex = cx != null ? cx.Evaluate(t) : 0f;
+                float ey = cy != null ? cy.Evaluate(t) : 0f;
+                float ez = cz != null ? cz.Evaluate(t) : 0f;
+                var q = bind * Quaternion.Euler(ex, ey, ez);
+                if (have && (q.x * prev.x + q.y * prev.y + q.z * prev.z + q.w * prev.w) < 0f)
+                    q = new Quaternion(-q.x, -q.y, -q.z, -q.w);
+                prev = q; have = true;
+                kx.Add(new Keyframe(t, q.x)); ky.Add(new Keyframe(t, q.y));
+                kz.Add(new Keyframe(t, q.z)); kw.Add(new Keyframe(t, q.w));
+            }
+
+            var qx = new AnimationCurve(kx.ToArray()); var qy = new AnimationCurve(ky.ToArray());
+            var qz = new AnimationCurve(kz.ToArray()); var qw = new AnimationCurve(kw.ToArray());
+            foreach (var path in paths)
+            {
+                clip.SetCurve(path, typeof(Transform), "localRotation.x", qx);
+                clip.SetCurve(path, typeof(Transform), "localRotation.y", qy);
+                clip.SetCurve(path, typeof(Transform), "localRotation.z", qz);
+                clip.SetCurve(path, typeof(Transform), "localRotation.w", qw);
+            }
+        }
+
+        private static float CurveDuration(AnimationCurve curve)
+            => curve != null && curve.length > 0 ? curve[curve.length - 1].time : 0f;
+
+        private static AnimationCurve ConstantCurve(float duration, float value)
+            => new AnimationCurve(new Keyframe(0f, value), new Keyframe(duration, value));
+
+        // Re-anchor a delta curve on a bind-pose component so absolute-clip playback oscillates
+        // around the bone's existing local position instead of snapping it to the raw delta.
+        private static AnimationCurve OffsetCurve(AnimationCurve src, float offset)
+        {
+            if (offset == 0f) return src;
+            var keys = src.keys; // AnimationCurve.keys returns a copy incl. tangent data
+            for (int i = 0; i < keys.Length; i++) keys[i].value += offset;
+            return new AnimationCurve(keys);
+        }
+
+        private static float BindComponent(Vector3 v, string property)
+        {
+            switch (property[property.Length - 1])
+            {
+                case 'x': return v.x;
+                case 'y': return v.y;
+                case 'z': return v.z;
+                default:  return 0f;
+            }
         }
 
         // ── Path arithmetic + shared curve authors ─────────────────────────────────────────────
@@ -241,22 +399,24 @@ namespace Samples.Shared
             return c;
         }
 
+        // Rotation amplitudes are in DEGREES (see EulerPrefix note). Values approximate the
+        // previous quaternion-component intent: 0.13 ≈ sin(θ/2) ⇒ θ ≈ 15°, 0.3 ⇒ ≈35°, 0.7 ⇒ ≈89°.
         private static AnimationCurve WaveCurve() => new AnimationCurve(
-            new Keyframe(0f, 0f), new Keyframe(0.5f, 0.7f),
-            new Keyframe(1.5f, 0.7f), new Keyframe(2f, 0f));
+            new Keyframe(0f, 0f), new Keyframe(0.5f, 80f),
+            new Keyframe(1.5f, 80f), new Keyframe(2f, 0f));
 
         private static AnimationCurve NodCurve() => new AnimationCurve(
-            new Keyframe(0f, 0f), new Keyframe(0.5f, 0.13f),
-            new Keyframe(1f, -0.13f), new Keyframe(1.5f, 0f));
+            new Keyframe(0f, 0f), new Keyframe(0.5f, 15f),
+            new Keyframe(1f, -15f), new Keyframe(1.5f, 0f));
 
         private static AnimationCurve LeftLegCurve() => new AnimationCurve(
-            new Keyframe(0f, 0f), new Keyframe(0.3f, 0.3f),
-            new Keyframe(0.6f, 0f), new Keyframe(0.9f, -0.3f),
+            new Keyframe(0f, 0f), new Keyframe(0.3f, 35f),
+            new Keyframe(0.6f, 0f), new Keyframe(0.9f, -35f),
             new Keyframe(1.2f, 0f));
 
         private static AnimationCurve RightLegCurve() => new AnimationCurve(
-            new Keyframe(0f, 0f), new Keyframe(0.3f, -0.3f),
-            new Keyframe(0.6f, 0f), new Keyframe(0.9f, 0.3f),
+            new Keyframe(0f, 0f), new Keyframe(0.3f, -35f),
+            new Keyframe(0.6f, 0f), new Keyframe(0.9f, 35f),
             new Keyframe(1.2f, 0f));
     }
 }

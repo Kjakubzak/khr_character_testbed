@@ -3,6 +3,7 @@
     "rootNamespace": "Samples.VisibilityHints",
     "references": [
         "Samples.Shared",
+        "UnityGLTFScripts",
         "UnityGLTF.VisibilityHints.Runtime",
         "UnityGLTF.VisibilityHints.Schema",
         "UnityEngine.UI"
