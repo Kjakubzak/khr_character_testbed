@@ -2,7 +2,7 @@
 
 A public, open-source example project that demonstrates the Khronos **`KHR_character` / avatar glTF extensions** (glTF PR #2512) in Unity, via the open-source [UnityGLTF](https://github.com/KhronosGroup/UnityGLTF) package.
 
-Clone it, press Play, and watch a character import, emote, gaze, switch rigs, and round-trip through a **Khronos-neutral** glTF wire — all on license-clean sample assets.
+Clone it, press Play, and watch a character import, emote, gaze, animate, switch rigs, toggle first/third-person visibility, and round-trip through a **Khronos-neutral** glTF wire — all on license-clean sample assets.
 
 > ⚠️ Tracks the **non-ratified** `KHR_character_*` extensions (glTF PR #2512). Schema and behavior may change as the proposal evolves. Both KHR character plugins are **disabled by default** and enabled by this project.
 
@@ -48,6 +48,10 @@ Launch any of these from **SampleHub**:
 | **RigAndPose** | Runtime Generic ↔ Humanoid rig switch + reference pose + no-T-pose-snap | Toggle to Humanoid (builds a Mecanim Avatar); "Apply Reference Pose" |
 | **RoundTrip** | Export → re-import + **Khronos-neutrality** readout | Export in memory; see `extensionsUsed` (canonical `KHR_*`) and an **empty `extensionsRequired`** |
 | **Health** | Per-capability Active/Degraded/Inert triage | Load a partial character; see what's inert |
+| **VisibilityHints** | First/third-person view-context visibility (`KHR_node_visibility_hint` + `KHR_mesh_primitive_visibility_hint`) | Swap between the built-in figure and the khr-character example variants; toggle first-person — head/eyes/brows hide (via an invisible-material swap) while hair + body stay |
+| **HumanoidAnimation** | Procedural clips on a humanoid rig | Play a wave / nod / idle-sway |
+| **AnimationRigging** | Runtime aim constraint (Unity Animation Rigging) | Move the target; a bone tracks it |
+| **AnimationSandbox** | Any character + any rig mode + any clip | Defaults to Generic; pick a character-adaptive procedural clip and Play (clips are filtered to the compatible rig mode) |
 
 Every scene carries an on-screen **caveat banner** so the demo never over-promises (e.g. one character per document; the camera index doesn't round-trip).
 
@@ -65,13 +69,19 @@ Under **Assets ▸ UnityGLTF ▸ KHR Character**:
 
 ## Sample assets
 
-Generated into `Assets/SampleAssets/Synthetic/` — all CC0 / synthetic, no third-party art (see `Assets/SampleAssets/ATTRIBUTION.md`):
+Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consumed vendor-neutrally — see `Assets/SampleAssets/ATTRIBUTION.md`):
+
+**`Synthetic/`** — CC0 characters built in code and dogfood-exported through the plugin:
 
 | Asset | Carries | Used by |
 |---|---|---|
 | `SC-Face.glb` | `KHR_character` + expression (morph + joint) | GlbViewer, Expressions, Gaze |
 | `SC-FacePlus.glb` | + texture expression (UV transform + index-swap) | Expressions, RoundTrip |
-| `SC-Body.glb` | skeleton mapping + reference pose + camera hint (humanoid-mappable) | RigAndPose, Health |
+| `SC-Body.glb` | skeleton mapping + reference pose + camera hint (humanoid-mappable) | RigAndPose, Health, procedural animation |
+
+**`VRM_KHR_Examples/`** — the "hero" character (`khr-character-example.glb`, VRM-origin, consumed via `KHR_character`; `VRMC_*` ignored) plus per-role visibility-hint variants (`-always`, `-first-person`, `-third-person`), used by CharacterShowcase and VisibilityHints.
+
+**`FromBlender/`** — fixtures authored by the sibling [`khr_character_blender`](https://github.com/kenjimeta/khr_character_blender) addon (one per extension combination, incl. `visibility_hints.glb`), so the importer is tested against Blender-authored wire too.
 
 ---
 
