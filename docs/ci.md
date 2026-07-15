@@ -9,7 +9,7 @@ for Linux CI). Contributors run the **same** scripts CI runs, so there is no dri
 | # | Gate | Script | Pass criteria |
 |---|------|--------|---------------|
 | 1 | **Compile clean** | `Run-Tests` (Phase A) / `Warm-Library` | Unity exits 0 **and** no `error CS` in the compile log. Runs *before* any test pass — a `-runTests` against uncompilable code hangs forever, so we fail fast instead. |
-| 2 | **Tests green + floor** | `Run-Tests` | Every NUnit run has `failed == 0`, `inconclusive == 0`, `skipped == 0`, the results XML is present, `total >= floor` (default **12**), **and** `sandbox >= sub-floor` (default **12**, the testbed's own `KhrCharacterTestbed.*` cases). Only the testbed's own tests run here (Unity `testables` does **not** surface a git-package's tests into a consumer), so a hollow package resolve fails **GATE 1 compile** (the `Sandbox.Tests` assembly links real plugin types); the floor kills the "0 tests ran = false green" trap. |
+| 2 | **Tests green + floor** | `Run-Tests` | Every NUnit run has `failed == 0`, `inconclusive == 0`, `skipped == 0`, the results XML is present, `total >= floor` (default **120**), **and** `sandbox >= sub-floor` (default **120**, the testbed's own `KhrCharacterTestbed.*` cases). Only the testbed's own tests run here (Unity `testables` does **not** surface a git-package's tests into a consumer), so a hollow package resolve fails **GATE 1 compile** (the `Sandbox.Tests` assembly links real plugin types); the floor kills the "0 tests ran = false green" trap. |
 | 3 | **glTF-Validator** | `Validate-Glb` | The official Khronos `gltf_validator` reports `numErrors == 0` on every exported GLB. Independent, spec-authoritative — catches a bad wire even if our own tests have a bug. |
 | 4 | **Round-trip goldens** | `Export-Goldens` | The normalized wire snapshot of each fixture matches its committed golden. Each FLOAT accessor is **decoded to its actual values (rounded 1e-5)** and byte-packing fields are dropped, so an interior value change can't hide behind unchanged `min`/`max` and packing jitter can't false-diff. Catches structural drift (new/renamed key, reordered array, changed value) that value round-trip tests don't. |
 
@@ -20,19 +20,38 @@ for Linux CI). Contributors run the **same** scripts CI runs, so there is no dri
 
 Two independent floors, both enforced every run (and all of `failed`/`inconclusive`/`skipped` must be 0):
 
-- **Total floor — default 12.** Only the testbed's own tests run in this consumer: Unity `testables` does **not**
+- **Total floor — default 120.** Only the testbed's own tests run in this consumer: Unity `testables` does **not**
   surface a git-package's tests into a consuming project (the plugin's ~165 cases run in the plugin repo /
   `khr-test-proj`, not here). A hollow package resolve instead fails **GATE 1 (compile)**, since `Sandbox.Tests`
   links real plugin types. This floor guards the "0 tests ran = false green" trap. Parameterized:
   `Run-Tests -MinTests <n>` (PS) / `run-tests.sh --min-tests <n>` (bash), and `MIN_TESTS` in `.github/workflows/ci.yml`.
-- **Independent sandbox sub-floor — default 12.** Counts only the testbed's own cases (NUnit `classname` under
+- **Independent sandbox sub-floor — default 120.** Counts only the testbed's own cases (NUnit `classname` under
   `KhrCharacterTestbed.*`), so the testbed can't go hollow even if the package count alone clears the main floor.
   Parameterized: `Run-Tests -MinSandboxTests <n>` (PS) / `run-tests.sh --min-sandbox-tests <n>` (bash), and
   `MIN_SANDBOX_TESTS` in `.github/workflows/ci.yml`.
 
-> Hero-dependent tests are tagged `[Category("Hero")]`; when the LFS hero isn't pulled, exclude that category so they
-> don't run as skips (`skipped` must stay 0). The sub-floor (12) sits below the always-run sandbox count so excluding
-> the hero tests never trips it.
+> Hero-dependent tests never skip: the per-role hero-variant suite uses an **adaptive corpus** (committed synthetic
+> `VH-*` fixtures always, plus the hero variants when their LFS objects are real GLBs) and the other hero cases fall
+> back to a committed `SC-*` fixture (see `SandboxHeroVariantsTests` / `SandboxNSeriesTests`). So a checkout without the
+> optional ~11 MB hero still runs real checks and keeps `skipped == 0`, and the floor (120) sits comfortably below the
+> always-run count. The lone `[Category("Hero")]` tag remains only as an optional exclusion hint; it is not required to
+> keep the gate green.
+
+## Preflight lints (no Unity)
+
+Two cheap, Unity-free jobs run before (and independently of) the gates above, so an onboarding/reproducibility defect
+fails in seconds instead of after a slow editor spin-up:
+
+- **Doc version lint** — `Check-DocsVersion.ps1` / `check-docs-version.sh`. Fails when any Unity-editor-version string
+  in `README.md` / `docs/ci.md` / the workflows disagrees with `ProjectSettings/ProjectVersion.txt` (the single source
+  of truth), so "clone and press Play" can never advertise the wrong editor.
+- **Package pin preflight** — `Check-PackagePin.ps1` / `check-package-pin.sh`. The project pins UnityGLTF to a personal
+  fork by commit SHA (a single point of failure for first-open **and** every Unity CI job). This resolves the pinned
+  URL (`git ls-remote` + a shallow fetch of the exact SHA — the same resolution UPM performs) and fails fast with an
+  actionable message if the fork is unreachable/renamed/private or the commit was force-pushed away. It also asserts
+  the pin agrees across `Packages/manifest.json` (the source of truth), `Packages/packages-lock.json`, and `README.md`
+  so the documented owner/SHA can't silently re-drift. The `tests`/nightly jobs `needs:` this preflight, so a doomed
+  resolve never burns Unity CI minutes. Run `-SkipRemote` / `--skip-remote` to check only consistency when offline.
 
 ## Running locally
 
@@ -116,7 +135,7 @@ goldens) skips the diff with a message to run `-Update` once.
 ## GitHub Actions (`.github/workflows/ci.yml`)
 
 - **Provider:** GitHub Actions + [game-ci](https://game.ci) `unity-test-runner` (pinned editor image + license).
-- **Unity:** `6000.0.76f1` (exact patch).
+- **Unity:** `2022.3.76f1` (exact patch, matches `ProjectSettings/ProjectVersion.txt`).
 - **Render pipeline:** **Built-in = required gate**; **URP = nightly / non-blocking** (see `.github/workflows/ci-nightly.yml`;
   the URP cell is WIRED - it activates a committed URP pipeline asset and runs the suite under URP via xvfb);
   HDRP deferred. The KHR test / glTF-validation / golden gates are RP-agnostic.

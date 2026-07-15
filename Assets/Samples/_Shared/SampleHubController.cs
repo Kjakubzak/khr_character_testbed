@@ -30,7 +30,7 @@ namespace Samples.Shared
                 ui.AddButton(demo.Title, () => Launch(sceneName));
             }
 
-            ui.AddLabel("Tracks glTF PR #2512 (non-ratified).");
+            ui.AddLabel(Caveats.Line(Caveat.Draft));
         }
 
         private static bool PluginsEnabled()

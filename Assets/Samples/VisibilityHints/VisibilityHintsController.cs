@@ -3,7 +3,6 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using Samples.Shared;
-using UnityGLTF;
 using UnityGLTF.VisibilityHints;
 
 namespace Samples.VisibilityHints
@@ -24,7 +23,7 @@ namespace Samples.VisibilityHints
     /// <para>The procedural figure is the default (self-contained + deterministic; the scene smoke test asserts
     /// against it). <see cref="BuildSampleFigure"/> stays public/static so a test builds the same hierarchy.</para>
     /// </summary>
-    public class VisibilityHintsController : MonoBehaviour
+    public class VisibilityHintsController : DemoControllerBase
     {
         private DemoUiBuilder _ui;
         private Text _status;
@@ -34,12 +33,14 @@ namespace Samples.VisibilityHints
         private GameObject _current;
         private ViewContextController _view;
         private bool _firstPerson;
+        private int _swapRequestId; // monotonically increasing; a load whose id is stale was superseded
 
         private void Start()
         {
-            EnableVisibilityHintImportPlugin();
-
-            _ui = DemoUiBuilder.Create("Visibility Hints");
+            // Import plugins (KHR-Character + visibility-hint) are enabled centrally in SamplePluginBootstrap
+            // (BeforeSceneLoad) and CharacterLoader.EnableImportPlugin, so this scene no longer enables the hint
+            // plugin itself — hint import is now deterministic regardless of which demo scene ran first.
+            _ui = CreatePanel("Visibility Hints");
             _ui.AddLabel("KHR_node_visibility_hint + KHR_mesh_primitive_visibility_hint — view-context visibility. " +
                          "Swap between the built-in figure and the khr_character example assets, then toggle first-person.");
 
@@ -51,8 +52,7 @@ namespace Samples.VisibilityHints
             _ui.AddToggle("First-person view", OnFirstPersonToggled, false);
             _status = _ui.AddLabel(string.Empty);
 
-            var back = gameObject.AddComponent<BackToHubButton>();
-            _ui.AddButton("Back to Hub", back.GoToHub);
+            Caveats.Render(_ui, Caveat.Draft);
 
             // Default = the built-in procedural figure: synchronous + deterministic, and what the scene smoke test
             // asserts against. Swap the dropdown to a khr_character example glb to see the hints on a real avatar.
@@ -70,7 +70,9 @@ namespace Samples.VisibilityHints
             foreach (var rel in CharacterLoader.HeroVariantRelativePaths)
             {
                 string abs = Path.Combine(Application.dataPath, rel);
-                if (!File.Exists(abs)) continue;
+                // IsRealGlb (not File.Exists): keep un-smudged Git-LFS pointers out of the picker so selecting one
+                // can't feed a ~130-byte text file to the importer.
+                if (!CharacterLoader.IsRealGlb(abs)) continue;
                 options.Add($"Example: {RoleFromFileName(abs)}");
                 _assetPaths.Add(abs);
             }
@@ -87,15 +89,25 @@ namespace Samples.VisibilityHints
         private async System.Threading.Tasks.Task SwapTo(int index)
         {
             if (index < 0 || index >= _assetPaths.Count) return;
+            int request = ++_swapRequestId; // supersede any in-flight swap so its result is dropped, not shown
             string path = _assetPaths[index];
             if (path == null) { ShowProceduralFigure(); return; }
-            if (!File.Exists(path)) { SetStatus($"Missing: {Path.GetFileName(path)}"); return; }
+            string problem = CharacterLoader.DescribeUnloadable(path);
+            if (problem != null) { SetStatus(problem); return; }
 
             ClearCurrent();
             SetStatus($"Loading {Path.GetFileName(path)} …");
             GameObject go;
             try { go = await CharacterLoader.LoadAsync(path, _contentRoot); }
             catch (System.Exception e) { Debug.LogException(e); SetStatus("Load failed: " + e.Message); return; }
+
+            // A newer swap (or a scene change) started while this load was in flight: drop this result so we don't
+            // leak an orphaned figure under _contentRoot or desync the dropdown from what's shown.
+            if (this == null || request != _swapRequestId)
+            {
+                if (go != null) Destroy(go);
+                return;
+            }
             if (go == null) { SetStatus("Load failed (no scene)."); return; }
 
             _current = go;
@@ -153,16 +165,6 @@ namespace Samples.VisibilityHints
 
         private void SetStatus(string s) { if (_status != null) _status.text = s; }
 
-        // Enable UnityGLTF's VisibilityHint import plugin on the shared runtime settings so a loaded example glb
-        // gets its ViewContextController + hint-set components (the plugin is disabled by default / non-ratified).
-        private static void EnableVisibilityHintImportPlugin()
-        {
-            var settings = GLTFSettings.GetOrCreateSettings();
-            if (settings == null || settings.ImportPlugins == null) return;
-            foreach (var plugin in settings.ImportPlugins)
-                if (plugin is VisibilityHintImportPlugin vh) vh.Enabled = true;
-        }
-
         /// <summary>
         /// Builds the hinted figure (parts + <see cref="NodeVisibilityHintSet"/> + <see cref="PrimitiveVisibilityHintSet"/>
         /// + <see cref="ViewContextController"/>) under <paramref name="parent"/> and returns its root. Public/static so
@@ -174,22 +176,28 @@ namespace Samples.VisibilityHints
             var root = new GameObject("VisibilityHintsFigure");
             if (parent != null) root.transform.SetParent(parent, false);
 
+            // Track the runtime materials + mesh this figure creates so ProceduralFigureResources.OnDestroy frees
+            // them when the figure is destroyed (Destroy(gameObject) frees the GameObjects but not the runtime
+            // new Material()/new Mesh() they reference).
+            var owned = root.AddComponent<ProceduralFigureResources>();
+
             root.AddComponent<ViewContextController>();
 
             // Torso: no hint authored, so the controller leaves it unmanaged — always visible.
             MakePart(root.transform, "Torso", PrimitiveType.Capsule,
-                new Vector3(0f, 1.0f, 0f), new Vector3(0.6f, 0.7f, 0.6f), new Color(0.30f, 0.55f, 0.85f));
+                new Vector3(0f, 1.0f, 0f), new Vector3(0.6f, 0.7f, 0.6f), new Color(0.30f, 0.55f, 0.85f), owned);
 
             var head = MakePart(root.transform, "Head", PrimitiveType.Sphere,
-                new Vector3(0f, 1.75f, 0f), Vector3.one * 0.45f, new Color(0.90f, 0.75f, 0.60f));
+                new Vector3(0f, 1.75f, 0f), Vector3.one * 0.45f, new Color(0.90f, 0.75f, 0.60f), owned);
 
             var arms = MakePart(root.transform, "Arms", PrimitiveType.Cube,
-                new Vector3(0f, 1.15f, 0.5f), new Vector3(0.7f, 0.18f, 0.18f), new Color(0.85f, 0.55f, 0.30f));
+                new Vector3(0f, 1.15f, 0.5f), new Vector3(0.7f, 0.18f, 0.18f), new Color(0.85f, 0.55f, 0.30f), owned);
 
             // Mask: a 2-sub-mesh renderer (one shared mesh) so a per-primitive hint can target ONE sub-mesh.
             // sub-mesh 0 = a strap that stays visible; sub-mesh 1 = the faceplate shell, hinted third_person, so
             // it hides in first person (the classic "don't render the inside of your own head/mask" case).
             var maskMesh = MakeMaskMesh();
+            owned.Track(maskMesh);
             var mask = new GameObject("Mask", typeof(MeshFilter), typeof(MeshRenderer));
             mask.transform.SetParent(root.transform, false);
             mask.transform.localPosition = new Vector3(0f, 1.75f, 0f);
@@ -197,8 +205,8 @@ namespace Samples.VisibilityHints
             mask.GetComponent<MeshFilter>().sharedMesh = maskMesh;
             mask.GetComponent<MeshRenderer>().sharedMaterials = new[]
             {
-                NewMaterial("MaskStrap", new Color(0.20f, 0.20f, 0.22f)),
-                NewMaterial("MaskShell", new Color(0.85f, 0.20f, 0.25f)),
+                NewMaterial("MaskStrap", new Color(0.20f, 0.20f, 0.22f), owned),
+                NewMaterial("MaskShell", new Color(0.85f, 0.20f, 0.25f), owned),
             };
 
             root.AddComponent<NodeVisibilityHintSet>().Bind(new List<NodeVisibilityHintSet.NodeVisibilityEntry>
@@ -218,14 +226,14 @@ namespace Samples.VisibilityHints
             return root;
         }
 
-        private static GameObject MakePart(Transform parent, string name, PrimitiveType prim, Vector3 pos, Vector3 scale, Color color)
+        private static GameObject MakePart(Transform parent, string name, PrimitiveType prim, Vector3 pos, Vector3 scale, Color color, ProceduralFigureResources owned)
         {
             var go = GameObject.CreatePrimitive(prim);
             go.name = name;
             go.transform.SetParent(parent, false);
             go.transform.localPosition = pos;
             go.transform.localScale = scale;
-            go.GetComponent<Renderer>().sharedMaterial = NewMaterial(name + "Mat", color);
+            go.GetComponent<Renderer>().sharedMaterial = NewMaterial(name + "Mat", color, owned);
             return go;
         }
 
@@ -277,11 +285,12 @@ namespace Samples.VisibilityHints
 
         // A lit material for the active render pipeline (URP/Built-in), tinted so parts are visually distinct and
         // never fall back to the magenta error shader.
-        private static Material NewMaterial(string name, Color color)
+        private static Material NewMaterial(string name, Color color, ProceduralFigureResources owned = null)
         {
             var mat = new Material(RenderPipelineUtil.LitShader()) { name = name };
             if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color); // URP Lit
             if (mat.HasProperty("_Color")) mat.SetColor("_Color", color);         // Built-in Standard
+            owned?.Track(mat);
             return mat;
         }
     }

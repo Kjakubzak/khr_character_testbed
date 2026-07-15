@@ -26,7 +26,7 @@ namespace Samples.Characters
     /// data-source is registry-backed so adding a new character / mapping / clip is a
     /// runtime-only change from the corresponding catalog UI, no code touch here.
     /// </summary>
-    public class AnimationSandboxController : MonoBehaviour
+    public class AnimationSandboxController : DemoControllerBase
     {
         private DemoUiBuilder _ui;
         private Text _status;
@@ -42,6 +42,7 @@ namespace Samples.Characters
         private Transform _contentRoot;
         private GameObject _currentCharacter;
         private Animator _currentAnimator;
+        private bool _loading;
 
         // Snapshot of the loaded character's imported (bind) local TRS, restored before Bind/Play so a bad
         // pose left by a previous clip can't persist (a clip only drives the bones it targets).
@@ -53,7 +54,7 @@ namespace Samples.Characters
 
         private void Start()
         {
-            _ui = DemoUiBuilder.Create("Animation Sandbox");
+            _ui = CreatePanel("Animation Sandbox");
             _ui.AddLabel("Any character + any rig mode + any clip. All three dropdowns are registry-backed.");
             _ui.AddLabel("Note: procedural + character-embedded clips use TRANSFORM curves — pair them with Generic mode. Humanoid mode is for muscle-format clips (Mixamo FBX etc.); pairing generic clips with Humanoid produces a mangled pose.");
 
@@ -77,8 +78,7 @@ namespace Samples.Characters
 
             _status = _ui.AddLabel(string.Empty);
 
-            var back = gameObject.AddComponent<BackToHubButton>();
-            _ui.AddButton("Back to Hub", back.GoToHub);
+            Caveats.Render(_ui, Caveat.Draft, Caveat.CubicSplineToLinear);
         }
 
         // ── Dropdown builders ────────────────────────────────────────────
@@ -123,17 +123,18 @@ namespace Samples.Characters
 
             var mode = SelectedMode();
             // Hide the character-agnostic "Procedural" source once a character-adaptive one exists (a KHR
-            // character is loaded): its vocab bone paths don't target the loaded rig, so it would no-op.
+            // character is loaded): its vocab bone paths don't target the loaded rig, so it would no-op. Detect it
+            // from the Sources LABELS (not a full EnumerateAll pass) so we don't build/enumerate every clip twice
+            // per dropdown rebuild (the adaptive builds are cached per character in HumanoidClipFactory).
             bool hasAdaptive = false;
-            foreach (var (source, _) in AnimationClipCatalog.EnumerateAll())
-                if (source.Label == AdaptiveProceduralLabel) { hasAdaptive = true; break; }
+            foreach (var s in AnimationClipCatalog.Sources)
+                if (s.Label == AdaptiveProceduralLabel) { hasAdaptive = true; break; }
 
             foreach (var (source, clip) in AnimationClipCatalog.EnumerateAll())
             {
                 if (clip == null) continue;
                 if (hasAdaptive && source.Label == AgnosticProceduralLabel) continue;
-                // Humanoid plays muscle-format (humanMotion) clips; Generic/Legacy play transform-curve clips.
-                if (clip.humanMotion != (mode == RigMode.Humanoid)) continue;
+                if (!ClipPlaysInMode(clip, mode)) continue; // only offer clips that can actually play in this mode
                 options.Add($"{source.Label}: {clip.name}");
                 _clips.Add(clip);
             }
@@ -142,6 +143,20 @@ namespace Samples.Characters
                     ? "(no muscle-format clips — Humanoid needs Mixamo-style clips; use Generic for the shipped ones)"
                     : "(no clips discovered — check AnimationClipCatalog)");
             return options;
+        }
+
+        // Coherent (mode × legacy × humanMotion) filter so no dropdown entry is offered that would silently no-op:
+        //   Legacy   → legacy clips only (driven by the Animation component)
+        //   Humanoid → muscle-format (humanMotion) clips only (retargeted through the Mecanim Avatar)
+        //   Generic  → transform-curve clips only (neither legacy nor humanMotion)
+        private static bool ClipPlaysInMode(AnimationClip clip, RigMode mode)
+        {
+            switch (mode)
+            {
+                case RigMode.Legacy: return clip.legacy;
+                case RigMode.Humanoid: return clip.humanMotion;
+                default: return !clip.legacy && !clip.humanMotion; // Generic
+            }
         }
 
         private RigMode SelectedMode()
@@ -174,60 +189,71 @@ namespace Samples.Characters
 
         private async System.Threading.Tasks.Task LoadCurrentCharacter()
         {
-            int idx = _characterDropdown.value;
-            if (idx < 0 || idx >= _characterPaths.Count)
-            {
-                _status.text = "No character selection.";
-                return;
-            }
-            string path = _characterPaths[idx];
-            if (!System.IO.File.Exists(path))
-            {
-                _status.text = $"Missing: {path}";
-                return;
-            }
-
-            // Tear down previous character before loading the next.
-            if (_currentCharacter != null)
-            {
-                // Also drop the per-character clip sources we registered last time (if any).
-                AnimationClipCatalog.Remove("Character");
-                AnimationClipCatalog.Remove("Procedural (character-adaptive)");
-                Destroy(_currentCharacter);
-                _currentCharacter = null;
-                _currentAnimator = null;
-            }
-
-            _status.text = $"Loading {System.IO.Path.GetFileName(path)} ...";
+            if (_loading) return;
+            _loading = true;
             try
             {
-                _currentCharacter = await CharacterLoader.LoadAsync(path, _contentRoot);
+                int idx = _characterDropdown.value;
+                if (idx < 0 || idx >= _characterPaths.Count)
+                {
+                    _status.text = "No character selection.";
+                    return;
+                }
+                string path = _characterPaths[idx];
+                string problem = CharacterLoader.DescribeUnloadable(path);
+                if (problem != null)
+                {
+                    _status.text = problem;
+                    return;
+                }
+
+                // Tear down previous character before loading the next.
+                if (_currentCharacter != null)
+                {
+                    // Also drop the per-character clip sources we registered last time (if any).
+                    AnimationClipCatalog.Remove("Character");
+                    AnimationClipCatalog.Remove("Procedural (character-adaptive)");
+                    Destroy(_currentCharacter);
+                    _currentCharacter = null;
+                    _currentAnimator = null;
+                }
+
+                _status.text = $"Loading {System.IO.Path.GetFileName(path)} ...";
+                try
+                {
+                    _currentCharacter = await CharacterLoader.LoadAsync(path, _contentRoot);
+                }
+                catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }
+                if (this == null) return; // scene changed / object destroyed mid-import
+                if (_currentCharacter == null) { _status.text = "Load failed (no scene)."; return; }
+
+                CaptureBindPose(_currentCharacter);
+                FrameScene(_currentCharacter);
+                _loaded.text = $"Loaded: {System.IO.Path.GetFileName(path)}";
+                _status.text = "Character loaded. Rig mode defaults to Generic (right for the shipped clips). Bind + Play.";
+
+                // Register a per-character clip source so its embedded animations flow into the clip
+                // dropdown. Removed on the next character load (see above).
+                var captured = _currentCharacter;
+                AnimationClipCatalog.TryRegister("Character",
+                    () => AnimationBinder.EnumerateCharacterClips(captured), autoDetected: false);
+
+                // Register a per-character PROCEDURAL source that resolves paths from the KHR
+                // skeleton_mapping — so procedural clips actually drive the loaded character's bones
+                // regardless of its naming convention (VRoid, Mixamo, PascalCase, etc.). Removed on
+                // next load. The character-agnostic "Procedural" source stays in the catalog too;
+                // this per-character one adds character-adaptive variants of the same clips.
+                // Adaptive clips are cached per-character in HumanoidClipFactory and first built during the
+                // RefreshClipDropdown below — i.e. at the bind pose just captured above — so later dropdown
+                // rebuilds reuse them and never re-bake bind offsets against a displaced (mid-clip) pose.
+                AnimationClipCatalog.TryRegister("Procedural (character-adaptive)",
+                    () => HumanoidClipFactory.AllForCharacter(captured), autoDetected: false);
+
+                RefreshModeDropdown();
+                if (_modeDropdown != null) _modeDropdown.SetValueWithoutNotify(DefaultModeIndex()); // prefer Generic
+                RefreshClipDropdown();
             }
-            catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }
-            if (_currentCharacter == null) { _status.text = "Load failed (no scene)."; return; }
-
-            CaptureBindPose(_currentCharacter);
-            FrameScene(_currentCharacter);
-            _loaded.text = $"Loaded: {System.IO.Path.GetFileName(path)}";
-            _status.text = "Character loaded. Rig mode defaults to Generic (right for the shipped clips). Bind + Play.";
-
-            // Register a per-character clip source so its embedded animations flow into the clip
-            // dropdown. Removed on the next character load (see above).
-            var captured = _currentCharacter;
-            AnimationClipCatalog.TryRegister("Character",
-                () => AnimationBinder.EnumerateCharacterClips(captured), autoDetected: false);
-
-            // Register a per-character PROCEDURAL source that resolves paths from the KHR
-            // skeleton_mapping — so procedural clips actually drive the loaded character's bones
-            // regardless of its naming convention (VRoid, Mixamo, PascalCase, etc.). Removed on
-            // next load. The character-agnostic "Procedural" source stays in the catalog too;
-            // this per-character one adds character-adaptive variants of the same clips.
-            AnimationClipCatalog.TryRegister("Procedural (character-adaptive)",
-                () => HumanoidClipFactory.AllForCharacter(captured), autoDetected: false);
-
-            RefreshModeDropdown();
-            if (_modeDropdown != null) _modeDropdown.SetValueWithoutNotify(DefaultModeIndex()); // prefer Generic
-            RefreshClipDropdown();
+            finally { _loading = false; }
         }
 
         private void BindCurrentMode()
@@ -300,14 +326,6 @@ namespace Samples.Characters
         {
             foreach (var s in _bindPose)
                 if (s.T != null) { s.T.localPosition = s.Pos; s.T.localRotation = s.Rot; s.T.localScale = s.Scale; }
-        }
-
-        private void FrameScene(GameObject scene)
-        {
-            var rig = Object.FindFirstObjectByType<OrbitCameraRig>();
-            if (rig == null || scene == null) return;
-            if (!SceneBoundsUtil.TryAggregate(scene, out var bounds)) return;
-            rig.FrameAndFace(bounds, scene.transform);
         }
 
         // Drop the per-character clip sources we registered on load so their Func closures over

@@ -18,14 +18,26 @@ on:
 
 env:
   UNITY_VERSION: "2022.3.76f1"
-  MIN_TESTS: "12"
-  MIN_SANDBOX_TESTS: "12"
+  MIN_TESTS: "120"
+  MIN_SANDBOX_TESTS: "120"
 
 jobs:
+  # Package-resolution preflight (no Unity): the nightly's job is to catch environment/dependency drift, and a
+  # personal-fork pin by SHA is the most likely thing to rot. Fail fast if the pinned UnityGLTF fork is
+  # unreachable, the SHA was force-pushed away, or manifest/lock/README have drifted out of agreement.
+  package-pin-preflight:
+    name: Package pin preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check pinned UnityGLTF fork is reachable + consistent
+        run: bash ./Tools/ci/check-package-pin.sh
+
   # Built-in nightly: the same PlayMode suite as the required gate, on a schedule (drift detection). Non-blocking
   # by virtue of being a scheduled workflow that no branch protection depends on.
   nightly-builtin:
     name: Nightly tests (Built-in)
+    needs: package-pin-preflight
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -79,6 +91,7 @@ jobs:
   # URP shader-clean boot. The committed project default stays Built-in (this activation is per-run / ephemeral).
   nightly-urp:
     name: Nightly tests (URP)
+    needs: package-pin-preflight
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:

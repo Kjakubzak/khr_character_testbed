@@ -6,8 +6,8 @@ namespace Samples.Shared
 {
     /// <summary>
     /// Renders a character's live <see cref="KhrCharacter.GetHealth"/> snapshot into a uGUI <see cref="Text"/>:
-    /// expression count, skeleton-mapping direction, and each capability's Active / Degraded / Inert status. Bind a
-    /// character + a text element; it refreshes every frame so rig switches and similar changes show immediately.
+    /// expression count and each capability's Active / Degraded / Inert status. Bind a character + a text element;
+    /// it refreshes every frame so rig switches and similar changes show immediately.
     /// </summary>
     public class HealthPanel : MonoBehaviour
     {

@@ -29,6 +29,17 @@ namespace KhrCharacterTestbed.Tests
             return names.ToArray();
         }
 
+        // Anti-hollow floor for the [ValueSource] above: an empty DemoCatalog yields "no cases" (NOT a failure), so a
+        // separate lower-bound assertion fails LOUDLY if the demo catalog collapses. DemoCatalog.All defines 12 scenes.
+        [Test]
+        public void Catalog_DeclaresScenes_AboveLowerBound()
+        {
+            var scenes = SceneNames();
+            Assert.GreaterOrEqual(scenes.Length, 10,
+                $"DemoCatalog declared only {scenes.Length} scene(s); expected the full demo catalog (>=12). A near-" +
+                "empty catalog would silently hollow out the demo-scene boot smoke gate.");
+        }
+
         private Scene _loaded;
 
         // Runs even when the test body throws (unlike code placed after a yield-bearing try), guaranteeing the

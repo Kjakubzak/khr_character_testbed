@@ -30,13 +30,46 @@ env:
   UNITY_VERSION: "2022.3.76f1"
   # Only the testbed's own tests run in this consumer (Unity 'testables' does not surface a git-package's
   # tests); the floor tracks the sandbox suite. The plugin's ~165 tests gate in the plugin repo / khr-test-proj.
-  MIN_TESTS: "12"
-  MIN_SANDBOX_TESTS: "12"
+  MIN_TESTS: "120"
+  MIN_SANDBOX_TESTS: "120"
 
 jobs:
+  # Doc-drift lint (no Unity): fail fast if any Unity version string in the docs/workflows disagrees with
+  # ProjectSettings/ProjectVersion.txt (the single source of truth). Cheap guard against the README/docs
+  # advertising an editor version the project doesn't actually use.
+  doc-version-lint:
+    name: Doc version lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check docs Unity version == ProjectVersion.txt
+        run: bash ./Tools/ci/check-docs-version.sh
+
+  # Package-resolution preflight (no Unity): the project pins UnityGLTF to a personal fork by commit SHA (a
+  # single point of failure). Fail fast — before burning Unity CI minutes on a doomed UPM resolve — if that pin
+  # is unreachable, the SHA was force-pushed away, or manifest/lock/README have drifted out of agreement.
+  package-pin-preflight:
+    name: Package pin preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check pinned UnityGLTF fork is reachable + consistent
+        run: bash ./Tools/ci/check-package-pin.sh
+
+  # License-compliance lint (no Unity): every committed Assets/SampleAssets/**/*.glb must have a provenance row
+  # in ATTRIBUTION.md (source + SPDX). Matters for a public repo whose hero + variants are non-commercial VRM.
+  attribution-check:
+    name: Attribution check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check every committed .glb has an ATTRIBUTION.md row
+        run: bash ./Tools/ci/check-attribution.sh
+
   # GATE 1 (compile) + GATE 2 (tests + min-test-count floor). Built-in RP, required.
   tests:
     name: Tests (Unity 2022.3.76f1, Built-in)
+    needs: package-pin-preflight
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

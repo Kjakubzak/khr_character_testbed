@@ -25,11 +25,12 @@ namespace Samples.Editor
                 string partial = SampleCharacterFactory.GenerateSCPartial(OutputDirectory);
                 string pseudoVrm = SampleCharacterFactory.GenerateSCPseudoVRM(OutputDirectory);
                 string exprEdge = SampleCharacterFactory.GenerateSCExprEdge(OutputDirectory);
+                string degraded = SampleCharacterFactory.GenerateSCDegraded(OutputDirectory);
 
-                Debug.Log($"[Samples] Generated sample characters:\n  {face}\n  {facePlus}\n  {body}\n  {lookAt}\n  {partial}\n  {pseudoVrm}\n  {exprEdge}");
+                Debug.Log($"[Samples] Generated sample characters:\n  {face}\n  {facePlus}\n  {body}\n  {lookAt}\n  {partial}\n  {pseudoVrm}\n  {exprEdge}\n  {degraded}");
                 if (!Application.isBatchMode)
                     EditorUtility.DisplayDialog("Generate Sample Characters",
-                        $"Wrote:\n{face}\n{facePlus}\n{body}\n{lookAt}\n{partial}\n{pseudoVrm}\n{exprEdge}", "OK");
+                        $"Wrote:\n{face}\n{facePlus}\n{body}\n{lookAt}\n{partial}\n{pseudoVrm}\n{exprEdge}\n{degraded}", "OK");
             }
             catch (System.Exception ex)
             {
@@ -38,6 +39,18 @@ namespace Samples.Editor
                     EditorUtility.DisplayDialog("Generate Sample Characters",
                         "Generation failed; see the Console for details.", "OK");
             }
+        }
+
+        // Batchmode entry to (re)generate ONLY the degraded fixture (via -executeMethod), so producing it does not
+        // disturb the other committed fixtures' goldens. The full "Generate Sample Characters" menu includes it too.
+        public static void GenerateDegradedOnly()
+        {
+            try
+            {
+                string path = SampleCharacterFactory.GenerateSCDegraded(OutputDirectory);
+                Debug.Log($"[Samples] Generated degraded fixture: {path}");
+            }
+            catch (System.Exception ex) { Debug.LogException(ex); }
         }
     }
 }

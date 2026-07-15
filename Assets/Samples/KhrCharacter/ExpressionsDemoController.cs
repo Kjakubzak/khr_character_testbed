@@ -15,7 +15,7 @@ namespace Samples.Characters
     /// Note: the C# namespace is intentionally <c>Samples.Characters</c> (not <c>Samples.KhrCharacter</c>) so the
     /// bare type name <c>KhrCharacter</c> still resolves to the plugin type rather than a same-named namespace.
     /// </summary>
-    public class ExpressionsDemoController : MonoBehaviour
+    public class ExpressionsDemoController : DemoControllerBase
     {
         [Tooltip("Absolute path to the character GLB to load. Defaults to the committed synthetic SC-FacePlus.")]
         public string GlbPath;
@@ -24,7 +24,7 @@ namespace Samples.Characters
 
         private async void Start()
         {
-            bool usingHero = string.IsNullOrEmpty(GlbPath) && CharacterLoader.HeroExists;
+            bool usingHero = string.IsNullOrEmpty(GlbPath) && CharacterLoader.WouldLoadHero;
             string sceneName = SceneManager.GetActiveScene().name;
             string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-FacePlus.glb");
             string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-FacePlus");
@@ -47,6 +47,7 @@ namespace Samples.Characters
                 Debug.LogException(e);
                 return;
             }
+            if (this == null) return; // scene changed / object destroyed mid-import
             if (scene == null) return;
 
             FrameLoaded(scene);
@@ -59,19 +60,23 @@ namespace Samples.Characters
             var panel = gameObject.AddComponent<ExpressionControlPanel>();
             panel.Bind(hub);
             if (panel.Ui != null) panel.Ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
+            Caveats.Render(panel.Ui, Caveat.Draft, Caveat.BlendModeRuntimeOnly);
+
+            // Guarantee a way back even when the character has no expression controller (A18):
+            if (panel.Ui != null) panel.Ui.AddButton("Back to Hub", back.GoToHub);
 
             var controller = hub.Expressions;
             if (panel.Ui != null && controller != null)
-                BuildNSeriesControls(panel.Ui, controller, back);
+                BuildNSeriesControls(panel.Ui, controller);
         }
 
         // N1 (additive vs override) + N2 (mask + vocabulary) controls, appended below the auto-built expression rows.
-        private static void BuildNSeriesControls(DemoUiBuilder ui, ExpressionController controller, BackToHubButton back)
+        private static void BuildNSeriesControls(DemoUiBuilder ui, ExpressionController controller)
         {
             // N1: "aa" and "jawOpen" drive the SAME blendshape. Additive sums them; Override takes the winner.
-            // Override is RUNTIME-ONLY (caveat C5) — it is not written to the glTF wire.
+            // Override is RUNTIME-ONLY (see Caveats.BlendModeRuntimeOnly) — it is not written to the glTF wire.
             ui.AddLabel("N1: 'aa' + 'jawOpen' drive one blendshape. Raise both sliders above, then toggle:");
-            ui.AddToggle("Override (winner-takes) - runtime only [C5]", on =>
+            ui.AddToggle($"Override (winner-takes) - runtime only [{Caveats.Id(Caveat.BlendModeRuntimeOnly)}]", on =>
                 SetPairBlendMode(controller, on ? ExpressionBlendMode.Override : ExpressionBlendMode.Additive), false);
 
             // N2: 'happy' blend-masks 'aa' (raise both 'happy' and 'aa' above to watch aa attenuate); plus a
@@ -87,8 +92,6 @@ namespace Samples.Characters
                         v => controller.SetWeightByVocabulary(vocab, targetName, v), 0f, 1f, 0f);
                 }
             }
-
-            ui.AddButton("Back to Hub", back.GoToHub);
         }
 
         private static void SetPairBlendMode(ExpressionController controller, ExpressionBlendMode mode)

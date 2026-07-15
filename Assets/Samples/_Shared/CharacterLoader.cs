@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityGLTF;
 using UnityGLTF.KhrCharacter;
+using UnityGLTF.VisibilityHints;
 using UnityGLTF.Loader;
 using UnityGLTF.Plugins;
 
@@ -311,12 +312,14 @@ namespace Samples.Shared
         /// Sandbox pickers so the hero family shows as single-file entries outside the directory-based catalog.</summary>
         public static IEnumerable<(string Label, string Path)> EnumerateHeroFiles()
         {
-            if (HeroExists)
+            // Gate on the glTF magic (not File.Exists): an un-smudged Git-LFS pointer is a ~130-byte text file that
+            // would otherwise populate the picker and then throw on import. IsRealGlb keeps pointers out of the list.
+            if (HeroIsRealGlb)
                 yield return ("Hero: khr-character-example", HeroAbsolutePath);
             foreach (var rel in HeroVariantRelativePaths)
             {
                 string abs = System.IO.Path.Combine(Application.dataPath, rel);
-                if (File.Exists(abs))
+                if (IsRealGlb(abs))
                     yield return ($"Hero: {System.IO.Path.GetFileNameWithoutExtension(rel)}", abs);
             }
         }
@@ -325,36 +328,71 @@ namespace Samples.Shared
         /// <see cref="HeroIsRealGlb"/>; an un-smudged Git LFS pointer also passes File.Exists).</summary>
         public static bool HeroExists => File.Exists(HeroAbsolutePath);
 
-        // The first four bytes of a binary glTF container spell "glTF": g=0x67 l=0x6C T=0x54 F=0x46
-        // (the magic 0x676C5446). A Git LFS pointer that was never smudged is a ~130-byte ASCII text file
-        // ("version https://git-lfs..."), so it fails this check and reads as NOT a real GLB.
         /// <summary>
-        /// True only when the hero file exists AND its first four bytes are the binary glTF magic ("glTF").
+        /// True only when the hero file exists AND is a real glTF/GLB (see <see cref="IsRealGlb"/>).
         /// Use this — not <see cref="HeroExists"/> — to gate hero-dependent tests/demos: it distinguishes a real
         /// LFS-smudged GLB from an un-smudged LFS pointer (which would otherwise be mis-parsed as a GLB and throw
         /// on import rather than skip).
         /// </summary>
-        public static bool HeroIsRealGlb
+        public static bool HeroIsRealGlb => IsRealGlb(HeroAbsolutePath);
+
+        /// <summary>
+        /// The decision <see cref="LoadDemoCharacterAsync"/> makes when no explicit path is given: true only when
+        /// tests aren't forcing synthetic AND the hero is a real (LFS-smudged) GLB. Controllers use this — not
+        /// <see cref="HeroExists"/> — for the "which character loaded" blurb, so the label matches what the loader
+        /// actually loads on an un-smudged clone (where the hero is a pointer and the synthetic fallback loads).
+        /// </summary>
+        public static bool WouldLoadHero => !ForceSyntheticForTests && HeroIsRealGlb;
+
+        // The first four bytes of a binary glTF container spell "glTF": g=0x67 l=0x6C T=0x54 F=0x46
+        // (the magic 0x676C5446). A Git LFS pointer that was never smudged is a ~130-byte ASCII text file
+        // ("version https://git-lfs..."), so it fails this check and reads as NOT a real GLB.
+        /// <summary>
+        /// True when <paramref name="absolutePath"/> is a real, loadable glTF/GLB on disk — not missing and not an
+        /// un-smudged Git-LFS pointer. A binary GLB is detected by its four-byte "glTF" magic (0x676C5446); a text
+        /// .gltf document is accepted when it exists and is not an LFS pointer. Use this before feeding any
+        /// hero/sample path to the importer so a fresh, un-pulled LFS clone shows a friendly hint instead of a raw
+        /// parse exception (see <see cref="DescribeUnloadable"/>).
+        /// </summary>
+        public static bool IsRealGlb(string absolutePath)
         {
-            get
+            try
             {
-                try
-                {
-                    string path = HeroAbsolutePath;
-                    if (!File.Exists(path)) return false;
-                    var magic = new byte[4];
-                    using (var stream = File.OpenRead(path))
-                        if (stream.Read(magic, 0, 4) < 4) return false;
-                    return magic[0] == 0x67 && magic[1] == 0x6C && magic[2] == 0x54 && magic[3] == 0x46;
-                }
-                catch (System.Exception e) { Debug.LogException(e); return false; }
+                if (string.IsNullOrEmpty(absolutePath) || !File.Exists(absolutePath)) return false;
+                var head = new byte[20];
+                int read;
+                using (var stream = File.OpenRead(absolutePath))
+                    read = stream.Read(head, 0, head.Length);
+                if (read < 4) return false;
+                // Binary GLB: first four bytes are the glTF magic "glTF".
+                if (head[0] == 0x67 && head[1] == 0x6C && head[2] == 0x54 && head[3] == 0x46) return true;
+                // Un-smudged Git-LFS pointers are ASCII text beginning "version https://git-lfs…" — reject them.
+                string ascii = System.Text.Encoding.ASCII.GetString(head, 0, read);
+                if (ascii.StartsWith("version https://git-lfs")) return false;
+                // Not the binary magic and not a pointer: only a .gltf JSON document is loadable here.
+                return string.Equals(Path.GetExtension(absolutePath), ".gltf", System.StringComparison.OrdinalIgnoreCase);
             }
+            catch (System.Exception e) { Debug.LogException(e); return false; }
+        }
+
+        /// <summary>
+        /// A user-facing reason <paramref name="absolutePath"/> can't be loaded, or null when it IS a real glTF/GLB.
+        /// Distinguishes "not found" from an un-smudged Git-LFS pointer (the fresh-clone footgun) so demos can show
+        /// an actionable message instead of a raw importer exception.
+        /// </summary>
+        public static string DescribeUnloadable(string absolutePath)
+        {
+            if (string.IsNullOrEmpty(absolutePath)) return "No file selected.";
+            if (!File.Exists(absolutePath)) return $"Not found: {Path.GetFileName(absolutePath)}";
+            if (!IsRealGlb(absolutePath))
+                return $"'{Path.GetFileName(absolutePath)}' looks like a Git-LFS pointer, not a real GLB — run `git lfs pull` to download it.";
+            return null;
         }
 
         /// <summary>
         /// Load the demo's character: the local hero (VRM-origin, consumed via KHR_character) when present, else the
         /// scene-appropriate committed synthetic fallback (e.g. "SC-Face.glb"). Returns the scene root, or null on
-        /// failure. Read <see cref="HeroExists"/> to label which one loaded; show a "Loading…" hint while awaiting
+        /// failure. Read <see cref="WouldLoadHero"/> to label which one loaded; show a "Loading…" hint while awaiting
         /// (the hero is a ~10 MB GLB).
         /// TODO: if runtime-loading the hero per scene proves slow at validation, switch this to instantiate the
         /// editor-imported prefab in the editor; keep this runtime LoadAsync path for player builds / fresh clones.
@@ -367,8 +405,7 @@ namespace Samples.Shared
 
         public static Task<GameObject> LoadDemoCharacterAsync(Transform parent, string fallbackSyntheticFileName)
         {
-            bool useHero = !ForceSyntheticForTests && HeroIsRealGlb;
-            string path = useHero ? HeroAbsolutePath : SyntheticPath(fallbackSyntheticFileName);
+            string path = WouldLoadHero ? HeroAbsolutePath : SyntheticPath(fallbackSyntheticFileName);
             return LoadAsync(path, parent);
         }
 
@@ -378,20 +415,29 @@ namespace Samples.Shared
             : $"Character: synthetic fallback ({fallbackName}).";
 
         /// <summary>
-        /// Enable the KHR Character import plugin (and set its Rig) on the shared settings. Must run before an
-        /// <see cref="ImportOptions"/> is constructed, because the default import context is built from the
-        /// settings' enabled plugins at construction time.
+        /// Enable the (disabled-by-default, non-ratified) KHR-Character import plugin (and set its Rig) plus the
+        /// visibility-hint import plugin on the shared settings. Must run before an <see cref="ImportOptions"/> is
+        /// constructed, because the default import context is built from the settings' enabled plugins at
+        /// construction time. Idempotent. This is the SINGLE place the project turns import plugins on — enabling the
+        /// visibility-hint plugin here (rather than only as a side effect of the VisibilityHints scene) makes hint
+        /// import deterministic regardless of which demo scene ran first.
         /// </summary>
         public static void EnableImportPlugin(RigImportMode rig = RigImportMode.Humanoid)
         {
             var settings = GLTFSettings.GetOrCreateSettings();
             if (settings == null || settings.ImportPlugins == null) return;
             foreach (var plugin in settings.ImportPlugins)
+            {
                 if (plugin is KhrCharacterImportPlugin characterImport)
                 {
                     characterImport.Enabled = true;
                     characterImport.Rig = rig;
                 }
+                else if (plugin is VisibilityHintImportPlugin visibilityHint)
+                {
+                    visibilityHint.Enabled = true;
+                }
+            }
         }
 
         /// <summary>
@@ -428,6 +474,13 @@ namespace Samples.Shared
             {
                 await importer.LoadSceneAsync();
                 scene = importer.LastLoadedScene;
+            }
+            catch (System.Exception e)
+            {
+                // Documented contract: return null on failure. A corrupt wire or an un-smudged Git-LFS pointer
+                // throws from the importer; log it so the cause is visible, but don't propagate — callers null-check.
+                Debug.LogException(e);
+                scene = null;
             }
             finally
             {
@@ -479,6 +532,13 @@ namespace Samples.Shared
             {
                 await importer.LoadSceneAsync();
                 scene = importer.LastLoadedScene;
+            }
+            catch (System.Exception e)
+            {
+                // Documented contract: return null on failure (corrupt bytes throw from the importer). Log it so
+                // the cause is visible, but don't propagate — callers null-check.
+                Debug.LogException(e);
+                scene = null;
             }
             finally
             {

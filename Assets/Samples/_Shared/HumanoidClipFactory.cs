@@ -118,6 +118,14 @@ namespace Samples.Shared
 
         private static readonly Dictionary<string, AnimationClip> _staticCache = new Dictionary<string, AnimationClip>();
 
+        // Character-adaptive clips are HideAndDontSave (they survive scene unload AND Resources.UnloadUnusedAssets),
+        // so without caching every BuildForCharacter call leaks a native AnimationClip — the sandbox rebuilds up to
+        // 8 per dropdown refresh. Cache per (character instanceID, clipName) so repeated calls reuse one clip; a
+        // HumanoidClipCacheCleaner on the character root destroys them on teardown. Keying on the instanceID (not
+        // the GameObject) avoids pinning a destroyed character alive via the dictionary.
+        private static readonly Dictionary<(int CharacterId, string ClipName), AnimationClip> _adaptiveCache =
+            new Dictionary<(int CharacterId, string ClipName), AnimationClip>();
+
         public static IEnumerable<AnimationClip> All()
         {
             yield return IdleSway;
@@ -182,14 +190,37 @@ namespace Samples.Shared
             if (data == null || character == null) return null;
             var hub = character.GetComponent<KhrCharacter>();
             var skeleton = hub != null ? hub.Skeleton : null;
-            if (skeleton == null) return GetOrBuildStatic(data); // no map, use fallback clip
+            if (skeleton == null) return GetOrBuildStatic(data); // no map, use fallback clip (already cached)
+
+            var key = (character.GetInstanceID(), data.Name);
+            if (_adaptiveCache.TryGetValue(key, out var cachedAdaptive) && cachedAdaptive != null)
+                return cachedAdaptive;
 
             System.Func<string, GameObject, IEnumerable<string>> resolve = (vocabKey, ch) =>
                 ResolveSkeletonPath(vocabKey, ch, skeleton);
             System.Func<string, Transform> resolveBone = vocabKey =>
                 skeleton.TryGetBone(vocabKey, out var b) ? b : null;
             var clip = BuildClip(data, resolve, character, characterAdaptive: true, resolveBone: resolveBone);
+
+            _adaptiveCache[key] = clip;
+            HumanoidClipCacheCleaner.Ensure(character); // destroy these clips when the character is torn down
             return clip;
+        }
+
+        /// <summary>Destroy and forget every character-adaptive clip cached for <paramref name="instanceId"/>.
+        /// Called by <see cref="HumanoidClipCacheCleaner"/> when the character GameObject is destroyed, so the
+        /// HideAndDontSave clips (which survive scene unload) don't leak for the play session.</summary>
+        internal static void ReleaseForCharacter(int instanceId)
+        {
+            var stale = new List<(int CharacterId, string ClipName)>();
+            foreach (var kv in _adaptiveCache)
+                if (kv.Key.CharacterId == instanceId) stale.Add(kv.Key);
+            foreach (var key in stale)
+            {
+                var clip = _adaptiveCache[key];
+                if (clip != null) Object.Destroy(clip);
+                _adaptiveCache.Remove(key);
+            }
         }
 
         // Resolve a vocab key to the character-relative path via SkeletonMap. Falls back to

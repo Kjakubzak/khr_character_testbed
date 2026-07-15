@@ -6,6 +6,8 @@
         "GLTFSerialization",
         "UnityGLTF.KhrCharacter.Runtime",
         "UnityGLTF.KhrCharacter.Schema",
+        "UnityGLTF.VisibilityHints.Runtime",
+        "UnityGLTF.VisibilityHints.Schema",
         "UnityEngine.UI"
     ],
     "includePlatforms": [],

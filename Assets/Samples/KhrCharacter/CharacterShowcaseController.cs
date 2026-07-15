@@ -18,7 +18,7 @@ namespace Samples.Characters
     /// via that component, because its Rebuild() calls Ui.ClearRows() — which would wipe the other sections of the
     /// shared combined panel.
     /// </summary>
-    public class CharacterShowcaseController : MonoBehaviour
+    public class CharacterShowcaseController : DemoControllerBase
     {
         [Tooltip("Optional explicit character path. If empty, uses the hero VRoid when present, else SC-FacePlus.")]
         public string HeroGlbPath;
@@ -37,7 +37,7 @@ namespace Samples.Characters
 
         private async void Start()
         {
-            bool usingHero = string.IsNullOrEmpty(HeroGlbPath) && CharacterLoader.HeroExists;
+            bool usingHero = string.IsNullOrEmpty(HeroGlbPath) && CharacterLoader.WouldLoadHero;
 
             _rig = Object.FindFirstObjectByType<OrbitCameraRig>();
 
@@ -46,11 +46,13 @@ namespace Samples.Characters
             targetGo.transform.position = _targetAnchor;
             _gazeTarget = targetGo.transform;
 
-            _ui = DemoUiBuilder.Create("Character Showcase");
+            _ui = CreatePanel("Character Showcase");
             string sceneName = SceneManager.GetActiveScene().name;
             string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-FacePlus.glb");
             string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-FacePlus");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
+            Caveats.Render(_ui, Caveat.Draft, Caveat.BlendModeRuntimeOnly, Caveat.CameraProjectionOffWire,
+                Caveat.SkeletonGracefulDegrade, Caveat.HeroNonCommercial);
 
             var content = new GameObject("LoadedContent");
             content.transform.SetParent(transform, false);
@@ -63,9 +65,10 @@ namespace Samples.Characters
                     : await CharacterLoader.LoadAsync(HeroGlbPath, content.transform);
             }
             catch (System.Exception e) { Debug.LogException(e); _ui.AddLabel("Load failed: " + e.Message); AddBack(); return; }
+            if (this == null) return; // scene changed / object destroyed mid-import
             if (scene == null) { _ui.AddLabel("Load failed (no scene)."); AddBack(); return; }
 
-            FrameScene(scene);
+            FrameScene(scene, new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)));
 
             var hub = scene.GetComponent<KhrCharacter>();
             if (hub == null) { _ui.AddLabel("No KHR Character data on this asset."); AddBack(); return; }
@@ -76,6 +79,7 @@ namespace Samples.Characters
         // Builds the combined panel; each capability section is gated on its sub-controller being present.
         private void BuildPanel(KhrCharacter hub)
         {
+            if (this == null) return; // scene changed while awaiting readiness
             if (hub == null) { AddBack(); return; }
 
             // Anchor the gaze target ~2m in front of the head joint (the scene was framed in Start).
@@ -185,21 +189,8 @@ namespace Samples.Characters
                 _gazeTarget.position = _targetAnchor + new Vector3(_targetX, _targetYOffset, 0f);
         }
 
-        private void FrameScene(GameObject scene)
-        {
-            if (_rig == null || scene == null) return;
-            if (!SceneBoundsUtil.TryAggregate(scene, out var bounds))
-            {
-                _rig.FrameAndFace(new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)), scene.transform);
-                return;
-            }
-            _rig.FrameAndFace(bounds, scene.transform);
-        }
-
-        private void AddBack()
-        {
-            var back = gameObject.AddComponent<BackToHubButton>();
-            _ui.AddButton("Back to Hub", back.GoToHub);
-        }
+        // Back-to-Hub is guaranteed by DemoControllerBase; AddBack delegates to it (idempotent) so the existing
+        // every-exit-path calls stay valid.
+        private void AddBack() => AddBackToHub();
     }
 }

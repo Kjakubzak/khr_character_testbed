@@ -49,5 +49,20 @@ namespace KhrCharacterTestbed.Tests
             // survival across the full corpus. A hub component MAY be absent (e.g. a plain
             // .glb dropped into a user-registered folder that has no KHR content).
         }
+
+        // Anti-hollow floor for the [ValueSource] above: an empty catalog yields "no cases" (NOT a failure), so a
+        // separate lower-bound assertion is needed to fail LOUDLY when fixture discovery collapses (deleted fixtures
+        // or a mis-detected asset-source dir). Counts discovered PATHS (un-smudged LFS pointers included), so it
+        // guards discovery — not smudge state — and therefore holds on a no-LFS checkout too. The committed corpus is
+        // Synthetic (>=10) + FromBlender (11) = >=21; 15 sits above any single source so losing a whole source trips it.
+        [Test]
+        public void Catalog_DiscoversFixtures_AboveLowerBound()
+        {
+            var paths = SandboxTestUtil.AllCatalogFixturePaths();
+            Assert.GreaterOrEqual(paths.Length, 15,
+                $"Fixture catalog discovered only {paths.Length} .glb/.gltf file(s) — expected the committed " +
+                "Synthetic + FromBlender corpus (>=21). A near-empty catalog means fixtures were deleted or an " +
+                "asset-source directory wasn't detected, which would silently hollow out the universal-import gate.");
+        }
     }
 }

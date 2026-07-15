@@ -1,6 +1,6 @@
 # Run-Tests.ps1 — GATE 1 (compile) + GATE 2 (tests green + min-test-count floor).
 # Compile-only FIRST (a -runTests against uncompilable code hangs forever), then -runTests (no -quit; it self-quits).
-# Usage:  ./Tools/ci/Run-Tests.ps1 [-ProjectPath <p>] [-Platform PlayMode|EditMode|Both] [-Filter <f>] [-MinTests 12] [-MinSandboxTests 12] [-TimeoutMinutes 60]
+# Usage:  ./Tools/ci/Run-Tests.ps1 [-ProjectPath <p>] [-Platform PlayMode|EditMode|Both] [-Filter <f>] [-MinTests 120] [-MinSandboxTests 120] [-TimeoutMinutes 60]
 # NOTE: only the testbed's OWN tests run in this consumer project - Unity 'testables' does NOT surface a
 # git-package's tests into a consuming project, so the floor tracks the sandbox suite, not the plugin's ~165
 # (those gate in the plugin repo / khr-test-proj). Anti-hollow is GATE 1 compile (Sandbox.Tests links real
@@ -11,8 +11,8 @@ param(
     [ValidateSet('PlayMode', 'EditMode', 'Both')][string]$Platform = 'PlayMode',
     [string]$Filter,
     [int]$TimeoutMinutes = 60,
-    [int]$MinTests = 12,
-    [int]$MinSandboxTests = 12,
+    [int]$MinTests = 120,
+    [int]$MinSandboxTests = 120,
     [string]$ResultsDir
 )
 . "$PSScriptRoot/_Common.ps1"

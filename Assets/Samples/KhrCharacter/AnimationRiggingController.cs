@@ -19,7 +19,7 @@ namespace Samples.Characters
     /// gracefully to base playback (no aim) when the character has no head bone the constraint
     /// can bind to.
     /// </summary>
-    public class AnimationRiggingController : MonoBehaviour
+    public class AnimationRiggingController : DemoControllerBase
     {
         public string BodyGlbPath;
 
@@ -32,15 +32,16 @@ namespace Samples.Characters
 
         private async void Start()
         {
-            bool usingHero = string.IsNullOrEmpty(BodyGlbPath) && CharacterLoader.HeroExists;
+            bool usingHero = string.IsNullOrEmpty(BodyGlbPath) && CharacterLoader.WouldLoadHero;
             string sceneName = SceneManager.GetActiveScene().name;
             string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-Body.glb");
             string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-Body");
 
-            _ui = DemoUiBuilder.Create("Animation Rigging");
+            _ui = CreatePanel("Animation Rigging");
             _ui.AddLabel("Layer a MultiAimConstraint (head look-at) on top of a base humanoid clip.");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             _status = _ui.AddLabel("Loading ...");
+            Caveats.Render(_ui, Caveat.Draft);
 
             var root = new GameObject("CharacterRoot");
             root.transform.SetParent(transform, false);
@@ -53,6 +54,7 @@ namespace Samples.Characters
                     : await CharacterLoader.LoadAsync(BodyGlbPath, root.transform);
             }
             catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }
+            if (this == null) return; // scene changed / object destroyed mid-import
             if (scene == null) { _status.text = "Load failed."; return; }
 
             _character = scene;
@@ -88,9 +90,6 @@ namespace Samples.Characters
                 : "Idle base playing; head aim disabled (no head bone found).";
 
             BuildClipButtons();
-
-            var back = gameObject.AddComponent<BackToHubButton>();
-            _ui.AddButton("Back to Hub", back.GoToHub);
         }
 
         // Wire a MultiAimConstraint on the character's head bone. The rig builder / rig / constraint
@@ -130,10 +129,15 @@ namespace Samples.Characters
             _rigBuilder.Build();
         }
 
-        // Try common humanoid-vocabulary head-bone names; the KHR skeleton_mapping populates one
-        // of these depending on the source rig. Case-insensitive to handle both "head" and "Head".
+        // Resolve the head bone. Prefer the KHR skeleton_mapping (vocab key "head" → the source rig's head
+        // transform, e.g. VRoid's J_Bip_C_Head) — the SAME resolution the clip path uses — so the aim constraint
+        // binds on the hero rig; fall back to a case-insensitive name search for non-KHR rigs.
         private static Transform FindHeadBone(GameObject character)
         {
+            var skeleton = character.GetComponent<KhrCharacter>()?.Skeleton;
+            if (skeleton != null && skeleton.TryGetBone("head", out var mapped) && mapped != null)
+                return mapped;
+
             var candidates = new[] { "head", "Head", "HeadTop_End" };
             foreach (var name in candidates)
             {
@@ -169,14 +173,6 @@ namespace Samples.Characters
                     if (_status != null) _status.text = $"Base: {captured.name} (aim: {(_rigBuilder != null ? "on" : "n/a")})";
                 });
             }
-        }
-
-        private void FrameScene(GameObject scene)
-        {
-            var rig = Object.FindFirstObjectByType<OrbitCameraRig>();
-            if (rig == null || scene == null) return;
-            if (!SceneBoundsUtil.TryAggregate(scene, out var bounds)) return;
-            rig.FrameAndFace(bounds, scene.transform);
         }
     }
 }

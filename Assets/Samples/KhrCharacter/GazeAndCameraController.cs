@@ -10,10 +10,10 @@ namespace Samples.Characters
     /// <summary>
     /// GazeAndCamera demo (M3). Loads SC-Face for expression-driven gaze (a movable world target drives the
     /// look-left/right/up/down expressions via <see cref="GazeSolver"/>) and SC-Body for camera hints (role buttons
-    /// frame a preview camera via <see cref="CameraHintSet.Apply"/>). Caveat C2: the camera projection index does
-    /// not round-trip through glTF.
+    /// frame a preview camera via <see cref="CameraHintSet.Apply"/>). Applicable caveats are surfaced from the
+    /// shared <see cref="Caveats"/> registry (notably the camera projection index not round-tripping through glTF).
     /// </summary>
-    public class GazeAndCameraController : MonoBehaviour
+    public class GazeAndCameraController : DemoControllerBase
     {
         public string FaceGlbPath;
         public string BodyGlbPath;
@@ -34,7 +34,7 @@ namespace Samples.Characters
         private async void Start()
         {
             if (string.IsNullOrEmpty(BodyGlbPath)) BodyGlbPath = CharacterLoader.SyntheticPath("SC-Body.glb");
-            bool usingHero = string.IsNullOrEmpty(FaceGlbPath) && CharacterLoader.HeroExists;
+            bool usingHero = string.IsNullOrEmpty(FaceGlbPath) && CharacterLoader.WouldLoadHero;
             string sceneName = SceneManager.GetActiveScene().name;
             string faceFallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-Face.glb");
             string faceFallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-Face");
@@ -44,33 +44,39 @@ namespace Samples.Characters
             targetGo.transform.SetParent(transform, false);
             targetGo.transform.position = _targetAnchor;
             _gazeTarget = targetGo.transform;
-            _ui = DemoUiBuilder.Create("Gaze & Camera");
+            _ui = CreatePanel("Gaze & Camera");
             _ui.AddLabel("Gaze: move the target and the face follows. Camera: pick a hint role.");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, faceFallbackDisplay));
             BuildGazeControls();
-            // The demo character drives gaze (the hero when present, else the catalog's face fallback).
-            // SC-Body still provides the camera hints below, so the fallback demoes both gaze and hints.
+            // The demo character drives gaze (the hero when it's a real GLB, else the catalog's face fallback) —
+            // routed through LoadDemoCharacterAsync so it makes the SAME hero-vs-synthetic decision as everything
+            // else (gating on the glTF magic, not File.Exists) and can't feed an un-smudged LFS pointer to the
+            // importer. SC-Body still provides the camera hints below, so the fallback demoes both gaze and hints.
             var faceRoot = new GameObject("FaceRoot");
             faceRoot.transform.SetParent(transform, false);
-            string facePath = !string.IsNullOrEmpty(FaceGlbPath) ? FaceGlbPath
-                : (CharacterLoader.HeroExists ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath(faceFallbackFile));
-            await LoadInto(facePath, faceRoot.transform, WireGaze);
+            var faceLoad = string.IsNullOrEmpty(FaceGlbPath)
+                ? CharacterLoader.LoadDemoCharacterAsync(faceRoot.transform, faceFallbackFile)
+                : CharacterLoader.LoadAsync(FaceGlbPath, faceRoot.transform);
+            await WireLoaded(faceLoad, WireGaze);
+            if (this == null) return; // scene changed / object destroyed mid-import
 
             // SC-Body carries the camera hints (placed to the side so both are visible).
             var bodyRoot = new GameObject("BodyRoot");
             bodyRoot.transform.SetParent(transform, false);
             bodyRoot.transform.localPosition = new Vector3(1.5f, 0f, 0f);
-            await LoadInto(BodyGlbPath, bodyRoot.transform, WireCameraHints);
+            await WireLoaded(CharacterLoader.LoadAsync(BodyGlbPath, bodyRoot.transform), WireCameraHints);
+            if (this == null) return; // scene changed / object destroyed mid-import
 
-            _ui.AddLabel("C2: camera projection index does not round-trip through glTF.");
-            var back = gameObject.AddComponent<BackToHubButton>();
-            _ui.AddButton("Back to Hub", back.GoToHub);
+            Caveats.Render(_ui, Caveat.Draft, Caveat.CameraProjectionOffWire, Caveat.EyeAimNonSpec);
+            // Back-to-Hub is guaranteed by DemoControllerBase (armed in CreatePanel).
         }
 
-        private static async Task LoadInto(string path, Transform parent, System.Action<KhrCharacter> onReady)
+        // Await a load Task and, on success, wire the ready character. Takes the Task (not a path) so the caller can
+        // route through LoadDemoCharacterAsync (the shared hero-vs-synthetic decision) or LoadAsync (explicit path).
+        private static async Task WireLoaded(Task<GameObject> load, System.Action<KhrCharacter> onReady)
         {
             GameObject scene;
-            try { scene = await CharacterLoader.LoadAsync(path, parent); }
+            try { scene = await load; }
             catch (System.Exception e) { Debug.LogException(e); return; }
             if (scene == null) return;
             var hub = scene.GetComponent<KhrCharacter>();
@@ -127,7 +133,7 @@ namespace Samples.Characters
 
         private void WireGaze(KhrCharacter hub)
         {
-            if (hub == null) return;
+            if (this == null || hub == null) return;
 
             // Frame + face the gaze character to the camera (once, start-only — mouse-orbit still works after).
             if (_rig != null)
@@ -176,6 +182,7 @@ namespace Samples.Characters
 
         private void WireCameraHints(KhrCharacter hub)
         {
+            if (this == null) return;
             _hints = hub != null ? hub.CameraHints : null;
             if (_hints == null) { _ui.AddLabel("Body asset has no camera hints."); return; }
 

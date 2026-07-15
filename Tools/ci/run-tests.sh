@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # run-tests.sh — GATE 1 (compile) + GATE 2 (tests green + min-test-count floor).
-# Usage:  ./Tools/ci/run-tests.sh [--project <p>] [--platform PlayMode|EditMode|Both] [--filter <f>] [--min-tests 12] [--min-sandbox-tests 12] [--timeout 60]
+# Usage:  ./Tools/ci/run-tests.sh [--project <p>] [--platform PlayMode|EditMode|Both] [--filter <f>] [--min-tests 120] [--min-sandbox-tests 120] [--timeout 60]
 # NOTE: only the testbed's OWN tests run in this consumer project - Unity 'testables' does NOT surface a
 # git-package's tests into a consumer, so the floor tracks the sandbox suite (plugin's ~165 gate in its own repo).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/_common.sh"
 
-PROJECT=""; PLATFORM="PlayMode"; FILTER=""; TIMEOUT=60; MIN_TESTS=12; MIN_SANDBOX=12; RESULTS_DIR=""
+PROJECT=""; PLATFORM="PlayMode"; FILTER=""; TIMEOUT=60; MIN_TESTS=120; MIN_SANDBOX=120; RESULTS_DIR=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project) PROJECT="$2"; shift 2;;

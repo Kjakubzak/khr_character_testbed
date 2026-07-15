@@ -11,10 +11,10 @@ namespace Samples.Characters
     /// RigAndPose demo (M4 + M6). Loads SC-Body and lets the user switch the rig between Generic and Humanoid
     /// (<see cref="SkeletonMap.SwitchRigMode"/>) and apply the reference pose. The humanoid build is best-effort:
     /// if Unity rejects the bone layout, <c>SwitchRigMode(Humanoid)</c> returns false and the character gracefully
-    /// stays Generic (caveat C11) — never throws. M6: the imported character does not auto-play / snap to the
-    /// T-pose on load (import-side suppression), but the reference-pose clip can still be played on demand.
+    /// stays Generic (see the shared <see cref="Caveats"/> registry) — never throws. M6: the imported character does
+    /// not auto-play / snap to the T-pose on load (import-side suppression), but the reference-pose clip can still be played on demand.
     /// </summary>
-    public class RigAndPoseController : MonoBehaviour
+    public class RigAndPoseController : DemoControllerBase
     {
         public string BodyGlbPath;
 
@@ -25,15 +25,16 @@ namespace Samples.Characters
 
         private async void Start()
         {
-            bool usingHero = string.IsNullOrEmpty(BodyGlbPath) && CharacterLoader.HeroExists;
+            bool usingHero = string.IsNullOrEmpty(BodyGlbPath) && CharacterLoader.WouldLoadHero;
             string sceneName = SceneManager.GetActiveScene().name;
             string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-Body.glb");
             string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-Body");
 
-            _ui = DemoUiBuilder.Create("Rig & Pose");
+            _ui = CreatePanel("Rig & Pose");
             _ui.AddLabel("Switch Generic/Humanoid and apply the reference pose. Humanoid is best-effort.");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             _status = _ui.AddLabel("Loading ...");
+            Caveats.Render(_ui, Caveat.Draft, Caveat.SkeletonGracefulDegrade);
 
             var bodyRoot = new GameObject("BodyRoot");
             bodyRoot.transform.SetParent(transform, false);
@@ -46,6 +47,7 @@ namespace Samples.Characters
                     : await CharacterLoader.LoadAsync(BodyGlbPath, bodyRoot.transform);
             }
             catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }
+            if (this == null) return; // scene changed / object destroyed mid-import
             if (scene == null) { _status.text = "Load failed."; return; }
 
             var hub = scene.GetComponent<KhrCharacter>();
@@ -77,10 +79,6 @@ namespace Samples.Characters
                 var healthText = _ui.AddLabel(string.Empty);
                 gameObject.AddComponent<HealthPanel>().Bind(hub, healthText);
             }
-
-            _ui.AddLabel("C11: missing/invalid required bones -> stays Generic (graceful).");
-            var back = gameObject.AddComponent<BackToHubButton>();
-            _ui.AddButton("Back to Hub", back.GoToHub);
         }
 
         private void SwitchRig(RigImportMode mode)

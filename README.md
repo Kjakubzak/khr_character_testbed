@@ -1,6 +1,6 @@
 # khr_character_testbed
 
-A public, open-source example project that demonstrates the Khronos **`KHR_character` / avatar glTF extensions** (glTF PR #2512) in Unity, via the open-source [UnityGLTF](https://github.com/KhronosGroup/UnityGLTF) package.
+A public, open-source example project that demonstrates the Khronos **`KHR_character` / avatar glTF extensions** (glTF PR #2512) in Unity, via a [UnityGLTF](https://github.com/Kjakubzak/UnityGLTF) fork that adds the `KHR_character` import/export plugin (pending upstream into [KhronosGroup/UnityGLTF](https://github.com/KhronosGroup/UnityGLTF)).
 
 Clone it, press Play, and watch a character import, emote, gaze, animate, switch rigs, toggle first/third-person visibility, and round-trip through a **Khronos-neutral** glTF wire — all on license-clean sample assets.
 
@@ -10,7 +10,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
 
 ## Requirements
 
-- **Unity 6000.0.76f1** (Built-in Render Pipeline; URP works as an upgrade)
+- **Unity 2022.3.76f1** (Built-in Render Pipeline; URP works as an upgrade)
 - **Git** + **Git LFS** (`git lfs install`) — sample binaries are stored via LFS
 - Internet on first open (resolves the UnityGLTF package from a pinned Git URL)
 
@@ -23,7 +23,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
    git lfs install
    git clone <this-repo-url>
    ```
-2. **Open** the folder in **Unity 6000.0.76f1**. First open resolves the UnityGLTF + `KHR_character` plugin from `Packages/manifest.json` (pinned by commit SHA) — give it a moment.
+2. **Open** the folder in **Unity 2022.3.76f1**. First open resolves the UnityGLTF + `KHR_character` plugin from `Packages/manifest.json` (pinned by commit SHA) — give it a moment.
 3. **First time only** — if `Assets/SampleAssets/Synthetic/*.glb` or the demo scenes are missing, generate them from the menu:
    - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Generate Sample Characters**
    - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Build Sample Scenes**
@@ -53,7 +53,7 @@ Launch any of these from **SampleHub**:
 | **AnimationRigging** | Runtime aim constraint (Unity Animation Rigging) | Move the target; a bone tracks it |
 | **AnimationSandbox** | Any character + any rig mode + any clip | Defaults to Generic; pick a character-adaptive procedural clip and Play (clips are filtered to the compatible rig mode) |
 
-Every scene carries an on-screen **caveat banner** so the demo never over-promises (e.g. one character per document; the camera index doesn't round-trip).
+Every scene carries an on-screen **caveat banner** so the demo never over-promises (e.g. one character per document; the camera index doesn't round-trip). The caveats come from a single registry (`Assets/Samples/_Shared/Caveats.cs`) and are indexed once in [`docs/caveats.md`](docs/caveats.md).
 
 ---
 
@@ -87,12 +87,14 @@ Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consu
 
 ## How it consumes the plugin
 
-This project is a **pure UPM consumer** — it does not fork UnityGLTF. `Packages/manifest.json` pins the package by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
+This project is a **pure UPM consumer** — it vendors no plugin code. `Packages/manifest.json` pins UnityGLTF (a fork that adds the `KHR_character` plugin) by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
 
 ```jsonc
-"org.khronos.unitygltf": "https://github.com/<owner>/UnityGLTF.git#<commit-sha>",
+"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#e2d6c9002a6e46495572d0584e04cd657259c614",
 "testables": ["org.khronos.unitygltf"]
 ```
+
+`Packages/manifest.json` is the source of truth for this pin; CI runs `Tools/ci/check-package-pin.sh` (a no-Unity preflight) to fail fast if the pinned URL/SHA is unreachable or drifts from this README / `packages-lock.json`.
 
 ---
 

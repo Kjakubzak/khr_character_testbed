@@ -16,7 +16,7 @@ namespace Samples.Characters
     /// * Humanoid rejected (bones invalid / missing) → drops to Generic mode + a clear status label.
     /// * No character loaded → tells the user which fallback fixture to generate.
     /// </summary>
-    public class HumanoidAnimationController : MonoBehaviour
+    public class HumanoidAnimationController : DemoControllerBase
     {
         public string BodyGlbPath;
 
@@ -27,15 +27,16 @@ namespace Samples.Characters
 
         private async void Start()
         {
-            bool usingHero = string.IsNullOrEmpty(BodyGlbPath) && CharacterLoader.HeroExists;
+            bool usingHero = string.IsNullOrEmpty(BodyGlbPath) && CharacterLoader.WouldLoadHero;
             string sceneName = SceneManager.GetActiveScene().name;
             string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-Body.glb");
             string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-Body");
 
-            _ui = DemoUiBuilder.Create("Humanoid Animation");
+            _ui = CreatePanel("Humanoid Animation");
             _ui.AddLabel("Load a character, switch to Humanoid, play a procedural clip. Proves the KHR → Avatar → Playables path.");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             _status = _ui.AddLabel("Loading ...");
+            Caveats.Render(_ui, Caveat.Draft, Caveat.CubicSplineToLinear);
 
             var root = new GameObject("CharacterRoot");
             root.transform.SetParent(transform, false);
@@ -48,6 +49,7 @@ namespace Samples.Characters
                     : await CharacterLoader.LoadAsync(BodyGlbPath, root.transform);
             }
             catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }
+            if (this == null) return; // scene changed / object destroyed mid-import
             if (scene == null) { _status.text = "Load failed (no scene)."; return; }
 
             _character = scene;
@@ -72,9 +74,6 @@ namespace Samples.Characters
             _status.text = "Generic mode bound. Ready to play procedural transform-based clips.";
 
             BuildClipButtons();
-
-            var back = gameObject.AddComponent<BackToHubButton>();
-            _ui.AddButton("Back to Hub", back.GoToHub);
         }
 
         private void BuildClipButtons()
@@ -90,14 +89,6 @@ namespace Samples.Characters
                     if (_status != null) _status.text = $"Playing: {captured.name}";
                 });
             }
-        }
-
-        private void FrameScene(GameObject scene)
-        {
-            var rig = Object.FindFirstObjectByType<OrbitCameraRig>();
-            if (rig == null || scene == null) return;
-            if (!SceneBoundsUtil.TryAggregate(scene, out var bounds)) return;
-            rig.FrameAndFace(bounds, scene.transform);
         }
     }
 }

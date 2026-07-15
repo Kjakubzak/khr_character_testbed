@@ -14,10 +14,10 @@ namespace Samples.Characters
     /// RoundTrip demo (M5). Loads SC-FacePlus as character A, exports it to an in-memory GLB through the KHR
     /// Character export plugin, re-imports the bytes as character B beside A, and shows: (1) a NEUTRALITY readout of
     /// the exported GLTFRoot (extensionsUsed listed; extensionsRequired expected EMPTY = Khronos-neutral), and
-    /// (2) an A-vs-B diff via <see cref="KhrCharacter.GetHealth"/> (expression count, capabilities, skeleton
-    /// direction). Caveats C1-C7 are surfaced as a banner.
+    /// (2) an A-vs-B diff via <see cref="KhrCharacter.GetHealth"/> (expression count, capabilities). Its applicable
+    /// round-trip fidelity caveats are surfaced from the shared <see cref="Caveats"/> registry.
     /// </summary>
-    public class RoundTripController : MonoBehaviour
+    public class RoundTripController : DemoControllerBase
     {
         public string GlbPath;
 
@@ -41,12 +41,12 @@ namespace Samples.Characters
 
         private async void Start()
         {
-            bool usingHero = string.IsNullOrEmpty(GlbPath) && CharacterLoader.HeroExists;
+            bool usingHero = string.IsNullOrEmpty(GlbPath) && CharacterLoader.WouldLoadHero;
             string sceneName = SceneManager.GetActiveScene().name;
             string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-FacePlus.glb");
             string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-FacePlus");
 
-            _ui = DemoUiBuilder.Create("Round Trip");
+            _ui = CreatePanel("Round Trip");
             _ui.AddLabel("Export character A in memory, re-import it as B, and compare.");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             _ui.AddButton("Export A (in memory)", ExportA);
@@ -66,6 +66,7 @@ namespace Samples.Characters
                     : await CharacterLoader.LoadAsync(GlbPath, aRoot.transform);
             }
             catch (System.Exception e) { Debug.LogException(e); _diff.text = "Load failed: " + e.Message; return; }
+            if (this == null) return; // scene changed / object destroyed mid-import
             if (sceneA == null) { _diff.text = "Load failed."; return; }
 
             _a = sceneA.GetComponent<KhrCharacter>();
@@ -77,8 +78,9 @@ namespace Samples.Characters
                 gameObject.AddComponent<HealthPanel>().Bind(_a, healthText);
             }
 
-            _ui.AddLabel("Caveats C1-C7: CUBICSPLINE->LINEAR; multi-key UV first-cycle-exact; shared-material " +
-                         "collapse; duplicate names; blendMode/priority off-wire; camera index; one character per document.");
+            Caveats.Render(_ui, Caveat.Draft, Caveat.CubicSplineToLinear, Caveat.UvFirstCycleExact,
+                Caveat.SharedMaterialCollapse, Caveat.DuplicateNamesDeduped, Caveat.BlendModeRuntimeOnly,
+                Caveat.CameraProjectionOffWire, Caveat.OneCharacterPerDocument);
 
             // Neutralize: consume a VRM-origin character purely via KHR_character (VRMC_* ignored) and re-export
             // vendor-neutral. Defaults to the LFS-committed VRoid sample if present, else the neutral SC-Body.
@@ -89,9 +91,7 @@ namespace Samples.Characters
             _sourceUsed = _ui.AddLabel(string.Empty);
             _externalHealth = _ui.AddLabel(string.Empty);
             _reexportUsed = _ui.AddLabel(string.Empty);
-
-            var back = gameObject.AddComponent<BackToHubButton>();
-            _ui.AddButton("Back to Hub", back.GoToHub);
+            // Back-to-Hub is guaranteed by DemoControllerBase (armed in CreatePanel).
         }
 
         // Synchronous: SaveGLBToByteArray runs the export pipeline in-process.
@@ -149,6 +149,7 @@ namespace Samples.Characters
                 GameObject scene;
                 try { scene = await CharacterLoader.LoadAsync(path, _externalRoot); }
                 catch (System.Exception e) { Debug.LogException(e); _reexportUsed.text = "Import failed: " + e.Message; return; }
+                if (this == null) return; // scene changed / object destroyed mid-import
                 if (scene == null) { _reexportUsed.text = "Import failed (no scene)."; return; }
 
                 var hub = scene.GetComponent<KhrCharacter>();
@@ -188,6 +189,7 @@ namespace Samples.Characters
                 GameObject sceneB;
                 try { sceneB = await CharacterLoader.LoadFromBytesAsync(_glb, _bRoot); }
                 catch (System.Exception e) { Debug.LogException(e); _diff.text = "Re-import failed: " + e.Message; return; }
+                if (this == null) return; // scene changed / object destroyed mid-import
                 if (sceneB == null) { _diff.text = "Re-import failed."; return; }
 
                 _b = sceneB.GetComponent<KhrCharacter>();

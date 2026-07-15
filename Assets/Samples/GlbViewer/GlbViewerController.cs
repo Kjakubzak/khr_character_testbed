@@ -20,7 +20,7 @@ namespace Samples.GlbViewer
     /// directories at runtime via the "Add source folder" panel — persisted per-user in PlayerPrefs
     /// so the folder survives session restart. No hardcoded preset list here.
     /// </summary>
-    public class GlbViewerController : MonoBehaviour
+    public class GlbViewerController : DemoControllerBase
     {
         [Tooltip("Absolute path to the GLB/glTF to load. Defaults to the local hero if present, else the first preset in the catalog.")]
         public string GlbPath;
@@ -46,7 +46,7 @@ namespace Samples.GlbViewer
             content.transform.SetParent(transform, false);
             _contentRoot = content.transform;
 
-            _ui = DemoUiBuilder.Create("GLB Viewer");
+            _ui = CreatePanel("GLB Viewer");
             _ui.AddLabel("Load a glTF/GLB and inspect its KHR Character capabilities.");
 
             // Preset dropdown — populated from the AssetSourceCatalog. The initial options list
@@ -57,6 +57,7 @@ namespace Samples.GlbViewer
             _ui.AddButton("Load", () => { _ = LoadAndShow(GlbPath); });
             _status = _ui.AddLabel(string.Empty);
             _capabilities = _ui.AddLabel(string.Empty);
+            Caveats.Render(_ui, Caveat.Draft);
 
             // ── Add-source panel: any generalized folder can be added at runtime ─────
             _ui.AddLabel("── Asset sources ──");
@@ -66,13 +67,10 @@ namespace Samples.GlbViewer
             _ui.AddButton("Add source folder", OnAddSource);
             _sourceStatus = _ui.AddLabel(string.Empty);
 
-            var back = gameObject.AddComponent<BackToHubButton>();
-            _ui.AddButton("Back to Hub", back.GoToHub);
-
             // Initial load: use GlbPath if the user pre-set one; else the current dropdown selection.
             if (string.IsNullOrEmpty(GlbPath))
             {
-                GlbPath = CharacterLoader.HeroExists
+                GlbPath = CharacterLoader.HeroIsRealGlb
                     ? CharacterLoader.HeroAbsolutePath
                     : (_presetPaths.Count > 0 ? _presetPaths[0] : string.Empty);
             }
@@ -167,6 +165,15 @@ namespace Samples.GlbViewer
             _loading = true;
             try
             {
+                // Fresh-clone guard: never feed a missing file or an un-smudged Git-LFS pointer to the importer —
+                // show an actionable hint instead of a raw parse exception, and keep the current view intact.
+                string problem = CharacterLoader.DescribeUnloadable(path);
+                if (problem != null)
+                {
+                    if (_status != null) _status.text = problem;
+                    return;
+                }
+
                 if (_current != null) Destroy(_current);
                 if (_capabilities != null) _capabilities.text = string.Empty;
                 if (_status != null) _status.text = $"Loading {System.IO.Path.GetFileName(path)} ...";
@@ -183,6 +190,8 @@ namespace Samples.GlbViewer
                     return;
                 }
 
+                if (this == null) return; // scene changed / object destroyed mid-import
+
                 if (scene == null)
                 {
                     if (_status != null) _status.text = "Load failed (no scene produced).";
@@ -190,7 +199,7 @@ namespace Samples.GlbViewer
                 }
 
                 _current = scene;
-                FrameLoaded(scene);
+                FrameScene(scene);
 
                 var hub = scene.GetComponent<KhrCharacter>();
                 if (hub == null)
@@ -206,14 +215,6 @@ namespace Samples.GlbViewer
             {
                 _loading = false;
             }
-        }
-
-        private void FrameLoaded(GameObject scene)
-        {
-            var rig = Object.FindFirstObjectByType<OrbitCameraRig>();
-            if (rig == null || scene == null) return;
-            if (!SceneBoundsUtil.TryAggregate(scene, out var bounds)) return;
-            rig.FrameAndFace(bounds, scene.transform);
         }
 
         private void PopulateCapabilities(KhrCharacter hub)

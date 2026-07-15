@@ -155,6 +155,31 @@ namespace Samples.Editor
             finally { Cleanup(temps); }
         }
 
+        /// <summary>
+        /// Build SC-Degraded: the SC-Body humanoid whose exported GLB is then post-processed so a REQUIRED humanoid
+        /// joint (leftFoot) points at a non-existent node. On import the skeleton mapping resolves its other bones but
+        /// flags leftFoot missing (Report.IsValid=false) → <c>SkeletonMapping: Degraded</c>. This is the only committed
+        /// fixture that exercises the Degraded tri-state (Area 2 A3); the Health demo's picker loads it so the state is
+        /// observable with a shipped asset. CC0/synthetic.
+        /// </summary>
+        [SampleCharacter("SC-Degraded")]
+        public static string GenerateSCDegraded(string outputDirectory)
+        {
+            outputDirectory = Normalize(outputDirectory);
+            var temps = new List<Object>();
+            try
+            {
+                var root = AssembleBodyCharacter(temps);
+                temps.Add(root);
+
+                string path = Export(root, outputDirectory, "SC-Degraded");
+                DanglingRequiredBone(path, "leftFoot");
+                ImportIfUnderAssets(path);
+                return path;
+            }
+            finally { Cleanup(temps); }
+        }
+
         /// <summary>Build SC-ExprEdge (two morph expressions where one BLOCK-masks the other) and export to SC-ExprEdge.glb.</summary>
         [SampleCharacter("SC-ExprEdge")]
         public static string GenerateSCExprEdge(string outputDirectory)
@@ -830,6 +855,61 @@ namespace Samples.Editor
                 if (!present) used.Add(token);
                 if (exts[token] == null) exts[token] = new JObject();
             }
+
+            byte[] newJson = Encoding.UTF8.GetBytes(root.ToString(Newtonsoft.Json.Formatting.None));
+            int pad = (4 - (newJson.Length % 4)) % 4;
+            int newJsonChunkLen = newJson.Length + pad;
+            byte[] binChunk = new byte[bytes.Length - binStart];
+            System.Array.Copy(bytes, binStart, binChunk, 0, binChunk.Length);
+
+            int total = 12 + 8 + newJsonChunkLen + binChunk.Length;
+            using (var ms = new MemoryStream(total))
+            using (var w = new BinaryWriter(ms))
+            {
+                w.Write(GlbMagic); w.Write((uint)2); w.Write((uint)total);
+                w.Write((uint)newJsonChunkLen); w.Write(ChunkJson);
+                w.Write(newJson);
+                for (int i = 0; i < pad; i++) w.Write((byte)0x20);   // pad JSON chunk with spaces
+                w.Write(binChunk);
+                File.WriteAllBytes(glbPath, ms.ToArray());
+            }
+        }
+
+        // Post-process an exported GLB so a REQUIRED humanoid joint in KHR_character_skeleton_mapping points at a
+        // non-existent node index, forcing the importer's skeleton baker to flag it missing (Report.IsValid=false)
+        // so the capability reports Degraded. Other bones keep resolving, so the mapping is degraded, not absent.
+        // Mirrors InjectVendorExtensions' GLB JSON rewrite (re-pad JSON chunk to 4 bytes; BIN chunk preserved).
+        private static void DanglingRequiredBone(string glbPath, string requiredJoint)
+        {
+            const uint GlbMagic = 0x46546C67;   // "glTF"
+            const uint ChunkJson = 0x4E4F534A;  // "JSON"
+
+            byte[] bytes = File.ReadAllBytes(glbPath);
+            if (bytes.Length < 20 || System.BitConverter.ToUInt32(bytes, 0) != GlbMagic)
+                throw new System.Exception($"Not a binary glTF: {glbPath}");
+            uint jsonLen = System.BitConverter.ToUInt32(bytes, 12);
+            if (System.BitConverter.ToUInt32(bytes, 16) != ChunkJson)
+                throw new System.Exception($"First GLB chunk is not JSON: {glbPath}");
+
+            int jsonStart = 20;
+            int binStart = jsonStart + (int)jsonLen;
+            string json = Encoding.UTF8.GetString(bytes, jsonStart, (int)jsonLen);
+            var root = JObject.Parse(json);
+
+            // A node index one past the end of the nodes array can never resolve, so the joint dangles.
+            int danglingIndex = (root["nodes"] as JArray)?.Count ?? 9999;
+            var mappings = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
+            if (mappings == null)
+                throw new System.Exception("SC-Degraded: exported GLB has no KHR_character_skeleton_mapping.skeletalRigMappings to degrade.");
+            bool patched = false;
+            foreach (var rig in mappings.Properties())
+                if (rig.Value is JObject joints && joints[requiredJoint] != null)
+                {
+                    joints[requiredJoint] = danglingIndex;
+                    patched = true;
+                }
+            if (!patched)
+                throw new System.Exception($"SC-Degraded: required joint '{requiredJoint}' not present in any rig mapping to degrade.");
 
             byte[] newJson = Encoding.UTF8.GetBytes(root.ToString(Newtonsoft.Json.Formatting.None));
             int pad = (4 - (newJson.Length % 4)) % 4;
