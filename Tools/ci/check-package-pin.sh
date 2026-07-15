@@ -26,7 +26,8 @@ README="$PROJECT/README.md"
 [[ -f "$MANIFEST" ]] || { echo "[ci] manifest.json not found at $MANIFEST" >&2; exit 1; }
 
 # Pull the pinned git URL for the package out of manifest.json (the source of truth), no JSON parser needed.
-URL="$(grep -oE "\"${PACKAGE}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" "$MANIFEST" | head -n1 | sed -E 's/.*:[[:space:]]*"([^"]+)"/\1/' | tr -d '\r')"
+PACKAGE_RE="${PACKAGE//./\\.}"  # escape dots so the grep -E pattern below matches the package name literally
+URL="$(grep -oE "\"${PACKAGE_RE}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" "$MANIFEST" | head -n1 | sed -E 's/.*:[[:space:]]*"([^"]+)"/\1/' | tr -d '\r')"
 if [[ -z "$URL" ]]; then echo "[ci] '$PACKAGE' dependency not found in manifest.json" >&2; exit 1; fi
 if [[ ! "$URL" =~ ^https?://.*#[0-9a-fA-F]{7,40}$ ]]; then
   echo "[ci] '$PACKAGE' is not pinned to a git URL with a commit SHA ('#<sha>'): '$URL'" >&2; exit 1

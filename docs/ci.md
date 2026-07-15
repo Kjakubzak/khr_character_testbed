@@ -39,7 +39,7 @@ Two independent floors, both enforced every run (and all of `failed`/`inconclusi
 
 ## Preflight lints (no Unity)
 
-Two cheap, Unity-free jobs run before (and independently of) the gates above, so an onboarding/reproducibility defect
+Three cheap, Unity-free jobs run before (and independently of) the gates above, so an onboarding/reproducibility defect
 fails in seconds instead of after a slow editor spin-up:
 
 - **Doc version lint** — `Check-DocsVersion.ps1` / `check-docs-version.sh`. Fails when any Unity-editor-version string
@@ -52,6 +52,9 @@ fails in seconds instead of after a slow editor spin-up:
   the pin agrees across `Packages/manifest.json` (the source of truth), `Packages/packages-lock.json`, and `README.md`
   so the documented owner/SHA can't silently re-drift. The `tests`/nightly jobs `needs:` this preflight, so a doomed
   resolve never burns Unity CI minutes. Run `-SkipRemote` / `--skip-remote` to check only consistency when offline.
+- **Attribution check** — `Check-Attribution.ps1` / `check-attribution.sh`. Fails when a committed
+  `Assets/SampleAssets/**/*.glb` has no matching provenance row in `ATTRIBUTION.md`, so a new sample asset can't land
+  without its license/source documented.
 
 ## Running locally
 

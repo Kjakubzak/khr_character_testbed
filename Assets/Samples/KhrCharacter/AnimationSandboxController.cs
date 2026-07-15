@@ -56,7 +56,7 @@ namespace Samples.Characters
         {
             _ui = CreatePanel("Animation Sandbox");
             _ui.AddLabel("Any character + any rig mode + any clip. All three dropdowns are registry-backed.");
-            _ui.AddLabel("Note: procedural + character-embedded clips use TRANSFORM curves — pair them with Generic mode. Humanoid mode is for muscle-format clips (Mixamo FBX etc.); pairing generic clips with Humanoid produces a mangled pose.");
+            _ui.AddLabel("Note: the clip list is filtered to the selected rig mode — procedural clips play in Generic, character-embedded (legacy) clips in Legacy; Humanoid needs muscle-format clips (Mixamo FBX etc.), none of which ship.");
 
             var content = new GameObject("LoadedContent");
             content.transform.SetParent(transform, false);
@@ -223,7 +223,7 @@ namespace Samples.Characters
                 {
                     _currentCharacter = await CharacterLoader.LoadAsync(path, _contentRoot);
                 }
-                catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }
+                catch (System.Exception e) { Debug.LogException(e); if (this != null && _status != null) _status.text = "Load failed: " + e.Message; return; }
                 if (this == null) return; // scene changed / object destroyed mid-import
                 if (_currentCharacter == null) { _status.text = "Load failed (no scene)."; return; }
 

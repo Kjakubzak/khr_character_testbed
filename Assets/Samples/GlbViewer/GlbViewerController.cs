@@ -59,6 +59,10 @@ namespace Samples.GlbViewer
             _capabilities = _ui.AddLabel(string.Empty);
             Caveats.Render(_ui, Caveat.Draft);
 
+            // Windows-only: drag a .glb/.gltf from Explorer onto the window to load it (inert on other platforms).
+            gameObject.AddComponent<WindowsFileDrop>().FilesDropped += OnFilesDropped;
+            _ui.AddLabel("Tip: on Windows, drag a .glb/.gltf onto the window to load it.");
+
             // ── Add-source panel: any generalized folder can be added at runtime ─────
             _ui.AddLabel("── Asset sources ──");
             _ui.AddButton("Refresh preset list", RefreshPresetDropdown);
@@ -114,10 +118,31 @@ namespace Samples.GlbViewer
         private void OnPresetChanged(int index)
         {
             if (index < 0 || index >= _presetPaths.Count) return;
+            if (_loading) { if (_status != null) _status.text = "Still loading - wait for the current load to finish."; return; }
             var path = _presetPaths[index];
             GlbPath = path;
             if (_pathField != null) _pathField.text = path;
             _ = LoadAndShow(path);
+        }
+
+        // Load the first dropped glTF (raised by WindowsFileDrop on an OS file drop; Windows only).
+        private void OnFilesDropped(string[] paths)
+        {
+            if (paths == null) return;
+            if (_loading) { if (_status != null) _status.text = "Still loading - drop again once it finishes."; return; }
+            foreach (var p in paths)
+            {
+                var ext = Path.GetExtension(p);
+                if (ext != null && (ext.Equals(".glb", System.StringComparison.OrdinalIgnoreCase) ||
+                                    ext.Equals(".gltf", System.StringComparison.OrdinalIgnoreCase)))
+                {
+                    GlbPath = p;
+                    if (_pathField != null) _pathField.text = p;
+                    _ = LoadAndShow(p);
+                    return;
+                }
+            }
+            if (_status != null) _status.text = "Dropped file isn't a .glb/.gltf.";
         }
 
         private void OnAddSource()

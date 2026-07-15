@@ -113,7 +113,7 @@ namespace Samples.VisibilityHints
             _current = go;
             _view = go.GetComponentInChildren<ViewContextController>(true);
             ApplyViewMode();
-            FrameScene(go);
+            FrameScene(go, new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)));
             SetStatus(_view != null
                 ? $"Loaded {Path.GetFileName(path)}. Toggle first-person to see the hint applied."
                 : $"Loaded {Path.GetFileName(path)} — this asset carries no visibility hints.");
@@ -125,7 +125,7 @@ namespace Samples.VisibilityHints
             _current = BuildSampleFigure(_contentRoot);
             _view = _current.GetComponent<ViewContextController>();
             ApplyViewMode();
-            FrameScene(_current);
+            FrameScene(_current, new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)));
             SetStatus("Built-in figure — Head: node third_person; Arms: node first_person; Mask shell: primitive " +
                       "third_person (the faceplate swaps to an invisible material in first person; the strap stays).");
         }
@@ -151,16 +151,6 @@ namespace Samples.VisibilityHints
                 _view.Mode = _firstPerson
                     ? ViewContextController.ViewContext.FirstPerson
                     : ViewContextController.ViewContext.ThirdPerson;
-        }
-
-        private void FrameScene(GameObject go)
-        {
-            var rig = Object.FindFirstObjectByType<OrbitCameraRig>();
-            if (rig == null || go == null) return;
-            Bounds bounds = SceneBoundsUtil.TryAggregate(go, out var aggregated)
-                ? aggregated
-                : new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f));
-            rig.FrameAndFace(bounds, go.transform);
         }
 
         private void SetStatus(string s) { if (_status != null) _status.text = s; }

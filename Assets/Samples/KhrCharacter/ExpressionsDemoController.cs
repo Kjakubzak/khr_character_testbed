@@ -45,15 +45,16 @@ namespace Samples.Characters
             catch (System.Exception e)
             {
                 Debug.LogException(e);
+                if (this != null) ShowFailure("Load failed: " + e.Message, back);
                 return;
             }
             if (this == null) return; // scene changed / object destroyed mid-import
-            if (scene == null) return;
+            if (scene == null) { ShowFailure("Load failed.", back); return; }
 
             FrameLoaded(scene);
 
             var hub = scene.GetComponent<KhrCharacter>();
-            if (hub == null) return;
+            if (hub == null) { ShowFailure("Loaded, but no KHR Character data.", back); return; }
 
             // ExpressionControlPanel.Bind builds rows on WhenReady; the character is already ready post-load, so
             // Ui exists synchronously afterwards and we can append the N1/N2 controls + a Back-to-Hub button.
@@ -101,6 +102,15 @@ namespace Samples.Characters
             foreach (var track in set.Expressions)
                 if (track != null && (track.Name == "aa" || track.Name == "jawOpen"))
                     track.BlendMode = mode;
+        }
+
+        // The panel is otherwise only built by ExpressionControlPanel on success; on any failure path build a
+        // minimal panel so the user is never stranded without a Back-to-Hub button (A18).
+        private void ShowFailure(string message, BackToHubButton back)
+        {
+            var ui = DemoUiBuilder.Create("Expressions");
+            ui.AddLabel(message);
+            ui.AddButton("Back to Hub", back.GoToHub);
         }
 
         private void FrameLoaded(GameObject scene)

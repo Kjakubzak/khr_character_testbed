@@ -53,7 +53,7 @@ namespace Samples.Characters
                     ? await CharacterLoader.LoadDemoCharacterAsync(root.transform, fallbackFile)
                     : await CharacterLoader.LoadAsync(BodyGlbPath, root.transform);
             }
-            catch (System.Exception e) { Debug.LogException(e); _status.text = "Load failed: " + e.Message; return; }
+            catch (System.Exception e) { Debug.LogException(e); if (this != null && _status != null) _status.text = "Load failed: " + e.Message; return; }
             if (this == null) return; // scene changed / object destroyed mid-import
             if (scene == null) { _status.text = "Load failed."; return; }
 

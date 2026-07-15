@@ -325,7 +325,7 @@ namespace Samples.Shared
         // Bake bindRotation * Euler(delta(t)) into four localRotation.{x,y,z,w} curves on each path.
         // Sampling at the union of the source euler keyframe times preserves the authored motion; the
         // full-quaternion output is normalized by Unity on playback and never triggers the single-component
-        // ~180° flip. Consecutive samples are kept on the same hemisphere so linear component interpolation
+        // ~180° flip. Consecutive samples are kept on the same hemisphere so component interpolation
         // takes the short way around.
         private static void BakeBindRelativeRotation(
             AnimationClip clip, IEnumerable<string> paths, Quaternion bind, List<CurveData> axisCurves)

@@ -359,7 +359,7 @@ namespace Samples.Shared
             try
             {
                 if (string.IsNullOrEmpty(absolutePath) || !File.Exists(absolutePath)) return false;
-                var head = new byte[20];
+                var head = new byte[64];
                 int read;
                 using (var stream = File.OpenRead(absolutePath))
                     read = stream.Read(head, 0, head.Length);

@@ -34,7 +34,7 @@ foreach ($rel in $tracked) {
     # A row cites the asset as `<name>.glb` or `<subdir>/<name>.glb`, always ending the filename with a backtick.
     # Matching "<basename>`" is robust to the subdir-prefix inconsistency and to dot-vs-dash near-duplicate names
     # (khr-character-example.glb` won't match khr-character-example-always.glb`).
-    if (-not $attrText.Contains($base + '`')) { $missing += $rel }
+    if (-not ($attrText.Contains('`' + $base + '`') -or $attrText.Contains('/' + $base + '`'))) { $missing += $rel }
 }
 
 if ($missing.Count -gt 0) {

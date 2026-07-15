@@ -35,8 +35,9 @@ for rel in "${TRACKED[@]}"; do
   base="$(basename "$rel")"
   # A row cites the asset as `<name>.glb` or `<subdir>/<name>.glb`, always ending the filename with a backtick.
   # Matching "<basename>`" is robust to the subdir-prefix inconsistency and to dot-vs-dash near-duplicate names.
-  needle="${base}"'`'
-  if ! grep -qF -- "$needle" "$ATTRIBUTION"; then
+  # Anchor the START (a backtick or slash must precede the name) as well as the end, so one asset name can't
+  # false-match as a suffix of another asset's row.
+  if ! grep -qF -- "\`${base}\`" "$ATTRIBUTION" && ! grep -qF -- "/${base}\`" "$ATTRIBUTION"; then
     echo "[ci]   no ATTRIBUTION.md row for committed asset '$rel'" >&2
     missing=$(( missing + 1 ))
   fi
