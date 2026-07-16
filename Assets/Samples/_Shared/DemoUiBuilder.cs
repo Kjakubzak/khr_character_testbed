@@ -197,6 +197,10 @@ namespace Samples.Shared
             if (inner != null) inner.text = string.Empty;
 
             var toggle = go.GetComponent<Toggle>();
+            // DefaultControls builds the toggle from an unpopulated Resources, so its checkmark is a null-sprite white
+            // quad on a null-sprite white background - the checked state is invisible even though isOn does flip.
+            // Tint the checkmark dark so ticking/un-ticking is actually visible.
+            if (toggle.graphic is Image checkmark) checkmark.color = new Color(0.2f, 0.2f, 0.2f, 1f);
             toggle.SetIsOnWithoutNotify(value);
             if (onChanged != null) toggle.onValueChanged.AddListener(onChanged);
 
