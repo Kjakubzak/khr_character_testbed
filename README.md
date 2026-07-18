@@ -10,7 +10,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
 
 ## Requirements
 
-- **Unity 2022.3.76f1** (Built-in Render Pipeline; URP works as an upgrade)
+- **Unity 2022.2.23f1** (Built-in Render Pipeline; URP works as an upgrade)
 - **Git** + **Git LFS** (`git lfs install`) — sample binaries are stored via LFS
 - Internet on first open (resolves the UnityGLTF package from a pinned Git URL)
 
@@ -23,7 +23,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
    git lfs install
    git clone <this-repo-url>
    ```
-2. **Open** the folder in **Unity 2022.3.76f1**. First open resolves the UnityGLTF + `KHR_character` plugin from `Packages/manifest.json` (pinned by commit SHA) — give it a moment.
+2. **Open** the folder in **Unity 2022.2.23f1**. First open resolves the UnityGLTF + `KHR_character` plugin from `Packages/manifest.json` (pinned by commit SHA) — give it a moment.
 3. **First time only** — if `Assets/SampleAssets/Synthetic/*.glb` or the demo scenes are missing, generate them from the menu:
    - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Generate Sample Characters**
    - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Build Sample Scenes**

@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  UNITY_VERSION: "2022.3.76f1"
+  UNITY_VERSION: "2022.2.23f1"
   # Only the testbed's own tests run in this consumer (Unity 'testables' does not surface a git-package's
   # tests); the floor tracks the sandbox suite. The plugin's ~165 tests gate in the plugin repo / khr-test-proj.
   MIN_TESTS: "120"
@@ -68,7 +68,7 @@ jobs:
 
   # GATE 1 (compile) + GATE 2 (tests + min-test-count floor). Built-in RP, required.
   tests:
-    name: Tests (Unity 2022.3.76f1, Built-in)
+    name: Tests (Unity 2022.2.23f1, Built-in)
     needs: package-pin-preflight
     runs-on: ubuntu-latest
     steps:

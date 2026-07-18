@@ -138,7 +138,7 @@ goldens) skips the diff with a message to run `-Update` once.
 ## GitHub Actions (`.github/workflows/ci.yml`)
 
 - **Provider:** GitHub Actions + [game-ci](https://game.ci) `unity-test-runner` (pinned editor image + license).
-- **Unity:** `2022.3.76f1` (exact patch, matches `ProjectSettings/ProjectVersion.txt`).
+- **Unity:** `2022.2.23f1` (exact patch, matches `ProjectSettings/ProjectVersion.txt`).
 - **Render pipeline:** **Built-in = required gate**; **URP = nightly / non-blocking** (see `.github/workflows/ci-nightly.yml`;
   the URP cell is WIRED - it activates a committed URP pipeline asset and runs the suite under URP via xvfb);
   HDRP deferred. The KHR test / glTF-validation / golden gates are RP-agnostic.
