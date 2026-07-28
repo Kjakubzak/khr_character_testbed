@@ -9,7 +9,7 @@ namespace Samples.Characters
     /// <summary>
     /// Expressions demo (M1 + M2). Loads SC-FacePlus via the shared loader and, once the character is ready, wires
     /// the <see cref="ExpressionControlPanel"/> so its auto-generated sliders drive <see cref="ExpressionController.SetWeight"/>.
-    /// Because SC-FacePlus carries morph, a jaw JOINT, and a TEXTURE (UV-offset + index-swap) expression, the
+    /// Because SC-FacePlus carries morph, a jaw JOINT, and a TEXTURE UV-transform expression, the
     /// auto-built rows surface all three domains (M2) alongside the morph sliders (M1).
     ///
     /// Note: the C# namespace is intentionally <c>Samples.Characters</c> (not <c>Samples.KhrCharacter</c>) so the

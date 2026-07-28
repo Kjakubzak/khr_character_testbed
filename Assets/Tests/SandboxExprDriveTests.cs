@@ -127,7 +127,7 @@ namespace KhrCharacterTestbed.Tests
             ec.ResetAll();
         }
 
-        // SC-FacePlus carries a texture expression (UV-transform + index-swap). Driving it must change the renderer's
+        // SC-FacePlus carries a UV-transform texture expression. Driving it must change the renderer's
         // per-slot MaterialPropertyBlock _ST vector (the runtime applier writes an MPB, NOT renderer.material).
         [UnityTest]
         public IEnumerator Texture_UvTransform_DrivesMaterialPropertyBlockST()
@@ -146,7 +146,7 @@ namespace KhrCharacterTestbed.Tests
             {
                 if (track?.TextureDrivers == null) continue;
                 foreach (var d in track.TextureDrivers)
-                    if (d != null && d.Kind == TexKind.UvTransform) { uv = d; texExpr = track.Name; break; }
+                    if (d != null) { uv = d; texExpr = track.Name; break; }
                 if (uv != null) break;
             }
             Assert.IsNotNull(uv, "SC-FacePlus should import a UV-transform texture driver.");

@@ -51,6 +51,10 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(hub, "SC-Face should import a KhrCharacter hub.");
 
             CharacterLoader.ExportToGlb(hub.gameObject, out var root);
+            CollectionAssert.Contains(root.ExtensionsUsed, KHR_animation_pointer.EXTENSION_NAME,
+                "pointer-based morph channels require KHR_animation_pointer in extensionsUsed.");
+            CollectionAssert.Contains(root.ExtensionsUsed, KhrCharacterExtensionNames.XmpJsonLd,
+                "all KHR_character assets require the transitive XMP declaration.");
             var expr = GetExpression(root);
             Assert.IsNotNull(expr, "SC-Face re-export should carry KHR_character_expression.");
             var item = expr.Expressions.Find(i => i != null && i.Morphtarget != null);
@@ -126,10 +130,7 @@ namespace KhrCharacterTestbed.Tests
             }
             Assert.IsTrue(uvTransform, "the UV-transform driver must emit KHR_texture_transform scale/offset pointer channels.");
 
-            // NOTE (G3): the 2-texture index-swap driver does NOT survive the full-disk import -> re-export round-trip
-            // today (texture round-trip is a documented gap). The index-swap WIRE shape (.../baseColorTexture/index,
-            // STEP) is covered by the plugin's in-memory export test; closing the full-disk index-swap round-trip is
-            // tracked for Phase 4 (02 P3, G3). This test therefore locks only the UV-transform round-trip here.
+            // Texture expression channels are limited to KHR_texture_transform offset, scale, and rotation.
         }
 
         [UnityTest]

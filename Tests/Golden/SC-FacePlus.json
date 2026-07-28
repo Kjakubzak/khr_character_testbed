@@ -4078,26 +4078,6 @@
         0.0,
         1.0
       ]
-    },
-    {
-      "bufferView": 60,
-      "componentType": 5126,
-      "count": 2,
-      "type": "SCALAR",
-      "values": [
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "bufferView": 61,
-      "componentType": 5126,
-      "count": 2,
-      "type": "SCALAR",
-      "values": [
-        0.0,
-        1.0
-      ]
     }
   ],
   "animations": [
@@ -4320,17 +4300,6 @@
             },
             "path": "pointer"
           }
-        },
-        {
-          "sampler": 2,
-          "target": {
-            "extensions": {
-              "KHR_animation_pointer": {
-                "pointer": "/materials/1/pbrMetallicRoughness/baseColorTexture/index"
-              }
-            },
-            "path": "pointer"
-          }
         }
       ],
       "name": "texFx",
@@ -4344,11 +4313,6 @@
           "input": 43,
           "interpolation": "LINEAR",
           "output": 42
-        },
-        {
-          "input": 45,
-          "interpolation": "STEP",
-          "output": 44
         }
       ]
     }
@@ -4545,15 +4509,6 @@
     },
     {
       "buffer": 0
-    },
-    {
-      "buffer": 0
-    },
-    {
-      "buffer": 0
-    },
-    {
-      "buffer": 0
     }
   ],
   "buffers": [
@@ -4675,8 +4630,7 @@
             "KHR_character_expression_texture": {
               "channels": [
                 0,
-                1,
-                2
+                1
               ]
             }
           }
@@ -4703,6 +4657,7 @@
   "extensionsUsed": [
     "KHR_texture_transform",
     "KHR_character",
+    "KHR_xmp_json_ld",
     "KHR_animation_pointer",
     "KHR_character_expression",
     "KHR_character_expression_morphtarget",
@@ -4715,12 +4670,7 @@
     {
       "bufferView": 36,
       "mimeType": "image/png",
-      "name": "swapA"
-    },
-    {
-      "bufferView": 59,
-      "mimeType": "image/png",
-      "name": "swapB"
+      "name": "textureExpression"
     }
   ],
   "materials": [
@@ -4903,14 +4853,9 @@
   ],
   "textures": [
     {
-      "name": "swapA",
+      "name": "textureExpression",
       "sampler": 0,
       "source": 0
-    },
-    {
-      "name": "swapB",
-      "sampler": 0,
-      "source": 1
     }
   ]
 }

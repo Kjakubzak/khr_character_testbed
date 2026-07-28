@@ -9,6 +9,7 @@
   },
   "extensionsUsed": [
     "KHR_character",
+    "KHR_xmp_json_ld",
     "KHR_node_lookat_target"
   ],
   "nodes": [

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityGLTF.KhrCharacter;
@@ -118,6 +119,7 @@ namespace KhrCharacterTestbed.Tests
             var expected = new[]
             {
                 "KHR_character",
+                "KHR_xmp_json_ld",
                 "KHR_character_expression",
                 "KHR_character_expression_morphtarget",
                 "KHR_character_expression_joint",
@@ -134,7 +136,30 @@ namespace KhrCharacterTestbed.Tests
                     "If the addon's build_full() dropped this extension, update the assertion.");
         }
 
-        // ── Minimal fixture is exactly what its name says — nothing but KHR_character ──
+        [Test]
+        public void MorphFixture_UsesOrdinaryWeightsWithoutAnimationPointer()
+        {
+            var glbBytes = System.IO.File.ReadAllBytes(CharacterLoader.FromBlenderPath("expressions_morph.glb"));
+            var root = JObject.Parse(CharacterLoader.ExtractGltfJson(glbBytes));
+            var used = root["extensionsUsed"] as JArray;
+            CollectionAssert.Contains(used?.ToObject<string[]>(), "KHR_xmp_json_ld");
+            CollectionAssert.DoesNotContain(used?.ToObject<string[]>(), "KHR_animation_pointer",
+                "ordinary weights channels do not require KHR_animation_pointer");
+
+            var expressions = (JArray)root["extensions"]["KHR_character_expression"]["expressions"];
+            foreach (var token in expressions)
+            {
+                var expression = (JObject)token;
+                int animationIndex = (int)expression["animation"];
+                var channels = (JArray)root["animations"][animationIndex]["channels"];
+                var indices = expression["extensions"]?["KHR_character_expression_morphtarget"]?["channels"] as JArray;
+                if (indices == null) continue;
+                foreach (var index in indices)
+                    Assert.AreEqual("weights", (string)channels[(int)index]["target"]["path"]);
+            }
+        }
+
+        // ── Minimal fixture carries only the character marker plus its declaration-only XMP dependency ──
 
         [UnityTest]
         public IEnumerator Minimal_HasZeroExpressionsAndNoSkeleton()

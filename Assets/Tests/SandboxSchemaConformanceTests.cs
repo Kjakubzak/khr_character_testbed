@@ -65,6 +65,7 @@ namespace KhrCharacterTestbed.Tests
                 var target = mask["target"];
                 if (target == null || target.Type != JTokenType.String || ((string)target).Length < 1)
                     e.Add("mask.target is required (non-empty string).");
+                NonEmptyOptionalString(mask, "type", "mask", e);
                 UnitRangeOptionalNumber(mask, "amount", e);
                 UnitRangeOptionalNumber(mask, "threshold", e);
                 return e;
@@ -128,6 +129,7 @@ namespace KhrCharacterTestbed.Tests
                 else if (node is JArray a) foreach (var c in a) Walk(c);
             }
             Walk(root);
+            errors.AddRange(ExpressionChannelReferences(root));
 
             string joined = string.Join(" | ", errors);
             Assert.IsEmpty(errors, $"{fixture} wire must conform to the KHR_character schema constraints: {joined}");
@@ -185,7 +187,95 @@ namespace KhrCharacterTestbed.Tests
             => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa", ["threshold"] = -0.1 }), "threshold < 0 must be rejected.");
 
         [Test]
+        public void Mask_EmptyType_Rejected()
+            => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa", ["type"] = "" }),
+                "an explicitly empty custom mask type must be rejected.");
+
+        [Test]
+        public void Mask_CustomType_Accepted()
+            => Assert.IsEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa", ["type"] = "soft_block" }),
+                "custom nonempty mask vocabulary values are valid.");
+
+        [Test]
         public void Mask_Valid_Accepted()
             => Assert.IsEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa", ["type"] = "blend", ["amount"] = 0.5, ["threshold"] = 0.0 }));
+
+        private static List<string> ExpressionChannelReferences(JObject root)
+        {
+            var errors = new List<string>();
+            var expressions = root["extensions"]?["KHR_character_expression"]?["expressions"] as JArray;
+            var animations = root["animations"] as JArray;
+            if (expressions == null) return errors;
+
+            foreach (var token in expressions)
+            {
+                if (!(token is JObject expression) || expression["animation"]?.Type != JTokenType.Integer)
+                    continue;
+                int animationIndex = (int)expression["animation"];
+                if (animations == null || animationIndex < 0 || animationIndex >= animations.Count)
+                {
+                    errors.Add($"expression animation index {animationIndex} does not resolve in animations.");
+                    continue;
+                }
+
+                var channels = animations[animationIndex]?["channels"] as JArray;
+                var extensions = expression["extensions"] as JObject;
+                CheckTypedChannels(extensions?["KHR_character_expression_joint"], "joint", channels, errors);
+                CheckTypedChannels(extensions?["KHR_character_expression_morphtarget"], "morph", channels, errors);
+                CheckTypedChannels(extensions?["KHR_character_expression_texture"], "texture", channels, errors);
+            }
+            return errors;
+        }
+
+        private static void CheckTypedChannels(JToken extension, string kind, JArray animationChannels, List<string> errors)
+        {
+            var indices = extension?["channels"] as JArray;
+            if (indices == null) return;
+            foreach (var indexToken in indices)
+            {
+                if (indexToken.Type != JTokenType.Integer || animationChannels == null)
+                {
+                    errors.Add($"{kind} channel index is invalid.");
+                    continue;
+                }
+                int index = (int)indexToken;
+                if (index < 0 || index >= animationChannels.Count)
+                {
+                    errors.Add($"{kind} channel {index} is outside the selected animation.");
+                    continue;
+                }
+
+                var target = animationChannels[index]?["target"] as JObject;
+                string path = (string)target?["path"];
+                string pointer = (string)target?["extensions"]?["KHR_animation_pointer"]?["pointer"];
+                if (kind == "joint" && path != "translation" && path != "rotation" && path != "scale")
+                    errors.Add($"joint channel {index} must target node TRS.");
+                else if (kind == "morph" && path != "weights" && !IsWeightPointer(path, pointer))
+                    errors.Add($"morph channel {index} must target weights or a node-weight pointer.");
+                else if (kind == "texture" && !IsTextureTransformPointer(path, pointer))
+                    errors.Add($"texture channel {index} must target KHR_texture_transform offset, scale, or rotation.");
+            }
+        }
+
+        private static bool IsWeightPointer(string path, string pointer)
+        {
+            if (path != "pointer" || string.IsNullOrEmpty(pointer) || !pointer.StartsWith("/nodes/")) return false;
+            int weights = pointer.IndexOf("/weights", System.StringComparison.Ordinal);
+            if (weights < 0) return false;
+            string suffix = pointer.Substring(weights + "/weights".Length);
+            if (suffix.Length == 0) return true;
+            if (!suffix.StartsWith("/") || suffix.Length == 1) return false;
+            return int.TryParse(suffix.Substring(1), out int weightIndex) && weightIndex >= 0;
+        }
+
+        private static bool IsTextureTransformPointer(string path, string pointer)
+        {
+            if (path != "pointer" || string.IsNullOrEmpty(pointer)) return false;
+            const string marker = "/extensions/KHR_texture_transform/";
+            int start = pointer.LastIndexOf(marker, System.StringComparison.Ordinal);
+            if (start < 0) return false;
+            string property = pointer.Substring(start + marker.Length);
+            return property == "offset" || property == "scale" || property == "rotation";
+        }
     }
 }
