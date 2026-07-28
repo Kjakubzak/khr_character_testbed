@@ -19,7 +19,7 @@ namespace Samples.Editor
     /// editor assembly.
     ///
     /// - SC-Face       : head mesh + 6 morph expressions (incl. lookL/R/U/D) + a jaw joint.
-    /// - SC-FacePlus   : SC-Face + a texture expression (UV offset) on a distinct material.
+    /// - SC-FacePlus   : SC-Face + a texture expression (UV transform) on a distinct material.
     /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + TPose reference pose + a camera hint.
     /// - SC-LookAt     : a KHR_character root + GazeSolver AuthoredTargets that mark nodes as KHR_node_lookat_target.
     /// - SC-Partial    : a KHR_character root with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
@@ -393,7 +393,7 @@ namespace Samples.Editor
             temps.Add(quadMesh);
             quad.GetComponent<MeshFilter>().sharedMesh = quadMesh;
 
-            var texture = MakeReadableTexture("textureAtlas", new Color(0.9f, 0.3f, 0.3f, 1f), temps);
+            var texture = MakeReadableTexture("textureExpression", new Color(0.9f, 0.3f, 0.3f, 1f), temps);
 
             var renderer = quad.GetComponent<MeshRenderer>();
             // Use a LIT material (URP Lit or Built-in Standard) rather than Unlit so UnityGLTF does NOT emit

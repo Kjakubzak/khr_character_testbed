@@ -43,7 +43,7 @@ Launch any of these from **SampleHub**:
 |---|---|---|
 | **CharacterShowcase** | Drive a full character through every `KHR_character` capability | The combined demo — every capability on one character (hero asset, or `SC-FacePlus` fallback) |
 | **GlbViewer** | Import any `.glb`/`.gltf` at runtime + capability discovery | Load a character; read the Active/Degraded/Inert capability list |
-| **Expressions** | Morph + joint + texture expression control | Drag `jawOpen`, the jaw-bone slider, and the texture-transform slider |
+| **Expressions** | Morph + joint + texture expression control | Drag `jawOpen`, the jaw-bone slider, and the texture UV-transform slider |
 | **GazeAndCamera** | Expression-driven gaze + advisory camera hints | Move the target → eyes track it; click a camera-hint role |
 | **RigAndPose** | Runtime Generic ↔ Humanoid rig switch + reference pose + no-T-pose-snap | Toggle to Humanoid (builds a Mecanim Avatar); "Apply Reference Pose" |
 | **RoundTrip** | Export → re-import + **Khronos-neutrality** readout | Export in memory; see `extensionsUsed` (canonical `KHR_*`) and an **empty `extensionsRequired`** |
@@ -76,7 +76,7 @@ Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consu
 | Asset | Carries | Used by |
 |---|---|---|
 | `SC-Face.glb` | `KHR_character` + expression (morph + joint) | GlbViewer, Expressions, Gaze |
-| `SC-FacePlus.glb` | + UV-transform texture expression | Expressions, RoundTrip |
+| `SC-FacePlus.glb` | + texture expression (`KHR_texture_transform` UV transform) | Expressions, RoundTrip |
 | `SC-Body.glb` | skeleton mapping + reference pose + camera hint (humanoid-mappable) | RigAndPose, Health, procedural animation |
 
 **`VRM_KHR_Examples/`** — the "hero" character (`khr-character-example.glb`, VRM-origin, consumed via `KHR_character`; `VRMC_*` ignored) plus per-role visibility-hint variants (`-always`, `-first-person`, `-third-person`), used by CharacterShowcase and VisibilityHints.
@@ -90,7 +90,7 @@ Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consu
 This project is a **pure UPM consumer** — it vendors no plugin code. `Packages/manifest.json` pins UnityGLTF (a fork that adds the `KHR_character` plugin) by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
 
 ```jsonc
-"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#eff6ec3f9597b9ef7070a3976933ab127fd2de4e",
+"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#8842ebded2e39726d04a6e1da649b7f446d36b8e",
 "testables": ["org.khronos.unitygltf"]
 ```
 

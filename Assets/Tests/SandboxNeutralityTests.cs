@@ -38,7 +38,7 @@ namespace KhrCharacterTestbed.Tests
                 "KHR_character", "KHR_character_expression_morphtarget", "KHR_character_expression_joint",
                 "KHR_character_skeleton_mapping", "KHR_character_reference_pose",
                 "KHR_node_camera_hint", "KHR_node_lookat_target",
-                "KHR_materials_unlit", "KHR_texture_transform", "KHR_animation_pointer",
+                "KHR_materials_unlit", "KHR_texture_transform", "KHR_animation_pointer", "KHR_xmp_json_ld",
             })
                 Assert.IsTrue(SandboxTestUtil.IsNeutralExtension(neutral),
                     $"'{neutral}' should be Khronos-neutral (^KHR_ allow-list).");
@@ -85,6 +85,10 @@ namespace KhrCharacterTestbed.Tests
                 Assert.IsNotNull(root.ExtensionsUsed, $"{fixture} should declare extensionsUsed.");
                 CollectionAssert.Contains(root.ExtensionsUsed, KHR_character.EXTENSION_NAME,
                     $"{fixture} re-export should declare the root KHR_character extension (export plugin ran).");
+                CollectionAssert.Contains(root.ExtensionsUsed, KhrCharacterExtensionNames.XmpJsonLd,
+                    $"{fixture} must declare the KHR_character XMP dependency.");
+                Assert.IsTrue(root.Extensions == null || !root.Extensions.ContainsKey(KhrCharacterExtensionNames.XmpJsonLd),
+                    $"{fixture} has no metadata, so declaration-only XMP must not synthesize a packet object.");
 
                 // Neutral iff EVERY token on each surface is ^KHR_ (or the short core allow-list).
                 SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsUsed, $"{fixture} extensionsUsed");
@@ -164,6 +168,20 @@ namespace KhrCharacterTestbed.Tests
             Require(anyJoint, KHR_character_expression_joint.EXTENSION_NAME);
             Require(anyTexture, KHR_character_expression_texture.EXTENSION_NAME);
             Require(anyMask, KHR_character_expression_mask.EXTENSION_NAME);
+
+            CollectionAssert.Contains(root.ExtensionsUsed, KHR_character.EXTENSION_NAME,
+                $"{fixture}: expression extensions require KHR_character.");
+            CollectionAssert.Contains(root.ExtensionsUsed, KHR_character_expression.EXTENSION_NAME,
+                $"{fixture}: nested expression extensions require KHR_character_expression.");
+            CollectionAssert.Contains(root.ExtensionsUsed, KhrCharacterExtensionNames.XmpJsonLd,
+                $"{fixture}: character extensions require the transitive XMP declaration.");
+            if (anyTexture)
+            {
+                CollectionAssert.Contains(root.ExtensionsUsed, "KHR_animation_pointer",
+                    $"{fixture}: texture expressions require KHR_animation_pointer.");
+                CollectionAssert.Contains(root.ExtensionsUsed, "KHR_texture_transform",
+                    $"{fixture}: texture expressions require KHR_texture_transform.");
+            }
         }
     }
 }

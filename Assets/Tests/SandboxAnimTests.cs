@@ -51,6 +51,10 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(hub, "SC-Face should import a KhrCharacter hub.");
 
             CharacterLoader.ExportToGlb(hub.gameObject, out var root);
+            CollectionAssert.Contains(root.ExtensionsUsed, KHR_animation_pointer.EXTENSION_NAME,
+                "pointer-based morph channels require KHR_animation_pointer in extensionsUsed.");
+            CollectionAssert.Contains(root.ExtensionsUsed, KhrCharacterExtensionNames.XmpJsonLd,
+                "all KHR_character assets require the transitive XMP declaration.");
             var expr = GetExpression(root);
             Assert.IsNotNull(expr, "SC-Face re-export should carry KHR_character_expression.");
             var item = expr.Expressions.Find(i => i != null && i.Morphtarget != null);
@@ -125,6 +129,8 @@ namespace KhrCharacterTestbed.Tests
                     || path.EndsWith("/extensions/KHR_texture_transform/offset")) uvTransform = true;
             }
             Assert.IsTrue(uvTransform, "the UV-transform driver must emit KHR_texture_transform scale/offset pointer channels.");
+
+            // Texture expression channels are limited to KHR_texture_transform offset, scale, and rotation.
         }
 
         [UnityTest]

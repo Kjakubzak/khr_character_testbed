@@ -4657,6 +4657,7 @@
   "extensionsUsed": [
     "KHR_texture_transform",
     "KHR_character",
+    "KHR_xmp_json_ld",
     "KHR_animation_pointer",
     "KHR_character_expression",
     "KHR_character_expression_morphtarget",
@@ -4669,7 +4670,7 @@
     {
       "bufferView": 36,
       "mimeType": "image/png",
-      "name": "textureAtlas"
+      "name": "textureExpression"
     }
   ],
   "materials": [
@@ -4852,7 +4853,7 @@
   ],
   "textures": [
     {
-      "name": "textureAtlas",
+      "name": "textureExpression",
       "sampler": 0,
       "source": 0
     }

@@ -2240,6 +2240,7 @@
   },
   "extensionsUsed": [
     "KHR_character",
+    "KHR_xmp_json_ld",
     "KHR_character_skeleton_mapping",
     "KHR_character_reference_pose",
     "KHR_node_camera_hint"
