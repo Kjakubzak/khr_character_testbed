@@ -19,7 +19,7 @@ namespace Samples.Editor
     /// editor assembly.
     ///
     /// - SC-Face       : head mesh + 6 morph expressions (incl. lookL/R/U/D) + a jaw joint.
-    /// - SC-FacePlus   : SC-Face + a texture expression (UV offset + 2-texture index-swap) on a distinct material.
+    /// - SC-FacePlus   : SC-Face + a texture expression (UV offset) on a distinct material.
     /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + TPose reference pose + a camera hint.
     /// - SC-LookAt     : a KHR_character root + GazeSolver AuthoredTargets that mark nodes as KHR_node_lookat_target.
     /// - SC-Partial    : a KHR_character root with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
@@ -380,8 +380,7 @@ namespace Samples.Editor
         }
 
         // Builds a separate quad renderer with its OWN material (distinct material per renderer, caveat C6) and a
-        // texture expression carrying BOTH a UV-offset driver and a 2-texture index-swap driver (STEP, snaps at
-        // 0.5) on that material's base-color slot. Mirrors the plugin's export-test texture-driver authoring.
+        // texture expression carrying a UV-offset driver on that material's base-color slot.
         private static ExpressionTrack BuildTextureExpression(Transform parent, List<Object> temps)
         {
             var quad = new GameObject("TexturePanel", typeof(MeshFilter), typeof(MeshRenderer))
@@ -394,8 +393,7 @@ namespace Samples.Editor
             temps.Add(quadMesh);
             quad.GetComponent<MeshFilter>().sharedMesh = quadMesh;
 
-            var swapA = MakeReadableTexture("swapA", new Color(0.9f, 0.3f, 0.3f, 1f), temps);
-            var swapB = MakeReadableTexture("swapB", new Color(0.3f, 0.7f, 0.9f, 1f), temps);
+            var texture = MakeReadableTexture("textureAtlas", new Color(0.9f, 0.3f, 0.3f, 1f), temps);
 
             var renderer = quad.GetComponent<MeshRenderer>();
             // Use a LIT material (URP Lit or Built-in Standard) rather than Unlit so UnityGLTF does NOT emit
@@ -408,7 +406,7 @@ namespace Samples.Editor
             {
                 var material = new Material(shader) { name = "SC-FacePlus-Tex", hideFlags = HideFlags.HideAndDontSave };
                 baseProperty = material.HasProperty("_BaseMap") ? "_BaseMap" : "_MainTex";
-                if (material.HasProperty(baseProperty)) material.SetTexture(baseProperty, swapA);
+                if (material.HasProperty(baseProperty)) material.SetTexture(baseProperty, texture);
                 renderer.sharedMaterial = material;
                 temps.Add(material);
             }
@@ -417,7 +415,6 @@ namespace Samples.Editor
             {
                 Renderer = renderer,
                 SubmeshSlot = 0,
-                Kind = TexKind.UvTransform,
                 PropertyId = Shader.PropertyToID(baseProperty + "_ST"),
                 PropertyName = baseProperty,
                 GltfTextureSlot = "pbrMetallicRoughness/baseColorTexture",
@@ -426,23 +423,11 @@ namespace Samples.Editor
                 BaseSt = new Vector4(1f, 1f, 0f, 0f),
             };
 
-            var swapDriver = new TextureDriver
-            {
-                Renderer = renderer,
-                SubmeshSlot = 0,
-                Kind = TexKind.IndexSwap,
-                PropertyId = Shader.PropertyToID(baseProperty),
-                PropertyName = baseProperty,
-                GltfTextureSlot = "pbrMetallicRoughness/baseColorTexture",
-                Sampler = new Sampler { Times = new[] { 0f, 1f }, Interp = Interp.Step, SingleKey = false },
-                SwapTextures = new Texture[] { swapA, swapB },
-            };
-
             return new ExpressionTrack
             {
                 Name = "texFx",
                 Domains = ExpressionDomain.Texture,
-                TextureDrivers = new[] { uvDriver, swapDriver },
+                TextureDrivers = new[] { uvDriver },
             };
         }
 

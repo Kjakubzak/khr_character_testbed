@@ -125,11 +125,6 @@ namespace KhrCharacterTestbed.Tests
                     || path.EndsWith("/extensions/KHR_texture_transform/offset")) uvTransform = true;
             }
             Assert.IsTrue(uvTransform, "the UV-transform driver must emit KHR_texture_transform scale/offset pointer channels.");
-
-            // NOTE (G3): the 2-texture index-swap driver does NOT survive the full-disk import -> re-export round-trip
-            // today (texture round-trip is a documented gap). The index-swap WIRE shape (.../baseColorTexture/index,
-            // STEP) is covered by the plugin's in-memory export test; closing the full-disk index-swap round-trip is
-            // tracked for Phase 4 (02 P3, G3). This test therefore locks only the UV-transform round-trip here.
         }
 
         [UnityTest]
