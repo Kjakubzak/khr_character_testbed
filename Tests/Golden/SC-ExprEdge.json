@@ -318,7 +318,7 @@
               "masks": [
                 {
                   "amount": 1.0,
-                  "target": "edgeA",
+                  "target": 0,
                   "threshold": 0.0,
                   "type": "block"
                 }

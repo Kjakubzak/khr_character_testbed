@@ -89,8 +89,8 @@ To refresh (whenever the Blender addon's exporter output changes):
 1. Regenerate in `khr_character_blender`.
 2. Copy the resulting `tests/fixtures/*.glb` into this folder,
    overwriting.
-3. Until the Blender exporter emits the declaration-only XMP dependency,
-   run `python3 Tools/ci/update-character-declarations.py Assets/SampleAssets/FromBlender/*.glb`.
+3. Until the Blender exporter emits the declaration-only XMP dependency and index-based expression references,
+   run `python3 Tools/ci/normalize-character-fixtures.py Assets/SampleAssets/FromBlender/*.glb`.
 4. Delete the corresponding `.meta` files first if Unity's importer
    pinned any stale GUIDs (usually not necessary).
 

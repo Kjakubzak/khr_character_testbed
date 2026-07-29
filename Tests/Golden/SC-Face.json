@@ -4426,7 +4426,7 @@
               "masks": [
                 {
                   "amount": 1.0,
-                  "target": "aa",
+                  "target": 6,
                   "threshold": 0.0,
                   "type": "blend"
                 }
@@ -4446,11 +4446,11 @@
         "demoVocabulary": {
           "Smile": [
             {
-              "source": "happy",
+              "source": 7,
               "weight": 1.0
             },
             {
-              "source": "aa",
+              "source": 6,
               "weight": 0.5
             }
           ]

@@ -63,8 +63,8 @@ namespace KhrCharacterTestbed.Tests
             {
                 var e = new List<string>();
                 var target = mask["target"];
-                if (target == null || target.Type != JTokenType.String || ((string)target).Length < 1)
-                    e.Add("mask.target is required (non-empty string).");
+                if (target == null || target.Type != JTokenType.Integer || (int)target < 0)
+                    e.Add("mask.target is required (integer >= 0).");
                 NonEmptyOptionalString(mask, "type", "mask", e);
                 UnitRangeOptionalNumber(mask, "amount", e);
                 UnitRangeOptionalNumber(mask, "threshold", e);
@@ -130,6 +130,7 @@ namespace KhrCharacterTestbed.Tests
             }
             Walk(root);
             errors.AddRange(ExpressionChannelReferences(root));
+            errors.AddRange(ExpressionObjectReferences(root));
 
             string joined = string.Join(" | ", errors);
             Assert.IsEmpty(errors, $"{fixture} wire must conform to the KHR_character schema constraints: {joined}");
@@ -180,25 +181,30 @@ namespace KhrCharacterTestbed.Tests
 
         [Test]
         public void Mask_AmountAboveRange_Rejected()
-            => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa", ["amount"] = 1.5 }), "amount > 1 must be rejected.");
+            => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = 0, ["amount"] = 1.5 }), "amount > 1 must be rejected.");
 
         [Test]
         public void Mask_ThresholdBelowRange_Rejected()
-            => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa", ["threshold"] = -0.1 }), "threshold < 0 must be rejected.");
+            => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = 0, ["threshold"] = -0.1 }), "threshold < 0 must be rejected.");
 
         [Test]
         public void Mask_EmptyType_Rejected()
-            => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa", ["type"] = "" }),
+            => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = 0, ["type"] = "" }),
                 "an explicitly empty custom mask type must be rejected.");
 
         [Test]
         public void Mask_CustomType_Accepted()
-            => Assert.IsEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa", ["type"] = "soft_block" }),
+            => Assert.IsEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = 0, ["type"] = "soft_block" }),
                 "custom nonempty mask vocabulary values are valid.");
 
         [Test]
         public void Mask_Valid_Accepted()
-            => Assert.IsEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa", ["type"] = "blend", ["amount"] = 0.5, ["threshold"] = 0.0 }));
+            => Assert.IsEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = 0, ["type"] = "blend", ["amount"] = 0.5, ["threshold"] = 0.0 }));
+
+        [Test]
+        public void Mask_StringTarget_Rejected()
+            => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa" }),
+                "mask targets must use expression indices, not labels.");
 
         private static List<string> ExpressionChannelReferences(JObject root)
         {
@@ -223,6 +229,43 @@ namespace KhrCharacterTestbed.Tests
                 CheckTypedChannels(extensions?["KHR_character_expression_joint"], "joint", channels, errors);
                 CheckTypedChannels(extensions?["KHR_character_expression_morphtarget"], "morph", channels, errors);
                 CheckTypedChannels(extensions?["KHR_character_expression_texture"], "texture", channels, errors);
+            }
+            return errors;
+        }
+
+        private static List<string> ExpressionObjectReferences(JObject root)
+        {
+            var errors = new List<string>();
+            var expressions = root["extensions"]?["KHR_character_expression"]?["expressions"] as JArray;
+            if (expressions == null) return errors;
+
+            foreach (var token in expressions)
+            {
+                var masks = token?["extensions"]?["KHR_character_expression_mask"]?["masks"] as JArray;
+                if (masks == null) continue;
+                foreach (var mask in masks)
+                {
+                    var target = mask?["target"];
+                    if (target?.Type != JTokenType.Integer || (int)target < 0 || (int)target >= expressions.Count)
+                        errors.Add("mask target does not resolve in KHR_character_expression.expressions.");
+                }
+            }
+
+            var mappingSets = root["extensions"]?["KHR_character_expression_mapping"]?["expressionSetMappings"] as JObject;
+            if (mappingSets == null) return errors;
+            foreach (var set in mappingSets.Properties())
+            {
+                if (!(set.Value is JObject targets)) continue;
+                foreach (var target in targets.Properties())
+                {
+                    if (!(target.Value is JArray sources)) continue;
+                    foreach (var source in sources)
+                    {
+                        var index = source?["source"];
+                        if (index?.Type != JTokenType.Integer || (int)index < 0 || (int)index >= expressions.Count)
+                            errors.Add("mapping source does not resolve in KHR_character_expression.expressions.");
+                    }
+                }
             }
             return errors;
         }

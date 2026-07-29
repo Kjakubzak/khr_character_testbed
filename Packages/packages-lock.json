@@ -109,7 +109,7 @@
       }
     },
     "org.khronos.unitygltf": {
-      "version": "https://github.com/Kjakubzak/UnityGLTF.git#8842ebded2e39726d04a6e1da649b7f446d36b8e",
+      "version": "https://github.com/Kjakubzak/UnityGLTF.git#c610ff6b072d46e0df1f5ebd70ff370dc873f594",
       "depth": 0,
       "source": "git",
       "dependencies": {
@@ -121,7 +121,7 @@
         "com.unity.mathematics": "1.0.0",
         "com.unity.collections": "1.0.0"
       },
-      "hash": "8842ebded2e39726d04a6e1da649b7f446d36b8e"
+      "hash": "c610ff6b072d46e0df1f5ebd70ff370dc873f594"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",
