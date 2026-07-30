@@ -71,6 +71,18 @@ namespace KhrCharacterTestbed.Tests
                 return e;
             }
 
+            public static List<string> JointAssociation(JObject association)
+            {
+                var e = new List<string>();
+                var node = association["node"];
+                if (node == null || node.Type != JTokenType.Integer || (int)node < 0)
+                    e.Add("joint association.node is required (integer >= 0).");
+                var name = association["name"];
+                if (name != null && name.Type != JTokenType.String)
+                    e.Add("joint association.name must be a string.");
+                return e;
+            }
+
             private static void NonEmptyOptionalString(JObject o, string key, string ctx, List<string> e)
             {
                 var v = o[key];
@@ -111,7 +123,7 @@ namespace KhrCharacterTestbed.Tests
             var root = JObject.Parse(json);
 
             var errors = new List<string>();
-            int character = 0, cameraHint = 0, lookat = 0, mask = 0;
+            int character = 0, cameraHint = 0, lookat = 0, mask = 0, jointAssociation = 0;
             void Walk(JToken node)
             {
                 if (node is JObject o)
@@ -123,6 +135,17 @@ namespace KhrCharacterTestbed.Tests
                         if (exts["KHR_node_lookat_target"] is JObject lt) { lookat++; errors.AddRange(KhrSchemaCheck.LookatTarget(lt)); }
                         if (exts["KHR_character_expression_mask"] is JObject mk && mk["masks"] is JArray masks)
                             foreach (var m in masks) if (m is JObject mo) { mask++; errors.AddRange(KhrSchemaCheck.Mask(mo)); }
+                        if (exts["KHR_character_skeleton_mapping"] is JObject sm
+                            && sm["skeletalRigMappings"] is JObject rigs)
+                            foreach (var rig in rigs.Properties())
+                                if (rig.Value is JObject joints)
+                                    foreach (var joint in joints.Properties())
+                                        if (joint.Value is JObject association)
+                                        {
+                                            jointAssociation++;
+                                            errors.AddRange(KhrSchemaCheck.JointAssociation(association));
+                                        }
+                                        else errors.Add("skeleton joint association must be an object.");
                     }
                     foreach (var p in o.Properties()) Walk(p.Value);
                 }
@@ -131,6 +154,7 @@ namespace KhrCharacterTestbed.Tests
             Walk(root);
             errors.AddRange(ExpressionChannelReferences(root));
             errors.AddRange(ExpressionObjectReferences(root));
+            errors.AddRange(SkeletonObjectReferences(root));
 
             string joined = string.Join(" | ", errors);
             Assert.IsEmpty(errors, $"{fixture} wire must conform to the KHR_character schema constraints: {joined}");
@@ -139,6 +163,7 @@ namespace KhrCharacterTestbed.Tests
             if (fixture == "SC-Body.glb") Assert.Greater(cameraHint, 0, "SC-Body must carry a camera hint to validate.");
             if (fixture == "SC-LookAt.glb") Assert.Greater(lookat, 0, "SC-LookAt must carry a look-at target to validate.");
             if (fixture == "SC-Face.glb") Assert.Greater(mask, 0, "SC-Face must carry an expression mask to validate.");
+            if (fixture == "SC-Body.glb") Assert.Greater(jointAssociation, 0, "SC-Body must carry skeleton joint associations to validate.");
         }
 
         // ── NEGATIVE: the checker rejects each malformed vector (required / minLength / range) ──
@@ -206,6 +231,16 @@ namespace KhrCharacterTestbed.Tests
             => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa" }),
                 "mask targets must use expression indices, not labels.");
 
+        [Test]
+        public void JointAssociation_MissingNode_Rejected()
+            => Assert.IsNotEmpty(KhrSchemaCheck.JointAssociation(new JObject()),
+                "a skeleton joint association must contain a node index.");
+
+        [Test]
+        public void JointAssociation_Valid_Accepted()
+            => Assert.IsEmpty(KhrSchemaCheck.JointAssociation(
+                new JObject { ["node"] = 0, ["name"] = "Hips" }));
+
         private static List<string> ExpressionChannelReferences(JObject root)
         {
             var errors = new List<string>();
@@ -248,6 +283,10 @@ namespace KhrCharacterTestbed.Tests
                     var target = mask?["target"];
                     if (target?.Type != JTokenType.Integer || (int)target < 0 || (int)target >= expressions.Count)
                         errors.Add("mask target does not resolve in KHR_character_expression.expressions.");
+                    else if (mask?["name"] != null
+                        && (mask["name"].Type != JTokenType.String
+                            || (string)mask["name"] != (string)expressions[(int)target]?["expression"]))
+                        errors.Add("mask name does not match the target expression label.");
                 }
             }
 
@@ -264,7 +303,42 @@ namespace KhrCharacterTestbed.Tests
                         var index = source?["source"];
                         if (index?.Type != JTokenType.Integer || (int)index < 0 || (int)index >= expressions.Count)
                             errors.Add("mapping source does not resolve in KHR_character_expression.expressions.");
+                        else if (source?["name"] != null
+                            && (source["name"].Type != JTokenType.String
+                                || (string)source["name"] != (string)expressions[(int)index]?["expression"]))
+                            errors.Add("mapping name does not match the source expression label.");
                     }
+                }
+            }
+            return errors;
+        }
+
+        private static List<string> SkeletonObjectReferences(JObject root)
+        {
+            var errors = new List<string>();
+            var nodes = root["nodes"] as JArray;
+            var rigs = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
+            if (rigs == null) return errors;
+            foreach (var rig in rigs.Properties())
+            {
+                if (!(rig.Value is JObject joints)) continue;
+                foreach (var joint in joints.Properties())
+                {
+                    if (!(joint.Value is JObject association))
+                    {
+                        errors.Add("skeleton joint association must be an object.");
+                        continue;
+                    }
+                    var node = association["node"];
+                    if (node?.Type != JTokenType.Integer || nodes == null || (int)node < 0 || (int)node >= nodes.Count)
+                    {
+                        errors.Add("skeleton association node does not resolve in nodes.");
+                        continue;
+                    }
+                    if (association["name"] != null
+                        && (association["name"].Type != JTokenType.String
+                            || (string)association["name"] != (string)nodes[(int)node]?["name"]))
+                        errors.Add("skeleton association name does not match the referenced node name.");
                 }
             }
             return errors;

@@ -888,9 +888,10 @@ namespace Samples.Editor
                 throw new System.Exception("SC-Degraded: exported GLB has no KHR_character_skeleton_mapping.skeletalRigMappings to degrade.");
             bool patched = false;
             foreach (var rig in mappings.Properties())
-                if (rig.Value is JObject joints && joints[requiredJoint] != null)
+                if (rig.Value is JObject joints && joints[requiredJoint] is JObject association)
                 {
-                    joints[requiredJoint] = danglingIndex;
+                    association["node"] = danglingIndex;
+                    association.Remove("name");
                     patched = true;
                 }
             if (!patched)
