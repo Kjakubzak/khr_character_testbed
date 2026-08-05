@@ -9,8 +9,8 @@ namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
     /// Behavioral smoke test for the VisibilityHints demo scene: it boots with a <see cref="ViewContextController"/>
-    /// and both hint-set components, and flipping the view context actually toggles a hinted renderer. Anti-hollow —
-    /// asserts via the real plugin types and observed renderer state, not just "a scene with a camera". Cleanup runs
+    /// and both hint-set components, and changing context changes the passive predicate without mutating the
+    /// renderer. Anti-hollow — asserts via the real plugin types, not just "a scene with a camera". Cleanup runs
     /// in [UnityTearDown] so a failed assert never leaks the additively-loaded scene.
     /// </summary>
     public class SandboxVisibilityHintsTests
@@ -26,7 +26,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator VisibilityHintsScene_TogglesRendererByViewContext()
+        public IEnumerator VisibilityHintsScene_EvaluatesContextWithoutMutatingRenderer()
         {
             yield return SceneManager.LoadSceneAsync("VisibilityHints", LoadSceneMode.Additive);
             var scene = SceneManager.GetSceneByName("VisibilityHints");
@@ -55,16 +55,23 @@ namespace KhrCharacterTestbed.Tests
             var headRenderer = head.GetComponent<Renderer>();
             Assert.IsNotNull(headRenderer, "the 'Head' part should have a Renderer.");
 
-            Assert.AreEqual(ViewContextController.ViewContext.ThirdPerson, view.Mode, "demo should start in ThirdPerson.");
+            Assert.AreEqual("third_person", view.ActiveContext,
+                "demo should start in the third-person context.");
+            Assert.IsTrue(view.ShouldRenderNode(head, true),
+                "third_person Head should evaluate visible in the third-person context.");
             Assert.IsTrue(headRenderer.enabled, "third_person head should be visible in ThirdPerson.");
 
-            view.Mode = ViewContextController.ViewContext.FirstPerson;
+            view.SetActiveContext("first_person");
             yield return null;
-            Assert.IsFalse(headRenderer.enabled, "third_person head should hide in FirstPerson.");
+            Assert.IsFalse(view.ShouldRenderNode(head, true),
+                "third_person Head should evaluate hidden in the first-person context.");
+            Assert.IsTrue(headRenderer.enabled,
+                "the passive evaluator must not mutate Renderer.enabled; a host chooses how to realize the predicate.");
 
-            view.Mode = ViewContextController.ViewContext.ThirdPerson;
+            view.SetActiveContext("third_person");
             yield return null;
-            Assert.IsTrue(headRenderer.enabled, "third_person head should restore in ThirdPerson.");
+            Assert.IsTrue(view.ShouldRenderNode(head, true));
+            Assert.IsTrue(headRenderer.enabled);
         }
 
         private static void FindComponents(Scene scene, out ViewContextController view,

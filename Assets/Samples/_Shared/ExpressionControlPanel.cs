@@ -7,9 +7,9 @@ namespace Samples.Shared
 {
     /// <summary>
     /// Binds a uGUI control panel to a character's <see cref="ExpressionController"/>. On
-    /// <see cref="KhrCharacter.WhenReady"/> it auto-builds one row per expression (a 0/1-snapping slider for binary
-    /// (all-STEP) expressions, a free 0..1 slider otherwise) plus a Reset All button. Expression names and counts vary
-    /// generated from <see cref="ExpressionController.Expressions"/>; rows are iterated by index and each name is
+    /// <see cref="KhrCharacter.WhenReady"/> it auto-builds one row per expression (a 0/1-snapping slider when the
+    /// host-authored <c>IsBinary</c> metadata is set, a free 0..1 slider otherwise) plus a Reset All button. Expression
+    /// names and counts vary by asset and are generated from <see cref="ExpressionController.Expressions"/>; rows are iterated by index and each name is
     /// captured locally so writes are name-stable. Every controller access is null-checked because a capability
     /// (and its sub-controller) may be absent on a given character.
     /// </summary>
@@ -69,7 +69,7 @@ namespace Samples.Shared
                 if (string.IsNullOrEmpty(name)) continue;
 
                 var slider = Ui.AddSlider(name, v => Write(name, v), 0f, 1f, _controller.GetWeight(name));
-                // Binary (all-STEP) expressions use a 0/1-snapping slider instead of a free 0..1 slider.
+                // Host-authored binary metadata, not STEP interpolation, selects a 0/1-snapping slider.
                 if (handle.IsBinary) slider.wholeNumbers = true;
                 _rows.Add(new RowBinding { Name = name, Slider = slider });
             }
@@ -80,7 +80,11 @@ namespace Samples.Shared
         /// <summary>Reset every expression weight and reflect it in the controls without re-triggering writes.</summary>
         public void ResetAll()
         {
-            if (_controller != null) _controller.ResetAll();
+            if (_controller != null)
+            {
+                _controller.UseDirectNativeInputs();
+                _controller.ResetAll();
+            }
 
             foreach (var row in _rows)
             {
@@ -91,7 +95,9 @@ namespace Samples.Shared
 
         private void Write(string name, float value)
         {
-            if (_controller != null) _controller.SetWeight(name, value);
+            if (_controller == null) return;
+            _controller.UseDirectNativeInputs();
+            _controller.SetWeight(name, value);
         }
 
         private void EnsureUi()

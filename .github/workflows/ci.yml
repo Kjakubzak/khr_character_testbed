@@ -126,7 +126,7 @@ jobs:
           name: test-results
           path: artifacts/test-results
 
-  # GATE 3 (glTF-Validator) — no Unity; validates the committed fixtures with the official Khronos CLI.
+  # GATE 3 (glTF-Validator) — no Unity; validates every committed character corpus with the proposal-aware fork.
   gltf-validator:
     name: glTF-Validator
     runs-on: ubuntu-latest
@@ -134,15 +134,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
-      - uses: actions/setup-node@v4
+      - uses: dart-lang/setup-dart@v1
         with:
-          node-version: "20"
-      - name: Install glTF-Validator + jq
+          sdk: "2.19.6"
+      - uses: actions/checkout@v4
+        with:
+          repository: Kjakubzak/glTF-Validator
+          ref: 8cdb53a43e43a41a169fe1c70a52e0d147b3e4f8
+          path: .gltf-validator
+      - name: Build pinned proposal-aware glTF-Validator
         run: |
-          npm i -g gltf-validator
+          cd .gltf-validator
+          dart pub get
+          dart run grinder exe
           sudo apt-get update && sudo apt-get install -y jq
-      - name: Validate exported GLBs (numErrors == 0)
-        run: bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/Synthetic --required
+      - name: Validate committed character corpora (numErrors == 0)
+        env:
+          GLTF_VALIDATOR: ${{ github.workspace }}/.gltf-validator/build/bin/gltf_validator
+        run: |
+          bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/Synthetic --report-dir Artifacts/reports/Synthetic --required
+          bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/FromBlender --report-dir Artifacts/reports/FromBlender --required
+          bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/VRM_KHR_Examples --report-dir Artifacts/reports/VRM_KHR_Examples --required
 
   # GATE 4 (round-trip goldens) — re-export + normalize the wire under Unity, then diff against committed goldens.
   goldens:
@@ -179,15 +191,20 @@ jobs:
           set -euo pipefail
           shopt -s nullglob
           goldens=(Tests/Golden/*.json)
+          snapshots=(Artifacts/snapshots/*.json)
           if [ ${#goldens[@]} -eq 0 ]; then
-            echo "No committed goldens yet — run Tools/ci/Export-Goldens -Update locally and commit. Skipping."
-            exit 0
+            echo "No committed goldens — run Tools/ci/export-goldens.sh --update locally and commit."
+            exit 1
           fi
           fail=0
           for g in "${goldens[@]}"; do
             s="Artifacts/snapshots/$(basename "$g")"
             if [ ! -f "$s" ]; then echo "MISSING snapshot $s"; fail=1; continue; fi
             if ! diff -u "$g" "$s"; then fail=1; fi
+          done
+          for s in "${snapshots[@]}"; do
+            g="Tests/Golden/$(basename "$s")"
+            if [ ! -f "$g" ]; then echo "MISSING committed golden $g"; fail=1; fi
           done
           if [ $fail -ne 0 ]; then echo "GATE 4 FAILED — wire drift. If intentional: Export-Goldens -Update + commit."; exit 1; fi
           echo "GATE 4 PASS."

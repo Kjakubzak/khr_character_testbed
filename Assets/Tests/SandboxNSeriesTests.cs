@@ -73,13 +73,17 @@ namespace KhrCharacterTestbed.Tests
             float aaMasked = smr.GetBlendShapeWeight(0);
             Assert.Greater(aaAlone, aaMasked, "'happy' should blend-mask (attenuate) 'aa' on blendshape 0.");
 
-            // Vocabulary: the "Smile" target maps to 2 sources and, when driven, activates at least one of them.
+            // The input operation maps the "Smile" command to two native drivers. It is authored independently of
+            // the native-to-endpoint output operation and must be selected explicitly by this host adapter.
             controller.ResetAll();
-            CollectionAssert.Contains((ICollection)controller.VocabularySets, "demoVocabulary");
-            CollectionAssert.Contains((ICollection)controller.VocabularyExpressions("demoVocabulary"), "Smile");
-            Assert.AreEqual(2, SmileContributionCount(controller), "'Smile' should map to two source expressions.");
+            const string vocabulary = "https://example.com/expression-vocabularies/demo/v1";
+            CollectionAssert.Contains((ICollection)controller.VocabularySets, vocabulary);
+            CollectionAssert.Contains((ICollection)controller.VocabularyExpressions(vocabulary), "Smile");
+            Assert.AreEqual(2, SmileInputContributionCount(controller),
+                "the input operation should map 'Smile' to two native expression drivers");
 
-            controller.SetWeightByVocabulary("demoVocabulary", "Smile", 1f);
+            Assert.IsTrue(controller.SelectVocabularyInputSet(vocabulary));
+            controller.SetWeightByVocabulary(vocabulary, "Smile", 1f);
             yield return null; yield return null;
             float smile = smr.GetBlendShapeWeight(6); // 'happy' drives the smile blendshape (index 6)
             Assert.Greater(smile, 0f, "Driving the 'Smile' vocabulary target should activate its 'happy' source.");
@@ -166,17 +170,20 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator Neutralize_VrmOriginCharacter_ReexportsVendorNeutral()
+        public IEnumerator VrmOriginCharacter_ImportedExpressionExportIsRejectedAsLossy()
         {
             // Prefer the real VRM-origin hero (gate on the GLB magic, not File.Exists: an un-smudged LFS pointer
             // exists but would throw on import). When the hero is absent (e.g. a fork without LFS objects) fall back to
-            // the committed synthetic pseudo-VRM, which carries the same VRMC_* vendor tokens - so this gate ALWAYS
-            // runs a real neutralization check and never skips (a skip would red the build: the gate fails on skipped != 0).
+            // the committed synthetic pseudo-VRM, which carries the same VRMC_* vendor tokens. Either source proves
+            // the importer retains passive expression data that must not be silently projected through the controller.
             bool hero = CharacterLoader.HeroIsRealGlb;
             string path = hero ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-PseudoVRM.glb");
-            Assert.IsTrue(File.Exists(path), $"Neutralization source missing at '{path}'.");
+            Assert.IsTrue(File.Exists(path), $"VRM-origin source missing at '{path}'.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.Passive);
             float deadline = Time.realtimeSinceStartup + (hero ? 60f : 30f); // complex hero -> longer budget
             while (!task.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.IsTrue(task.IsCompleted, "VRM-origin import did not complete in time.");
@@ -188,22 +195,15 @@ namespace KhrCharacterTestbed.Tests
 
             var hub = scene.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub, "The VRM-origin character should import with KHR_character data (VRMC_* ignored).");
-            var ec = hub.Expressions;
-            Assert.IsNotNull(ec);
-            Assert.GreaterOrEqual(ec.Count, 1, "Expected at least one KHR expression on the VRM-origin character.");
-
-            byte[] glb = CharacterLoader.ExportToGlb(hub.gameObject, out var root);
-            Assert.IsNotNull(glb); Assert.Greater(glb.Length, 0); Assert.IsNotNull(root);
-
-            // Vendor-neutral guarantee via the ^KHR_ allow-list: UnityGLTF has no VRMC_* importer, so vendor
-            // tokens cannot survive into the re-export, and every surviving extension must be Khronos-neutral.
-            // (extensionsRequired may legitimately carry a RATIFIED KHR_ extension - e.g. KHR_materials_unlit from a
-            // VRoid MToon/unlit material - which is still vendor-neutral; we assert neutrality and log the rest.)
-            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsUsed, "Re-export extensionsUsed");
-            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsRequired, "Re-export extensionsRequired");
-            if (root.ExtensionsRequired != null && root.ExtensionsRequired.Count > 0)
-                Debug.Log("[Neutralize] re-export extensionsRequired (ratified/non-vendor): " +
-                    string.Join(", ", root.ExtensionsRequired));
+            Assert.IsNotNull(hub.ExpressionResponses,
+                "the imported character must retain its passive response data before the export safety check");
+            Assert.GreaterOrEqual(hub.ExpressionResponses.Count, 1,
+                "Expected at least one passive KHR expression response on the VRM-origin character.");
+            Assert.IsNull(hub.Expressions,
+                "the export safety proof must not depend on a lossy controller projection");
+            var exception = Assert.Catch<System.InvalidOperationException>(
+                () => CharacterLoader.ExportToGlb(hub.gameObject, out _));
+            StringAssert.Contains("passive ExpressionResponseSet", exception.Message);
         }
 
         [UnityTest]
@@ -216,7 +216,10 @@ namespace KhrCharacterTestbed.Tests
             string path = hero ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-FacePlus.glb");
             Assert.IsTrue(File.Exists(path), $"Showcase fallback asset missing at '{path}'. Run Generate Sample Characters first.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             float deadline = Time.realtimeSinceStartup + (hero ? 60f : 30f);
             while (!task.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.IsTrue(task.IsCompleted, "Showcase character import did not complete in time.");
@@ -253,16 +256,16 @@ namespace KhrCharacterTestbed.Tests
                     track.BlendMode = mode;
         }
 
-        private static int SmileContributionCount(ExpressionController controller)
+        private static int SmileInputContributionCount(ExpressionController controller)
         {
-            var sets = controller.Set?.MappingSets;
+            var sets = controller.Set?.InputMappingSets;
             if (sets == null) return 0;
             foreach (var ms in sets)
             {
-                if (ms == null || ms.SetName != "demoVocabulary" || ms.Targets == null) continue;
-                foreach (var target in ms.Targets)
-                    if (target != null && target.TargetName == "Smile")
-                        return target.Contributions?.Length ?? 0;
+                if (ms == null || ms.SetName != "https://example.com/expression-vocabularies/demo/v1" || ms.Commands == null) continue;
+                foreach (var command in ms.Commands)
+                    if (command != null && command.CommandName == "Smile")
+                        return command.Contributions?.Length ?? 0;
             }
             return 0;
         }

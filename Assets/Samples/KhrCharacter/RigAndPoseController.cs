@@ -8,11 +8,11 @@ using Samples.Shared;
 namespace Samples.Characters
 {
     /// <summary>
-    /// RigAndPose demo (M4 + M6). Loads SC-Body and lets the user switch the rig between Generic and Humanoid
+    /// RigAndPose demo (M4). Loads SC-Body and lets the user switch the rig between Generic and Humanoid
     /// (<see cref="SkeletonMap.SwitchRigMode"/>) and apply the reference pose. The humanoid build is best-effort:
     /// if Unity rejects the bone layout, <c>SwitchRigMode(Humanoid)</c> returns false and the character gracefully
-    /// stays Generic (see the shared <see cref="Caveats"/> registry) — never throws. M6: the imported character does
-    /// not auto-play / snap to the T-pose on load (import-side suppression), but the reference-pose clip can still be played on demand.
+    /// stays Generic (see the shared <see cref="Caveats"/> registry) — never throws. Any Animation component state
+    /// shown here is ordinary Unity host behavior, not a KHR_character runtime requirement.
     /// </summary>
     public class RigAndPoseController : DemoControllerBase
     {
@@ -66,11 +66,10 @@ namespace Samples.Characters
                 Refresh();
             }
 
-            // M6: the importer suppresses auto-play, so the character does not loop or snap to the T-pose on load.
             _animation = scene.GetComponent<Animation>();
             _ui.AddLabel(_animation == null
-                ? "Auto-play on load: none (no animation host)."
-                : $"Auto-play on load: {_animation.isPlaying} (suppressed - no T-pose snap).");
+                ? "Unity animation host on load: none."
+                : $"Unity animation host is playing on load: {_animation.isPlaying} (host behavior).");
             if (_animation != null)
                 _ui.AddButton("Play ReferencePose clip", PlayReferencePose);
 

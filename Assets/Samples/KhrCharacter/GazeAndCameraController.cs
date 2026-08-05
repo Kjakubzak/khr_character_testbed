@@ -54,8 +54,14 @@ namespace Samples.Characters
             var faceRoot = new GameObject("FaceRoot");
             faceRoot.transform.SetParent(transform, false);
             var faceLoad = string.IsNullOrEmpty(FaceGlbPath)
-                ? CharacterLoader.LoadDemoCharacterAsync(faceRoot.transform, faceFallbackFile)
-                : CharacterLoader.LoadAsync(FaceGlbPath, faceRoot.transform);
+                ? CharacterLoader.LoadDemoCharacterAsync(
+                    faceRoot.transform,
+                    faceFallbackFile,
+                    CharacterExpressionHostPolicy.LegacyControllerWithSuppression)
+                : CharacterLoader.LoadAsync(
+                    FaceGlbPath,
+                    faceRoot.transform,
+                    CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             await WireLoaded(faceLoad, WireGaze);
             if (this == null) return; // scene changed / object destroyed mid-import
 

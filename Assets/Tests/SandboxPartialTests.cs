@@ -29,15 +29,22 @@ namespace KhrCharacterTestbed.Tests
         [UnityTest]
         public IEnumerator Partial_SurfacesOnlyDeclaredCapabilities()
         {
-            var load = SandboxTestUtil.LoadSynthetic("SC-Partial.glb", _created);
+            var load = SandboxTestUtil.LoadSynthetic(
+                "SC-Partial.glb",
+                _created,
+                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             yield return load;
             var scene = load.Current;
 
             var hub = scene.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub, "SC-Partial should import a KhrCharacter hub.");
 
-            // Present: the hub + a morph expression.
-            Assert.IsNotNull(hub.Expressions, "SC-Partial declares a morph expression, so hub.Expressions must be present.");
+            // Present: the hub + passive response data, with the optional controller explicitly selected for this
+            // capability-surface test.
+            Assert.IsNotNull(hub.ExpressionResponses,
+                "SC-Partial declares a morph expression, so passive response data must be present.");
+            Assert.IsNotNull(hub.Expressions,
+                "the selected Unity host policy should expose the optional controller adapter.");
             var caps = hub.Capabilities;
             Assert.IsNotNull(caps, "hub.Capabilities should be populated.");
             CollectionAssert.Contains(caps, CharacterCapability.Character, "Character capability must be present.");
@@ -56,12 +63,10 @@ namespace KhrCharacterTestbed.Tests
             // Absent capabilities degrade to null hub accessors (no throw, no half-state).
             Assert.IsNull(hub.Skeleton, "SC-Partial has no skeleton mapping; hub.Skeleton must be null.");
             Assert.IsNull(hub.CameraHints, "SC-Partial has no camera hint; hub.CameraHints must be null.");
-
-            // A GazeSolver IS attached whenever expressions exist (to drive look-* weights), but with no authored
-            // look-at targets it must surface an empty AuthoredTargets list rather than a phantom target.
-            if (hub.Gaze != null)
-                Assert.AreEqual(0, hub.Gaze.AuthoredTargets.Count,
-                    "SC-Partial authored no look-at targets, so GazeSolver.AuthoredTargets must be empty.");
+            Assert.IsNull(hub.LookAtTargets,
+                "SC-Partial authored no look-at targets, so passive look-at metadata must be absent.");
+            Assert.IsNull(hub.GetComponent<GazeSolver>(),
+                "expression labels and passive look-at metadata do not create gaze behavior.");
         }
     }
 }

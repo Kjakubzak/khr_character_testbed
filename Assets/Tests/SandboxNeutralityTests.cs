@@ -10,13 +10,17 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Wire-neutrality proofs. The public-clean invariant is enforced as a POSITIVE ^KHR_ allow-list rather than a
-    /// "VRM" substring blocklist, applied to every exported SC-* root. Both reference real plugin types, so they
-    /// also act as anti-hollow gates.
+    /// KHR-only testbed export-profile proofs. This is stricter than glTF namespace policy: EXT_ is also reserved
+    /// for Khronos multi-vendor extensions, but these fixtures intentionally emit only KHR_ tokens. The profile is
+    /// applied to every relevant SC-* root and also acts as an anti-hollow gate.
     /// </summary>
     public class SandboxNeutralityTests
     {
-        private static readonly string[] Fixtures = { "SC-Face.glb", "SC-FacePlus.glb", "SC-Body.glb" };
+        private static readonly string[] Fixtures =
+        {
+            "SC-Face.glb", "SC-FacePlus.glb", "SC-Body.glb", "SC-LookAt.glb",
+            "SC-Partial.glb", "SC-Degraded.glb", "SC-ExprEdge.glb",
+        };
 
         private readonly List<Object> _created = new List<Object>();
 
@@ -31,17 +35,20 @@ namespace KhrCharacterTestbed.Tests
         // Pure (no Unity import): pins the allow-list semantics. It proves the check accepts ^KHR_ tokens and
         // rejects EVERY vendor namespace, including the non-VRM ones the old "VRM" substring silently passed.
         [Test]
-        public void AllowList_AcceptsKhr_RejectsEveryVendorNamespace()
+        public void KhrOnlyProfile_AcceptsKhr_AndSeparatelyRejectsExtAndVendorPrefixes()
         {
-            foreach (var neutral in new[]
+            foreach (var allowed in new[]
             {
                 "KHR_character", "KHR_character_expression_morphtarget", "KHR_character_expression_joint",
                 "KHR_character_skeleton_mapping", "KHR_character_reference_pose",
                 "KHR_node_camera_hint", "KHR_node_lookat_target",
                 "KHR_materials_unlit", "KHR_texture_transform", "KHR_animation_pointer", "KHR_xmp_json_ld",
             })
-                Assert.IsTrue(SandboxTestUtil.IsNeutralExtension(neutral),
-                    $"'{neutral}' should be Khronos-neutral (^KHR_ allow-list).");
+                Assert.IsTrue(SandboxTestUtil.IsAllowedByKhrOnlyProfile(allowed),
+                    $"'{allowed}' should match the testbed's KHR-only profile.");
+
+            Assert.IsFalse(SandboxTestUtil.IsAllowedByKhrOnlyProfile("EXT_mesh_gpu_instancing"),
+                "EXT_ is Khronos-reserved multi-vendor, but intentionally outside this stricter KHR-only profile.");
 
             // The old substring caught only "VRM". These non-VRM vendor namespaces are exactly what it MISSED;
             // the positive allow-list must reject every one of them.
@@ -49,50 +56,37 @@ namespace KhrCharacterTestbed.Tests
             {
                 "VRM", "VRMC_vrm", "VRMC_springBone",
                 "FB_geometry_metadata", "MSFT_lod", "ADOBE_materials_thin_transparency",
-                "AGI_articulations", "GODOT_single_root", "CESIUM_primitive_outline", "EXT_mesh_gpu_instancing",
+                "AGI_articulations", "GODOT_single_root", "CESIUM_primitive_outline",
             })
-                Assert.IsFalse(SandboxTestUtil.IsNeutralExtension(vendor),
-                    $"'{vendor}' must be flagged non-neutral by the ^KHR_ allow-list.");
+                Assert.IsFalse(SandboxTestUtil.IsAllowedByKhrOnlyProfile(vendor),
+                    $"'{vendor}' must be rejected by the KHR-only profile.");
 
-            // Defensive edge cases: null/empty are not neutral, and the prefix match is case-sensitive.
-            Assert.IsFalse(SandboxTestUtil.IsNeutralExtension(null), "null is not a neutral extension.");
-            Assert.IsFalse(SandboxTestUtil.IsNeutralExtension(""), "empty is not a neutral extension.");
-            Assert.IsFalse(SandboxTestUtil.IsNeutralExtension("khr_lowercase"),
-                "neutrality is case-sensitive: 'khr_' is not the Khronos prefix 'KHR_'.");
+            Assert.IsFalse(SandboxTestUtil.IsAllowedByKhrOnlyProfile(null));
+            Assert.IsFalse(SandboxTestUtil.IsAllowedByKhrOnlyProfile(""));
+            Assert.IsFalse(SandboxTestUtil.IsAllowedByKhrOnlyProfile("khr_lowercase"),
+                "the project profile's prefix match is case-sensitive.");
         }
 
-        // Full-disk: import each committed SC-* fixture, re-export it through the KHR_character export plugin, and
-        // assert every declared extension on the exported wire is on the ^KHR_ allow-list — on BOTH surfaces.
-        [UnityTest]
-        public IEnumerator SCExports_AreKhrAllowListNeutral()
+        // Full-disk: assert each committed SC-* fixture matches the project profile on both declaration surfaces.
+        [Test]
+        public void CommittedSyntheticAssets_MatchKhrOnlyExportProfile()
         {
             foreach (var fixture in Fixtures)
             {
-                var load = SandboxTestUtil.LoadSynthetic(fixture, _created);
-                yield return load;
-                var scene = load.Current;
+                var root = CharacterLoader.ReadGltfRoot(CharacterLoader.SyntheticPath(fixture));
 
-                var hub = scene.GetComponent<KhrCharacter>();
-                Assert.IsNotNull(hub, $"{fixture} should import a KhrCharacter hub.");
-
-                byte[] glb = CharacterLoader.ExportToGlb(hub.gameObject, out var root);
-                Assert.IsNotNull(glb);
-                Assert.Greater(glb.Length, 0, $"{fixture} should re-export a non-empty GLB.");
-                Assert.IsNotNull(root, $"{fixture} exporter should expose its GLTFRoot.");
-
-                // Anti-hollow: a real KHR character must actually declare KHR_character, so neutrality isn't passing
+                // Anti-hollow: a real KHR character must actually declare KHR_character, so the profile isn't passing
                 // trivially on an empty wire.
                 Assert.IsNotNull(root.ExtensionsUsed, $"{fixture} should declare extensionsUsed.");
                 CollectionAssert.Contains(root.ExtensionsUsed, KHR_character.EXTENSION_NAME,
-                    $"{fixture} re-export should declare the root KHR_character extension (export plugin ran).");
-                CollectionAssert.Contains(root.ExtensionsUsed, KhrCharacterExtensionNames.XmpJsonLd,
-                    $"{fixture} must declare the KHR_character XMP dependency.");
-                Assert.IsTrue(root.Extensions == null || !root.Extensions.ContainsKey(KhrCharacterExtensionNames.XmpJsonLd),
-                    $"{fixture} has no metadata, so declaration-only XMP must not synthesize a packet object.");
+                    $"{fixture} should declare the root KHR_character extension.");
+                Assert.IsTrue(root.ExtensionsUsed == null || !root.ExtensionsUsed.Contains(KhrCharacterExtensionNames.XmpJsonLd),
+                    $"{fixture} has no XMP data and must not declare an unconditional XMP dependency.");
 
-                // Neutral iff EVERY token on each surface is ^KHR_ (or the short core allow-list).
-                SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsUsed, $"{fixture} extensionsUsed");
-                SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsRequired, $"{fixture} extensionsRequired");
+                SandboxTestUtil.AssertExtensionsMatchKhrOnlyProfile(root.ExtensionsUsed, $"{fixture} extensionsUsed");
+                SandboxTestUtil.AssertExtensionsMatchKhrOnlyProfile(root.ExtensionsRequired, $"{fixture} extensionsRequired");
+                Assert.IsTrue(root.ExtensionsRequired == null || root.ExtensionsRequired.Count == 0,
+                    $"{fixture} deliberately keeps every extension optional for fallback consumers.");
 
                 // B1 completeness: every nested KHR_character_expression_* sub-extension actually present on an
                 // expression item must ALSO be declared in extensionsUsed (glTF requires every used extension be
@@ -101,39 +95,34 @@ namespace KhrCharacterTestbed.Tests
             }
         }
 
-        // Always-on neutralization gate: a synthetic VRM-origin asset (SC-PseudoVRM carries injected VRMC_* vendor
-        // tokens) must re-export through the KHR plugin as a fully Khronos-neutral wire (every VRMC_* dropped).
-        // Unlike the hero-dependent path, this fixture is always committed, so the gate never degrades to a skip.
+        // Imported passive expressions contain more wire data than the optional Unity controller. Export must abort
+        // instead of using that lossy projection as a format-conversion shortcut.
         [UnityTest]
-        public IEnumerator PseudoVrm_VendorSource_ReExportsKhrNeutral()
+        public IEnumerator PseudoVrm_ImportedExpressionExportIsRejectedAsLossy()
         {
             string path = CharacterLoader.SyntheticPath("SC-PseudoVRM.glb");
             Assert.IsTrue(System.IO.File.Exists(path),
                 $"SC-PseudoVRM.glb not found at '{path}'. Run Generate Sample Characters first.");
 
-            // The SOURCE is intentionally non-neutral: it carries VRMC_* vendor tokens.
+            // The SOURCE intentionally carries VRMC_* vendor tokens.
             var sourceUsed = CharacterLoader.ReadSourceExtensionsUsed(path);
             CollectionAssert.Contains(sourceUsed, "VRMC_vrm",
                 "The pseudo-VRM source must carry the VRMC_vrm vendor token (else the gate proves nothing).");
-            Assert.IsTrue(sourceUsed.Exists(SandboxTestUtil.IsVendorExtension),
-                "The pseudo-VRM source must carry at least one non-neutral vendor token.");
+            Assert.IsTrue(sourceUsed.Exists(value => value == "VRM" || value.StartsWith("VRMC_")),
+                "The pseudo-VRM source must carry at least one explicit VRM vendor token.");
 
-            // Import (VRMC_* ignored as unknown) and re-export through the KHR plugin.
-            var load = SandboxTestUtil.LoadSynthetic("SC-PseudoVRM.glb", _created);
+            // Import still succeeds with unknown VRMC_* ignored.
+            var load = SandboxTestUtil.LoadSynthetic(
+                "SC-PseudoVRM.glb",
+                _created,
+                CharacterExpressionHostPolicy.Passive);
             yield return load;
             var hub = load.Current.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub, "The pseudo-VRM should import as a KhrCharacter (VRMC_* ignored).");
 
-            byte[] glb = CharacterLoader.ExportToGlb(hub.gameObject, out var root);
-            Assert.IsNotNull(glb);
-            Assert.IsNotNull(root.ExtensionsUsed, "the re-export should declare extensionsUsed.");
-
-            // The re-export must be Khronos-neutral on both surfaces: every VRMC_* (and any vendor token) is gone.
-            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsUsed, "pseudo-VRM re-export extensionsUsed");
-            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsRequired, "pseudo-VRM re-export extensionsRequired");
-            foreach (var token in root.ExtensionsUsed)
-                Assert.IsFalse(token.StartsWith("VRMC_", System.StringComparison.Ordinal),
-                    $"the KHR re-export must not carry the vendor token '{token}'.");
+            var exception = Assert.Catch<System.InvalidOperationException>(
+                () => CharacterLoader.ExportToGlb(hub.gameObject, out _));
+            StringAssert.Contains("passive ExpressionResponseSet", exception.Message);
         }
 
         // Walks the exported KHR_character_expression items and asserts each nested sub-extension that is actually
@@ -162,7 +151,7 @@ namespace KhrCharacterTestbed.Tests
                 CollectionAssert.Contains(root.ExtensionsUsed, token,
                     $"{fixture}: '{token}' is used on an expression item but missing from extensionsUsed (B1).");
                 Assert.IsTrue(root.ExtensionsRequired == null || !root.ExtensionsRequired.Contains(token),
-                    $"{fixture}: '{token}' must NOT be in extensionsRequired (non-required, like the parent).");
+                    $"{fixture}: this testbed keeps '{token}' optional for fallback consumers; the specification permits requiring it.");
             }
             Require(anyMorph, KHR_character_expression_morphtarget.EXTENSION_NAME);
             Require(anyJoint, KHR_character_expression_joint.EXTENSION_NAME);
@@ -173,8 +162,6 @@ namespace KhrCharacterTestbed.Tests
                 $"{fixture}: expression extensions require KHR_character.");
             CollectionAssert.Contains(root.ExtensionsUsed, KHR_character_expression.EXTENSION_NAME,
                 $"{fixture}: nested expression extensions require KHR_character_expression.");
-            CollectionAssert.Contains(root.ExtensionsUsed, KhrCharacterExtensionNames.XmpJsonLd,
-                $"{fixture}: character extensions require the transitive XMP declaration.");
             if (anyTexture)
             {
                 CollectionAssert.Contains(root.ExtensionsUsed, "KHR_animation_pointer",

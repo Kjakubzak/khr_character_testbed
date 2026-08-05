@@ -6,7 +6,7 @@ runtime-only / is non-spec" notes surfaced on-screen in the sample scenes.
 The single source of truth is the code registry **`Assets/Samples/_Shared/Caveats.cs`** (`enum Caveat` +
 `Caveats` helper). Demos render their applicable caveats with `Caveats.Render(ui, Caveat.X, Caveat.Y, …)`, so the
 wording and the `C#` numbering live in exactly one place (no more scattered magic strings or numbering gaps). The
-ids below are dense (`C1…C11`) and assigned by declaration order in that file; **add new caveats at the end** so
+ids below are dense (`C1…C9`) and assigned by declaration order in that file; **add new caveats at the end** so
 existing ids stay stable.
 
 ## The caveats
@@ -15,15 +15,13 @@ existing ids stay stable.
 |----|------------------|--------|
 | C1 | `Draft` | Tracks glTF PR #2512 (KHR_character / avatar) — a DRAFT extension set, not ratified; the wire may still change. |
 | C2 | `CubicSplineToLinear` | Animation import bakes CUBICSPLINE tangents to sampled LINEAR keys (curve shape approximated). |
-| C3 | `UvFirstCycleExact` | Animated texture-transform (UV) is frame-exact only for the first cycle of a multi-key clip. |
-| C4 | `SharedMaterialCollapse` | Renderers that share a material collapse to one material on round-trip (per-renderer identity not preserved). |
-| C5 | `DuplicateNamesDeduped` | Duplicate node / expression names are made unique on import. |
-| C6 | `BlendModeRuntimeOnly` | Expression blend mode / priority (e.g. Override) is runtime-only — it is not written to the glTF wire. |
-| C7 | `CameraProjectionOffWire` | A camera hint's projection index does not round-trip through glTF. |
-| C8 | `OneCharacterPerDocument` | One KHR_character root per glTF document. |
-| C9 | `SkeletonGracefulDegrade` | A skeleton mapping with missing / invalid required bones degrades gracefully to Generic (never throws). |
-| C10 | `HeroNonCommercial` | The VRoid "hero" is VRM 1.0 (non-commercial); the demos read only its KHR_character data. The synthetic SC-* fallbacks are CC0. |
-| C11 | `EyeAimNonSpec` | Geometric eye-aim is a demo convenience, not part of KHR_character. |
+| C3 | `DuplicateExpressionLabels` | Duplicate expression labels make name-based legacy adapter lookup ambiguous; passive array indices are authoritative. |
+| C4 | `BlendModeRuntimeOnly` | Expression blend mode / priority (e.g. Override) is runtime-only — it is not written to the glTF wire. |
+| C5 | `CameraProjectionOffWire` | A camera hint's projection index does not round-trip through glTF. |
+| C6 | `OneCharacterPerDocument` | One KHR_character root per glTF document. |
+| C7 | `SkeletonGracefulDegrade` | The optional Unity Humanoid adapter reports Degraded when its selected mapping lacks a HumanTrait-required role; the glTF mapping itself is not thereby invalid. |
+| C8 | `HeroNonCommercial` | The VRoid "hero" is VRM 1.0 (non-commercial); the demos read only its KHR_character data. The synthetic SC-* fallbacks are CC0. |
+| C9 | `EyeAimNonSpec` | Geometric eye-aim is a demo convenience, not part of KHR_character. |
 
 ## Which demo surfaces which caveat
 
@@ -32,12 +30,12 @@ Every demo surfaces **C1 (Draft)**; the capability demos add the caveats relevan
 | Demo scene | Caveats |
 |------------|---------|
 | SampleHub | C1 |
-| CharacterShowcase | C1, C6, C7, C9, C10 |
-| Expressions | C1, C6 |
-| GazeAndCamera | C1, C7, C11 |
-| RigAndPose | C1, C9 |
-| RoundTrip | C1, C2, C3, C4, C5, C6, C7, C8 |
-| Health | C1, C9, C10 |
+| CharacterShowcase | C1, C4, C5, C7, C8 |
+| Expressions | C1, C4 |
+| GazeAndCamera | C1, C5, C9 |
+| RigAndPose | C1, C7 |
+| RoundTrip | C1, C5, C6 |
+| Health | C1, C7, C8 |
 | VisibilityHints | C1 |
 | GlbViewer | C1 |
 | HumanoidAnimation | C1, C2 |

@@ -8,15 +8,13 @@ using UnityGLTF.VisibilityHints;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Confirms the view-context visibility hints drive BOTH hint types when <see cref="ViewContextController.Mode"/>
-    /// is toggled, exercising the demo's public <see cref="VisibilityHintsController.BuildSampleFigure"/> (the same
-    /// runtime wiring a runtime-imported VH asset uses). Complements <see cref="SandboxVisibilityHintsTests"/> (which
-    /// only checks one node hint on the demo scene): here both node roles and the primitive hint are asserted.
+    /// Confirms the optional material host route realizes both passive hint types inside an explicit render scope,
+    /// exercising the demo's public <see cref="VisibilityHintsController.BuildSampleFigure"/>. Complements
+    /// <see cref="SandboxVisibilityHintsTests"/>, which verifies the evaluator itself is non-mutating.
     /// <list type="bullet">
-    /// <item>Node hint <c>third_person</c> (Head): <c>renderer.enabled</c> follows ThirdPerson.</item>
-    /// <item>Node hint <c>first_person</c> (Arms): <c>renderer.enabled</c> follows FirstPerson.</item>
-    /// <item>Primitive hint <c>third_person</c> (Mask sub-mesh 1): the faceplate sub-mesh material swaps to/from
-    /// the shared invisible material (visible in third person, hidden in first person).</item>
+    /// <item>Node hints replace all material slots only within a view where their predicate is false.</item>
+    /// <item>The primitive hint replaces only the targeted faceplate slot.</item>
+    /// <item>Disposing each scope restores every authored material and never toggles Renderer.enabled.</item>
     /// </list>
     /// </summary>
     public class VisibilityHintsFigureToggleTests
@@ -31,17 +29,19 @@ namespace KhrCharacterTestbed.Tests
             yield return null;
         }
 
-        [UnityTest]
-        public IEnumerator SampleFigure_TogglesNodeAndPrimitiveHintsByViewContext()
+        [Test]
+        public void SampleFigure_ScopesNodeAndPrimitiveHintsByViewContext()
         {
             _figure = VisibilityHintsController.BuildSampleFigure(null);
             Assert.IsNotNull(_figure, "BuildSampleFigure should return a figure root.");
-            yield return null; // let the initial (ThirdPerson) state settle
 
             var view = _figure.GetComponent<ViewContextController>();
             Assert.IsNotNull(view, "the figure should carry a ViewContextController.");
             Assert.IsNotNull(_figure.GetComponent<NodeVisibilityHintSet>(), "the figure should carry a NodeVisibilityHintSet.");
             Assert.IsNotNull(_figure.GetComponent<PrimitiveVisibilityHintSet>(), "the figure should carry a PrimitiveVisibilityHintSet.");
+            var adapter = _figure.GetComponent<ScopedMaterialVisibilityAdapter>();
+            Assert.IsNotNull(adapter, "the sample figure should explicitly install the optional material adapter.");
+            Assert.IsNotNull(adapter.NoDrawMaterial, "the material route requires a pipeline-compatible no-draw material.");
 
             var head = RendererFor("Head");    // node hint: third_person
             var arms = RendererFor("Arms");    // node hint: first_person
@@ -49,30 +49,52 @@ namespace KhrCharacterTestbed.Tests
             var torso = RendererFor("Torso");  // no hint: always visible
             Assert.AreEqual(2, mask.sharedMaterials.Length, "Mask should have two sub-mesh material slots.");
 
-            var invisible = InvisibleMaterialCache.Get();
-            bool MaskShellHidden() => ReferenceEquals(mask.sharedMaterials[1], invisible);
+            var renderers = new[] { head, arms, mask, torso };
+            var headMaterial = head.sharedMaterial;
+            var armsMaterial = arms.sharedMaterial;
+            var maskMaterials = mask.sharedMaterials;
+            var torsoMaterial = torso.sharedMaterial;
+            bool Hidden(Renderer renderer, int slot = 0)
+                => ReferenceEquals(renderer.sharedMaterials[slot], adapter.NoDrawMaterial);
+            bool CoreVisible(Transform node)
+            {
+                var renderer = node.GetComponent<Renderer>();
+                return renderer == null || renderer.enabled;
+            }
 
-            // --- Default view: ThirdPerson ---
-            Assert.AreEqual(ViewContextController.ViewContext.ThirdPerson, view.Mode, "figure should start in ThirdPerson.");
-            Assert.IsTrue(head.enabled, "node hint: third_person Head should be VISIBLE in ThirdPerson.");
-            Assert.IsFalse(arms.enabled, "node hint: first_person Arms should be HIDDEN in ThirdPerson.");
-            Assert.IsFalse(MaskShellHidden(), "primitive hint: third_person Mask shell should be VISIBLE (authored material) in ThirdPerson.");
-            Assert.IsTrue(torso.enabled, "unhinted Torso should always be visible.");
+            using (adapter.ApplyForView(
+                renderers,
+                "third_person",
+                CoreVisible))
+            {
+                Assert.IsFalse(Hidden(head), "third_person Head should render in the third-person scope.");
+                Assert.IsTrue(Hidden(arms), "first_person Arms should be suppressed in the third-person scope.");
+                Assert.IsFalse(Hidden(mask, 1), "third_person Mask shell should render in the third-person scope.");
+                Assert.IsFalse(Hidden(torso), "unhinted Torso should always render.");
+                Assert.IsTrue(head.enabled && arms.enabled && mask.enabled && torso.enabled,
+                    "the material route must not toggle Renderer.enabled.");
+            }
 
-            // --- Toggle to FirstPerson ---
-            view.Mode = ViewContextController.ViewContext.FirstPerson;
-            yield return null;
-            Assert.IsFalse(head.enabled, "node hint: Head should HIDE in FirstPerson.");
-            Assert.IsTrue(arms.enabled, "node hint: Arms should SHOW in FirstPerson.");
-            Assert.IsTrue(MaskShellHidden(), "primitive hint: Mask shell should HIDE (invisible material) in FirstPerson.");
-            Assert.IsTrue(torso.enabled, "unhinted Torso should stay visible in FirstPerson.");
+            CollectionAssert.AreEqual(new[] { headMaterial }, head.sharedMaterials);
+            CollectionAssert.AreEqual(new[] { armsMaterial }, arms.sharedMaterials);
+            CollectionAssert.AreEqual(maskMaterials, mask.sharedMaterials);
+            CollectionAssert.AreEqual(new[] { torsoMaterial }, torso.sharedMaterials);
 
-            // --- Toggle back to ThirdPerson ---
-            view.Mode = ViewContextController.ViewContext.ThirdPerson;
-            yield return null;
-            Assert.IsTrue(head.enabled, "node hint: Head should RESTORE to visible in ThirdPerson.");
-            Assert.IsFalse(arms.enabled, "node hint: Arms should HIDE again in ThirdPerson.");
-            Assert.IsFalse(MaskShellHidden(), "primitive hint: Mask shell should be VISIBLE again in ThirdPerson.");
+            using (adapter.ApplyForView(
+                renderers,
+                "first_person",
+                CoreVisible))
+            {
+                Assert.IsTrue(Hidden(head), "third_person Head should be suppressed in the first-person scope.");
+                Assert.IsFalse(Hidden(arms), "first_person Arms should render in the first-person scope.");
+                Assert.IsTrue(Hidden(mask, 1), "third_person Mask shell should be suppressed in the first-person scope.");
+                Assert.IsFalse(Hidden(torso));
+            }
+
+            CollectionAssert.AreEqual(new[] { headMaterial }, head.sharedMaterials);
+            CollectionAssert.AreEqual(new[] { armsMaterial }, arms.sharedMaterials);
+            CollectionAssert.AreEqual(maskMaterials, mask.sharedMaterials);
+            CollectionAssert.AreEqual(new[] { torsoMaterial }, torso.sharedMaterials);
         }
 
         private Renderer RendererFor(string name)

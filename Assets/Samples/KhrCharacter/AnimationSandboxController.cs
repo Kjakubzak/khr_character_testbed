@@ -221,11 +221,24 @@ namespace Samples.Characters
                 _status.text = $"Loading {System.IO.Path.GetFileName(path)} ...";
                 try
                 {
-                    _currentCharacter = await CharacterLoader.LoadAsync(path, _contentRoot);
+                    // This sandbox selects Unity's animation host as the sole scene-target owner. Passive character
+                    // response metadata remains available, but no standalone expression controller competes with
+                    // the clip the user chooses below.
+                    _currentCharacter = await CharacterLoader.LoadAsync(
+                        path,
+                        _contentRoot,
+                        CharacterExpressionHostPolicy.Passive);
                 }
                 catch (System.Exception e) { Debug.LogException(e); if (this != null && _status != null) _status.text = "Load failed: " + e.Message; return; }
                 if (this == null) return; // scene changed / object destroyed mid-import
                 if (_currentCharacter == null) { _status.text = "Load failed (no scene)."; return; }
+
+                var importedAnimation = _currentCharacter.GetComponentInChildren<Animation>(true);
+                if (importedAnimation != null)
+                {
+                    importedAnimation.Stop();
+                    importedAnimation.playAutomatically = false;
+                }
 
                 CaptureBindPose(_currentCharacter);
                 FrameScene(_currentCharacter);

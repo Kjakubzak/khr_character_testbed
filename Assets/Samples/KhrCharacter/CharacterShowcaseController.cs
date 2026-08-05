@@ -61,8 +61,14 @@ namespace Samples.Characters
             try
             {
                 scene = string.IsNullOrEmpty(HeroGlbPath)
-                    ? await CharacterLoader.LoadDemoCharacterAsync(content.transform, fallbackFile)
-                    : await CharacterLoader.LoadAsync(HeroGlbPath, content.transform);
+                    ? await CharacterLoader.LoadDemoCharacterAsync(
+                        content.transform,
+                        fallbackFile,
+                        CharacterExpressionHostPolicy.LegacyControllerWithSuppression)
+                    : await CharacterLoader.LoadAsync(
+                        HeroGlbPath,
+                        content.transform,
+                        CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             }
             catch (System.Exception e) { Debug.LogException(e); _ui.AddLabel("Load failed: " + e.Message); AddBack(); return; }
             if (this == null) return; // scene changed / object destroyed mid-import
@@ -93,7 +99,7 @@ namespace Samples.Characters
             BuildExpressions(hub.Expressions);
             BuildRig(hub.Skeleton);
             BuildCameraHints(hub.CameraHints);
-            BuildGaze(hub.Gaze);
+            BuildGaze(CreateGazeAdapter(hub));
 
             AddBack();
         }
@@ -108,11 +114,19 @@ namespace Samples.Characters
             {
                 string name = handles[i].Name;
                 if (string.IsNullOrEmpty(name)) continue;
-                var slider = _ui.AddSlider(name, v => controller.SetWeight(name, v), 0f, 1f, controller.GetWeight(name));
-                // Binary (all-STEP) expressions snap to 0/1.
+                var slider = _ui.AddSlider(name, v =>
+                {
+                    controller.UseDirectNativeInputs();
+                    controller.SetWeight(name, v);
+                }, 0f, 1f, controller.GetWeight(name));
+                // Host-authored binary metadata, not STEP interpolation, snaps this control to 0/1.
                 if (handles[i].IsBinary) slider.wholeNumbers = true;
             }
-            _ui.AddButton("Reset Expressions", controller.ResetAll);
+            _ui.AddButton("Reset Expressions", () =>
+            {
+                controller.UseDirectNativeInputs();
+                controller.ResetAll();
+            });
         }
 
         private void BuildRig(SkeletonMap skeleton)
@@ -152,10 +166,19 @@ namespace Samples.Characters
             _gaze.Target = _gazeTarget;
             _gaze.Weight = 1f;
 
-            _ui.AddLabel("Gaze:");
+            _ui.AddLabel("Gaze (sample-owned Unity adapter):");
             _ui.AddSlider("Gaze Weight", v => { if (_gaze != null) _gaze.Weight = v; }, 0f, 1f, 1f);
             _ui.AddSlider("Gaze Target X", v => { _targetX = Mathf.Lerp(-1f, 1f, v); UpdateTarget(); }, 0f, 1f, 0.5f);
             _ui.AddSlider("Gaze Target Y", v => { _targetYOffset = Mathf.Lerp(-1f, 1f, v); UpdateTarget(); }, 0f, 1f, 0.5f);
+        }
+
+        private static GazeSolver CreateGazeAdapter(KhrCharacter hub)
+        {
+            if (hub?.Expressions == null) return null;
+            var gaze = hub.GetComponent<GazeSolver>();
+            if (gaze == null) gaze = hub.gameObject.AddComponent<GazeSolver>();
+            gaze.Bind(hub.Expressions, hub.Skeleton);
+            return gaze;
         }
 
         private void SwitchRig(RigImportMode mode)

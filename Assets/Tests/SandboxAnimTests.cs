@@ -11,8 +11,8 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Animation-transport wire (02 anim lens, Phase 2-P1): import a fixture, re-export through the KHR plugin, and
-    /// lock the channel shapes on the wire. Morph + texture drivers route through KHR_animation_pointer with exact
+    /// Animation-transport wire (02 anim lens, Phase 2-P1): inspect the committed fixture channel shapes. Morph +
+    /// texture drivers route through KHR_animation_pointer with exact
     /// JSON-pointer paths; joint drivers and the reference pose stay NATIVE TRS even though the AnimationPointer
     /// export plugin is enabled (the G2 native-vs-pointer guard). Pointer detection goes through the channel
     /// target's KHR_animation_pointer extension (Target.Path is just the literal "pointer"). Anti-hollow via real types.
@@ -42,21 +42,16 @@ namespace KhrCharacterTestbed.Tests
 
         private static readonly string[] TrsPaths = { "rotation", "translation", "scale" };
 
-        [UnityTest]
-        public IEnumerator Morph_ExportsAsWeightsPointerChannel()
+        [Test]
+        public void Morph_UsesWeightsPointerChannel()
         {
-            var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
-            yield return load;
-            var hub = load.Current.GetComponent<KhrCharacter>();
-            Assert.IsNotNull(hub, "SC-Face should import a KhrCharacter hub.");
-
-            CharacterLoader.ExportToGlb(hub.gameObject, out var root);
+            var root = CharacterLoader.ReadGltfRoot(CharacterLoader.SyntheticPath("SC-Face.glb"));
             CollectionAssert.Contains(root.ExtensionsUsed, KHR_animation_pointer.EXTENSION_NAME,
                 "pointer-based morph channels require KHR_animation_pointer in extensionsUsed.");
-            CollectionAssert.Contains(root.ExtensionsUsed, KhrCharacterExtensionNames.XmpJsonLd,
-                "all KHR_character assets require the transitive XMP declaration.");
+            CollectionAssert.DoesNotContain(root.ExtensionsUsed, KhrCharacterExtensionNames.XmpJsonLd,
+                "an expression asset with no XMP data must not declare an unconditional XMP dependency.");
             var expr = GetExpression(root);
-            Assert.IsNotNull(expr, "SC-Face re-export should carry KHR_character_expression.");
+            Assert.IsNotNull(expr, "SC-Face should carry KHR_character_expression.");
             var item = expr.Expressions.Find(i => i != null && i.Morphtarget != null);
             Assert.IsNotNull(item, "SC-Face has morph expressions; an item must carry KHR_character_expression_morphtarget.");
 
@@ -74,17 +69,10 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(foundWeightsPointer, "at least one morph channel must be a '/nodes/{n}/weights/{j}' pointer.");
         }
 
-        [UnityTest]
-        public IEnumerator Joint_StaysNativeTRS_EvenWithPointerEnabled()
+        [Test]
+        public void Joint_UsesNativeTRS()
         {
-            var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
-            yield return load;
-            var hub = load.Current.GetComponent<KhrCharacter>();
-            Assert.IsNotNull(hub, "SC-Face should import a KhrCharacter hub.");
-
-            // ExportToGlb ENABLES the AnimationPointer export plugin (it routes morph/texture through pointers); the
-            // joint channels must nevertheless stay native TRS - that is the whole point of the G2 guard.
-            CharacterLoader.ExportToGlb(hub.gameObject, out var root);
+            var root = CharacterLoader.ReadGltfRoot(CharacterLoader.SyntheticPath("SC-Face.glb"));
             var expr = GetExpression(root);
             Assert.IsNotNull(expr);
             var item = expr.Expressions.Find(i => i != null && i.Joint != null);
@@ -102,15 +90,10 @@ namespace KhrCharacterTestbed.Tests
             }
         }
 
-        [UnityTest]
-        public IEnumerator Texture_ExportsAsTextureTransformPointerChannels()
+        [Test]
+        public void Texture_UsesTextureTransformPointerChannels()
         {
-            var load = SandboxTestUtil.LoadSynthetic("SC-FacePlus.glb", _created);
-            yield return load;
-            var hub = load.Current.GetComponent<KhrCharacter>();
-            Assert.IsNotNull(hub, "SC-FacePlus should import a KhrCharacter hub.");
-
-            CharacterLoader.ExportToGlb(hub.gameObject, out var root);
+            var root = CharacterLoader.ReadGltfRoot(CharacterLoader.SyntheticPath("SC-FacePlus.glb"));
             var expr = GetExpression(root);
             Assert.IsNotNull(expr);
             var item = expr.Expressions.Find(i => i != null && i.Texture != null);

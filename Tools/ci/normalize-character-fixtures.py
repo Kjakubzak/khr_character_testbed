@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Normalize dependency declarations and expression references in character GLBs."""
+"""Normalize dependency declarations, mapping identifiers, and references in character GLBs."""
 
 import json
 import pathlib
@@ -8,11 +8,29 @@ import sys
 
 
 JSON_CHUNK = 0x4E4F534A
-CHARACTER = "KHR_character"
 EXPRESSION = "KHR_character_expression"
 MAPPING = "KHR_character_expression_mapping"
 MASK = "KHR_character_expression_mask"
+SKELETON_MAPPING = "KHR_character_skeleton_mapping"
 XMP = "KHR_xmp_json_ld"
+EXPRESSION_MAPPING_IDENTIFIER_REPLACEMENTS = {
+    "ARKit": "https://example.com/expression-vocabularies/arkit/v1",
+    "demoVocabulary": "https://example.com/expression-vocabularies/demo/v1",
+    "vrmExpressionPresets": (
+        "https://github.com/vrm-c/vrm-specification/blob/"
+        "70ae16e93abd6da727fdf641b67aa41010c6d933/"
+        "specification/VRMC_vrm-1.0/expressions.md"
+    ),
+}
+SKELETON_MAPPING_IDENTIFIER_REPLACEMENTS = {
+    "default": "https://example.com/skeleton-vocabularies/default/v1",
+    "unityHumanoid": "https://example.com/skeleton-vocabularies/unity-humanoid/v1",
+    "vrmHumanoid": (
+        "https://github.com/vrm-c/vrm-specification/blob/"
+        "70ae16e93abd6da727fdf641b67aa41010c6d933/"
+        "specification/VRMC_vrm-1.0/humanoid.md"
+    ),
+}
 
 
 def expression_indices(root: dict) -> dict[str, int]:
@@ -43,15 +61,34 @@ def resolve_legacy_reference(value: object, indices: dict[str, int], path: str) 
     return indices[value]
 
 
+def normalize_mapping_identifiers(mapping_sets: object, replacements: dict[str, str]) -> bool:
+    if not isinstance(mapping_sets, dict):
+        return False
+    changed = False
+    for legacy, replacement in replacements.items():
+        if legacy not in mapping_sets:
+            continue
+        if replacement in mapping_sets:
+            raise ValueError(f"mapping contains both legacy {legacy!r} and replacement {replacement!r}")
+        mapping_sets[replacement] = mapping_sets.pop(legacy)
+        changed = True
+    return changed
+
+
 def normalize_json(root: dict) -> bool:
     changed = False
     used = root.get("extensionsUsed")
-    if isinstance(used, list) and CHARACTER in used and XMP not in used:
-        used.insert(used.index(CHARACTER) + 1, XMP)
+    required = root.get("extensionsRequired")
+    root_extensions = root.get("extensions", {})
+    if isinstance(used, list) and XMP in used and XMP not in root_extensions:
+        used.remove(XMP)
+        changed = True
+    if isinstance(required, list) and XMP in required and XMP not in root_extensions:
+        required.remove(XMP)
         changed = True
 
     indices = expression_indices(root)
-    extensions = root.get("extensions", {})
+    extensions = root_extensions
     expression_root = extensions.get(EXPRESSION, {})
     expressions = expression_root.get("expressions", [])
     if isinstance(expressions, list):
@@ -71,7 +108,9 @@ def normalize_json(root: dict) -> bool:
                     mask["target"] = resolved
                     changed = True
 
-    mapping_sets = extensions.get(MAPPING, {}).get("expressionSetMappings", {})
+    mapping_extension = extensions.get(MAPPING, {})
+    mapping_sets = mapping_extension.get("expressionSetMappings", {})
+    changed |= normalize_mapping_identifiers(mapping_sets, EXPRESSION_MAPPING_IDENTIFIER_REPLACEMENTS)
     if isinstance(mapping_sets, dict):
         for set_name, targets in mapping_sets.items():
             if not isinstance(targets, dict):
@@ -90,6 +129,32 @@ def normalize_json(root: dict) -> bool:
                     if resolved != source["source"]:
                         source["source"] = resolved
                         changed = True
+    input_mapping_sets = mapping_extension.get("expressionSetInputMappings", {})
+    changed |= normalize_mapping_identifiers(input_mapping_sets, EXPRESSION_MAPPING_IDENTIFIER_REPLACEMENTS)
+    if isinstance(input_mapping_sets, dict):
+        for set_name, commands in input_mapping_sets.items():
+            if not isinstance(commands, dict):
+                continue
+            for command_name, targets in commands.items():
+                if not isinstance(targets, list):
+                    continue
+                for target_index, target in enumerate(targets):
+                    if not isinstance(target, dict) or "target" not in target:
+                        continue
+                    resolved = resolve_legacy_reference(
+                        target["target"],
+                        indices,
+                        f"expressionSetInputMappings[{set_name!r}][{command_name!r}]"
+                        f"[{target_index}].target",
+                    )
+                    if resolved != target["target"]:
+                        target["target"] = resolved
+                        changed = True
+
+    skeleton_mapping_sets = extensions.get(SKELETON_MAPPING, {}).get("skeletalRigMappings", {})
+    changed |= normalize_mapping_identifiers(
+        skeleton_mapping_sets, SKELETON_MAPPING_IDENTIFIER_REPLACEMENTS
+    )
     return changed
 
 

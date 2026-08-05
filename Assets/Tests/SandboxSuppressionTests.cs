@@ -9,10 +9,9 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Clip auto-play suppression on a real imported scene (02 anim lens, Phase 3-P2, P-I1). The imported expression
-    /// clips must NOT auto-play (they would otherwise double-drive the runtime ExpressionController). SC-Face is
-    /// all-suppressed (every animation is an expression clip), so the legacy Animation host must not be playing and
-    /// every registered clip carries wrapMode Once (not the Loop default). Anti-hollow via real plugin types.
+    /// Explicit Unity host-policy coverage. This sandbox opts into both the optional ExpressionController and clip
+    /// auto-play suppression; the extension itself does not mutate clips or choose an animation host. SC-Face is
+    /// all-suppressed under that selected policy.
     /// </summary>
     public class SandboxSuppressionTests
     {
@@ -29,7 +28,10 @@ namespace KhrCharacterTestbed.Tests
         [UnityTest]
         public IEnumerator ExpressionClips_DoNotAutoPlayAfterImport()
         {
-            var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
+            var load = SandboxTestUtil.LoadSynthetic(
+                "SC-Face.glb",
+                _created,
+                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             yield return load;
             var scene = load.Current;
             var hub = scene.GetComponent<KhrCharacter>();

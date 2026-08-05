@@ -20,7 +20,7 @@ cubes. All primitives — no third-party content.
 
 | Fixture | Size | KHR extensions in the wire |
 |---|---:|---|
-| `minimal.glb` | 256 B | `KHR_character` + declaration-only `KHR_xmp_json_ld` dependency (no geometry) |
+| `minimal.glb` | 256 B | `KHR_character` (no geometry) |
 | `skeleton.glb` | 27 KB | + `_skeleton_mapping` (5 humanoid joints) — includes torso + head skinned to armature |
 | `skeleton_refpose.glb` | 30 KB | + `_reference_pose` (TPose on the armature) |
 | `expressions_morph.glb` | 29 KB | UV-sphere head + smile/frown morph exprs (`+ _expression + _expression_morphtarget`) |
@@ -29,7 +29,7 @@ cubes. All primitives — no third-party content.
 | `expressions_mapping.glb` | 29 KB | morph expr + ARKit routing `mouthSmileLeft/Right → smile` at 0.5 each (`+ _expression_mapping`) |
 | `node_hints.glb` | 496 B | root + camera hint ("portrait" role) + lookat target ("eyes" hint) — no geometry (`KHR_node_camera_hint + KHR_node_lookat_target`) |
 | `visibility_hints.glb` | 2.7 KB | root + a `first_person` node hint (on an empty view-model) + a 2-primitive cube whose accent primitive is `third_person` (`KHR_node_visibility_hint + KHR_mesh_primitive_visibility_hint`) |
-| `full.glb` | 46 KB | Everything above combined, plus declaration-only `KHR_xmp_json_ld` |
+| `full.glb` | 46 KB | Everything above combined |
 | `starter.glb` | 42 KB | The canonical starter (matches `samples/generate_starter.py` output — character + humanoid armature + TPose ref pose + shape-keyed head + morph exprs) |
 
 Only `KHR_character_expression_texture` is absent — it requires
@@ -89,8 +89,8 @@ To refresh (whenever the Blender addon's exporter output changes):
 1. Regenerate in `khr_character_blender`.
 2. Copy the resulting `tests/fixtures/*.glb` into this folder,
    overwriting.
-3. Until the Blender exporter emits the declaration-only XMP dependency and index-based expression references,
-   run `python3 Tools/ci/normalize-character-fixtures.py Assets/SampleAssets/FromBlender/*.glb`.
+3. Until the Blender exporter emits index-based expression references and absolute mapping identifiers, run
+   `python3 Tools/ci/normalize-character-fixtures.py Assets/SampleAssets/FromBlender/*.glb`.
 4. Delete the corresponding `.meta` files first if Unity's importer
    pinned any stale GUIDs (usually not necessary).
 

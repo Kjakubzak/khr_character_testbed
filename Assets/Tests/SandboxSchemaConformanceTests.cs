@@ -10,14 +10,21 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// JSON-schema conformance gate (04 neutral lens, Phase 4-P3, bug B4). A dependency-free, license-clean checker
+    /// JSON-schema conformance gate (Phase 4-P3, bug B4). A dependency-free, license-clean checker
     /// (KhrSchemaCheck) encodes the hard constraints from the PR #2512 schemas - required fields, string minLength,
-    /// integer/number ranges. POSITIVE: export the real SC-* wire and assert every KHR_character_* payload conforms.
+    /// integer/number ranges. POSITIVE: read the committed SC-* wire and assert every KHR_character_* payload conforms.
     /// NEGATIVE: feed malformed payloads (one per required/minLength/range vector) and assert the checker rejects them,
     /// so a regression that emits an out-of-spec wire would be caught. Anti-hollow via real plugin types.
     /// </summary>
     public class SandboxSchemaConformanceTests
     {
+        private const string UnityHumanoidVocabulary =
+            "https://example.com/skeleton-vocabularies/unity-humanoid/v1";
+        private const string DefaultSkeletonVocabulary =
+            "https://example.com/skeleton-vocabularies/default/v1";
+        private const string Vrm10HumanoidVocabulary =
+            "https://github.com/vrm-c/vrm-specification/blob/70ae16e93abd6da727fdf641b67aa41010c6d933/specification/VRMC_vrm-1.0/humanoid.md";
+
         private readonly List<Object> _created = new List<Object>();
 
         [TearDown]
@@ -65,7 +72,18 @@ namespace KhrCharacterTestbed.Tests
                 var target = mask["target"];
                 if (target == null || target.Type != JTokenType.Integer || (int)target < 0)
                     e.Add("mask.target is required (integer >= 0).");
-                NonEmptyOptionalString(mask, "type", "mask", e);
+                var type = mask["type"];
+                if (type != null)
+                {
+                    string value = type.Type == JTokenType.String ? (string)type : null;
+                    if (string.IsNullOrEmpty(value))
+                        e.Add("mask.type must be a non-empty string.");
+                    else if (value != "blend" && value != "block"
+                        && !System.Text.RegularExpressions.Regex.IsMatch(
+                            value,
+                            "^[A-Z0-9]+_[a-z0-9]+(?:_[a-z0-9]+)*$"))
+                        e.Add("a custom mask.type must be shaped like a glTF vendor extension name.");
+                }
                 UnitRangeOptionalNumber(mask, "amount", e);
                 UnitRangeOptionalNumber(mask, "threshold", e);
                 return e;
@@ -107,19 +125,14 @@ namespace KhrCharacterTestbed.Tests
             }
         }
 
-        // ── POSITIVE: the real exported wire conforms (recursive walk finds every payload by extension name) ──
-        [UnityTest]
-        public IEnumerator RealWire_ConformsToSchemaConstraints(
-            [Values("SC-Body.glb", "SC-LookAt.glb", "SC-Face.glb", "SC-FacePlus.glb")] string fixture)
+        // ── POSITIVE: the committed wire conforms (recursive walk finds every payload by extension name) ──
+        [Test]
+        public void RealWire_ConformsToSchemaConstraints(
+            [Values("SC-Body.glb", "SC-Degraded.glb", "SC-LookAt.glb", "SC-Face.glb", "SC-FacePlus.glb")] string fixture)
         {
-            var load = SandboxTestUtil.LoadSynthetic(fixture, _created);
-            yield return load;
-            var hub = load.Current.GetComponent<KhrCharacter>();
-            Assert.IsNotNull(hub, $"{fixture} should import a KhrCharacter hub.");
-
-            byte[] glb = CharacterLoader.ExportToGlb(hub.gameObject, out _);
+            byte[] glb = System.IO.File.ReadAllBytes(CharacterLoader.SyntheticPath(fixture));
             string json = CharacterLoader.ExtractGltfJson(glb);
-            Assert.IsNotNull(json, $"{fixture} re-export should yield a JSON chunk.");
+            Assert.IsNotNull(json, $"{fixture} should yield a JSON chunk.");
             var root = JObject.Parse(json);
 
             var errors = new List<string>();
@@ -163,7 +176,46 @@ namespace KhrCharacterTestbed.Tests
             if (fixture == "SC-Body.glb") Assert.Greater(cameraHint, 0, "SC-Body must carry a camera hint to validate.");
             if (fixture == "SC-LookAt.glb") Assert.Greater(lookat, 0, "SC-LookAt must carry a look-at target to validate.");
             if (fixture == "SC-Face.glb") Assert.Greater(mask, 0, "SC-Face must carry an expression mask to validate.");
-            if (fixture == "SC-Body.glb") Assert.Greater(jointAssociation, 0, "SC-Body must carry skeleton joint associations to validate.");
+            if (fixture == "SC-Body.glb" || fixture == "SC-Degraded.glb")
+            {
+                Assert.Greater(jointAssociation, 0, $"{fixture} must carry skeleton joint associations to validate.");
+                var rigs = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
+                Assert.IsNotNull(rigs?[UnityHumanoidVocabulary],
+                    $"{fixture} must use the versioned Unity Humanoid vocabulary URI.");
+            }
+            if (fixture == "SC-Degraded.glb")
+            {
+                var rigs = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
+                Assert.IsNotNull(rigs, "SC-Degraded must carry a skeleton mapping.");
+                foreach (var rig in rigs.Properties())
+                    Assert.IsNull(rig.Value?["leftFoot"],
+                        "SC-Degraded must omit leftFoot instead of carrying an invalid node reference.");
+            }
+        }
+
+        [TestCase("SampleAssets/FromBlender/expressions_mapping.glb", null)]
+        [TestCase("SampleAssets/FromBlender/full.glb", DefaultSkeletonVocabulary)]
+        [TestCase("SampleAssets/FromBlender/skeleton.glb", DefaultSkeletonVocabulary)]
+        [TestCase("SampleAssets/FromBlender/skeleton_refpose.glb", DefaultSkeletonVocabulary)]
+        [TestCase("SampleAssets/FromBlender/starter.glb", DefaultSkeletonVocabulary)]
+        [TestCase("SampleAssets/VRM_KHR_Examples/khr-character-example.glb", Vrm10HumanoidVocabulary)]
+        [TestCase("SampleAssets/VRM_KHR_Examples/khr-character-example-always.glb", Vrm10HumanoidVocabulary)]
+        [TestCase("SampleAssets/VRM_KHR_Examples/khr-character-example-first-person.glb", Vrm10HumanoidVocabulary)]
+        [TestCase("SampleAssets/VRM_KHR_Examples/khr-character-example-third-person.glb", Vrm10HumanoidVocabulary)]
+        public void CommittedMappingFixtures_UseStableIdentifiersAndResolvableIndices(
+            string relativePath, string expectedSkeletonVocabulary)
+        {
+            string path = System.IO.Path.Combine(Application.dataPath, relativePath);
+            var root = JObject.Parse(CharacterLoader.ExtractGltfJson(System.IO.File.ReadAllBytes(path)));
+            var errors = ExpressionObjectReferences(root);
+            errors.AddRange(SkeletonObjectReferences(root));
+            Assert.IsEmpty(errors, $"{relativePath}: {string.Join(" | ", errors)}");
+            if (expectedSkeletonVocabulary != null)
+            {
+                var rigs = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
+                Assert.IsNotNull(rigs?[expectedSkeletonVocabulary],
+                    $"{relativePath} must use the expected version-stable skeleton vocabulary URI.");
+            }
         }
 
         // ── NEGATIVE: the checker rejects each malformed vector (required / minLength / range) ──
@@ -218,9 +270,15 @@ namespace KhrCharacterTestbed.Tests
                 "an explicitly empty custom mask type must be rejected.");
 
         [Test]
-        public void Mask_CustomType_Accepted()
-            => Assert.IsEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = 0, ["type"] = "soft_block" }),
-                "custom nonempty mask vocabulary values are valid.");
+        public void Mask_InvalidCustomType_Rejected()
+            => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = 0, ["type"] = "soft_block" }),
+                "custom mask types must use the glTF vendor-extension token shape.");
+
+        [Test]
+        public void Mask_VendorShapedCustomType_Accepted()
+            => Assert.IsEmpty(KhrSchemaCheck.Mask(
+                    new JObject { ["target"] = 0, ["type"] = "ACME_expression_mask_curve" }),
+                "a vendor-shaped custom mask token has defined identity behavior without a companion extension.");
 
         [Test]
         public void Mask_Valid_Accepted()
@@ -230,6 +288,46 @@ namespace KhrCharacterTestbed.Tests
         public void Mask_StringTarget_Rejected()
             => Assert.IsNotEmpty(KhrSchemaCheck.Mask(new JObject { ["target"] = "aa" }),
                 "mask targets must use expression indices, not labels.");
+
+        [Test]
+        public void MappingSet_RelativeIdentifier_Rejected()
+        {
+            var root = JObject.Parse(@"{
+                'extensions': {
+                    'KHR_character_expression': {
+                        'expressions': [ { 'expression': 'smile', 'animation': 0 } ]
+                    },
+                    'KHR_character_expression_mapping': {
+                        'expressionSetMappings': {
+                            'ARKit': { 'Smile': [ { 'source': 0, 'weight': 1.0 } ] }
+                        }
+                    }
+                }
+            }");
+
+            StringAssert.Contains("not an absolute URI", string.Join(" | ", ExpressionObjectReferences(root)));
+        }
+
+        [Test]
+        public void InputMapping_OutOfRangeTarget_Rejected()
+        {
+            var root = JObject.Parse(@"{
+                'extensions': {
+                    'KHR_character_expression': {
+                        'expressions': [ { 'expression': 'smile', 'animation': 0 } ]
+                    },
+                    'KHR_character_expression_mapping': {
+                        'expressionSetInputMappings': {
+                            'https://example.com/vocabulary/v1': {
+                                'Smile': [ { 'target': 1, 'weight': 1.0 } ]
+                            }
+                        }
+                    }
+                }
+            }");
+
+            StringAssert.Contains("does not resolve", string.Join(" | ", ExpressionObjectReferences(root)));
+        }
 
         [Test]
         public void JointAssociation_MissingNode_Rejected()
@@ -290,27 +388,65 @@ namespace KhrCharacterTestbed.Tests
                 }
             }
 
-            var mappingSets = root["extensions"]?["KHR_character_expression_mapping"]?["expressionSetMappings"] as JObject;
-            if (mappingSets == null) return errors;
-            foreach (var set in mappingSets.Properties())
+            var mappingExtension = root["extensions"]?["KHR_character_expression_mapping"];
+            var mappingSets = mappingExtension?["expressionSetMappings"] as JObject;
+            CheckMappingSetIdentifiers(mappingSets, errors);
+            if (mappingSets != null)
             {
-                if (!(set.Value is JObject targets)) continue;
-                foreach (var target in targets.Properties())
+                foreach (var set in mappingSets.Properties())
                 {
-                    if (!(target.Value is JArray sources)) continue;
-                    foreach (var source in sources)
+                    if (!(set.Value is JObject targets)) continue;
+                    foreach (var target in targets.Properties())
                     {
-                        var index = source?["source"];
-                        if (index?.Type != JTokenType.Integer || (int)index < 0 || (int)index >= expressions.Count)
-                            errors.Add("mapping source does not resolve in KHR_character_expression.expressions.");
-                        else if (source?["name"] != null
-                            && (source["name"].Type != JTokenType.String
-                                || (string)source["name"] != (string)expressions[(int)index]?["expression"]))
-                            errors.Add("mapping name does not match the source expression label.");
+                        if (!(target.Value is JArray sources)) continue;
+                        foreach (var source in sources)
+                        {
+                            var index = source?["source"];
+                            if (index?.Type != JTokenType.Integer || (int)index < 0 || (int)index >= expressions.Count)
+                                errors.Add("mapping source does not resolve in KHR_character_expression.expressions.");
+                            else if (source?["name"] != null
+                                && (source["name"].Type != JTokenType.String
+                                    || (string)source["name"] != (string)expressions[(int)index]?["expression"]))
+                                errors.Add("mapping name does not match the source expression label.");
+                        }
+                    }
+                }
+            }
+
+            var inputMappingSets = mappingExtension?["expressionSetInputMappings"] as JObject;
+            CheckMappingSetIdentifiers(inputMappingSets, errors);
+            if (inputMappingSets != null)
+            {
+                foreach (var set in inputMappingSets.Properties())
+                {
+                    if (!(set.Value is JObject commands)) continue;
+                    foreach (var command in commands.Properties())
+                    {
+                        if (!(command.Value is JArray targets)) continue;
+                        foreach (var target in targets)
+                        {
+                            var index = target?["target"];
+                            if (index?.Type != JTokenType.Integer || (int)index < 0 || (int)index >= expressions.Count)
+                                errors.Add("input mapping target does not resolve in KHR_character_expression.expressions.");
+                            else if (target?["name"] != null
+                                && (target["name"].Type != JTokenType.String
+                                    || (string)target["name"] != (string)expressions[(int)index]?["expression"]))
+                                errors.Add("input mapping name does not match the target expression label.");
+                        }
                     }
                 }
             }
             return errors;
+        }
+
+        private static void CheckMappingSetIdentifiers(JObject mappingSets, List<string> errors)
+        {
+            if (mappingSets == null) return;
+            foreach (var set in mappingSets.Properties())
+            {
+                if (!System.Uri.TryCreate(set.Name, System.UriKind.Absolute, out _))
+                    errors.Add($"mapping-set identifier '{set.Name}' is not an absolute URI.");
+            }
         }
 
         private static List<string> SkeletonObjectReferences(JObject root)
@@ -319,6 +455,7 @@ namespace KhrCharacterTestbed.Tests
             var nodes = root["nodes"] as JArray;
             var rigs = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
             if (rigs == null) return errors;
+            CheckMappingSetIdentifiers(rigs, errors);
             foreach (var rig in rigs.Properties())
             {
                 if (!(rig.Value is JObject joints)) continue;

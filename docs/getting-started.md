@@ -4,7 +4,7 @@ A step-by-step guide to running the `KHR_character` sample project. For the shor
 
 ## Prerequisites
 
-- **Unity 6000.0.76f1** (the version this project is pinned to). Built-in Render Pipeline by default.
+- **Unity 2022.2.23f1** (the version this project is pinned to). Built-in Render Pipeline by default.
 - **Git** with **Git LFS** installed (`git lfs install`) — sample binaries (`.glb`) are tracked via LFS.
 - **Internet access on first open** — Unity resolves the UnityGLTF package (including the `KHR_character` plugin) from a pinned Git URL in `Packages/manifest.json`.
 
@@ -20,7 +20,7 @@ If you cloned before installing LFS, run `git lfs pull` to fetch the real binari
 
 ## 2. Open in Unity
 
-Open the folder with **Unity 6000.0.76f1** (via Unity Hub). On first open Unity will:
+Open the folder with **Unity 2022.2.23f1** (via Unity Hub). On first open Unity will:
 - resolve `org.khronos.unitygltf` from the pinned Git commit (this can take a minute),
 - import the project and compile the sample assemblies.
 
@@ -49,11 +49,16 @@ Use **Back to Hub** to return and try the other demos.
 - Add your own demo: see [adding-a-demo.md](adding-a-demo.md).
 - Continuous integration + validation: see [ci.md](ci.md).
 
-## Neutralize your own character (bring-your-own)
+## Inspect passive-expression export safety
 
-This repo **ships a hero character** at `Assets/SampleAssets/khr-character-example.glb` (by **0b5vr**, VRoid Studio, [VRM 1.0](https://vrm.dev/licenses/1.0/), committed via Git LFS). When present, **all demo scenes default to it** (consumed via `KHR_character`; `VRMC_*` ignored); otherwise each demo uses its synthetic `SC-*` fallback.
+This repo ships VRM-origin examples under `Assets/SampleAssets/VRM_KHR_Examples/` (by **0b5vr**, VRoid Studio,
+[VRM 1.0](https://vrm.dev/licenses/1.0/), committed via Git LFS). Most character demos use the hero when present;
+Round Trip deliberately defaults to `SC-Body`, whose non-expression data has a lossless Unity export source.
 
-The **Round Trip** demo can also consume an *external* character — e.g. a VRoid/VRM `.glb` that carries `VRMC_*` vendor extensions — purely via `KHR_character`, and re-export it **vendor-neutral**. To neutralize your own instead, replace the committed hero `Assets/SampleAssets/khr-character-example.glb` with your `.glb` (it carries its own licensing, so mind the terms), open **Round Trip** and click **Load + Neutralize external**, then compare the **source** `extensionsUsed` (including `VRMC_*`) against the **re-export** `extensionsUsed` (KHR-only, no vendor extensions, empty `extensionsRequired`). With no such file present it falls back to the neutral `SC-Body`.
+The **Round Trip** demo can load an external VRM/glTF and show its source `extensionsUsed`. If it contains imported
+expressions, export is blocked: the passive response set may preserve channels, tangents, and provenance that the
+optional Unity controller cannot. This is intentional fail-closed behavior, not an automatic vendor-neutralization
+tool. A future lossless passive writer or an explicit authoring conversion is required before re-export.
 
 ## Troubleshooting
 

@@ -137,8 +137,8 @@ namespace Samples.Shared
             new DemoDescriptor(
                 sceneName: "RoundTrip",
                 title: "Round Trip",
-                description: "Export, re-import, and compare the result.",
-                fallbackFile: "SC-FacePlus.glb",
+                description: "Round-trip lossless host data and show the passive-expression export safety boundary.",
+                fallbackFile: "SC-Body.glb",
                 scenePath: "Assets/Samples/KhrCharacter/Scenes/RoundTrip.unity",
                 controllerTypeName: "Samples.Characters.RoundTripController, " + CharactersAsm,
                 addOrbit: true,

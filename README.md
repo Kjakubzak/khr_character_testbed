@@ -2,7 +2,7 @@
 
 A public, open-source example project that demonstrates the Khronos **`KHR_character` / avatar glTF extensions** (glTF PR #2512) in Unity, via a [UnityGLTF](https://github.com/Kjakubzak/UnityGLTF) fork that adds the `KHR_character` import/export plugin (pending upstream into [KhronosGroup/UnityGLTF](https://github.com/KhronosGroup/UnityGLTF)).
 
-Clone it, press Play, and watch a character import, emote, gaze, animate, switch rigs, toggle first/third-person visibility, and round-trip through a **Khronos-neutral** glTF wire — all on license-clean sample assets.
+Clone it, press Play, and watch a character import, emote, gaze, animate, switch rigs, toggle first/third-person visibility, and round-trip through this testbed's deliberately strict **KHR-only export profile** — all on license-clean sample assets.
 
 > ⚠️ Tracks the **non-ratified** `KHR_character_*` extensions (glTF PR #2512). Schema and behavior may change as the proposal evolves. Both KHR character plugins are **disabled by default** and enabled by this project.
 
@@ -33,6 +33,12 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
 
 Use the in-scene **Back to Hub** button to move between demos.
 
+`KHR_character_expression` itself exposes passive, absolute response records; it does not choose a driver source,
+animation order, mixing rule, or scene writer. Imports are passive by default; only **Expressions**,
+**GazeAndCamera**, and **CharacterShowcase** explicitly opt into UnityGLTF's legacy `ExpressionController` host
+adapter. Its blendshape, transform, and `MaterialPropertyBlock` behavior is one Unity integration route among many,
+not portable extension runtime behavior.
+
 ---
 
 ## The demos
@@ -45,8 +51,8 @@ Launch any of these from **SampleHub**:
 | **GlbViewer** | Import any `.glb`/`.gltf` at runtime + capability discovery | Load a character; read the Active/Degraded/Inert capability list |
 | **Expressions** | Morph + joint + texture expression control | Drag `jawOpen`, the jaw-bone slider, and the texture UV-transform slider |
 | **GazeAndCamera** | Expression-driven gaze + advisory camera hints | Move the target → eyes track it; click a camera-hint role |
-| **RigAndPose** | Runtime Generic ↔ Humanoid rig switch + reference pose + no-T-pose-snap | Toggle to Humanoid (builds a Mecanim Avatar); "Apply Reference Pose" |
-| **RoundTrip** | Export → re-import + **Khronos-neutrality** readout | Export in memory; see `extensionsUsed` (canonical `KHR_*`) and an **empty `extensionsRequired`** |
+| **RigAndPose** | Runtime Generic ↔ Humanoid rig switch + reference pose | Toggle to Humanoid (builds a Mecanim Avatar); "Apply Reference Pose" |
+| **RoundTrip** | Lossless host-data export plus passive-expression safety | Round-trip SC-Body; load an expression asset to see lossy legacy-controller export fail closed |
 | **Health** | Per-capability Active/Degraded/Inert triage | Load a partial character; see what's inert |
 | **VisibilityHints** | First/third-person view-context visibility (`KHR_node_visibility_hint` + `KHR_mesh_primitive_visibility_hint`) | Swap between the built-in figure and the khr-character example variants; toggle first-person — head/eyes/brows hide (via an invisible-material swap) while hair + body stay |
 | **HumanoidAnimation** | Procedural clips on a humanoid rig | Play a wave / nod / idle-sway |
@@ -69,14 +75,14 @@ Under **Assets ▸ UnityGLTF ▸ KHR Character**:
 
 ## Sample assets
 
-Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consumed vendor-neutrally — see `Assets/SampleAssets/ATTRIBUTION.md`):
+Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consumed through its `KHR_character` data while vendor extensions are ignored — see `Assets/SampleAssets/ATTRIBUTION.md`):
 
 **`Synthetic/`** — CC0 characters built in code and dogfood-exported through the plugin:
 
 | Asset | Carries | Used by |
 |---|---|---|
 | `SC-Face.glb` | `KHR_character` + expression (morph + joint) | GlbViewer, Expressions, Gaze |
-| `SC-FacePlus.glb` | + texture expression (`KHR_texture_transform` UV transform) | Expressions, RoundTrip |
+| `SC-FacePlus.glb` | + texture expression (`KHR_texture_transform` UV transform) | Expressions |
 | `SC-Body.glb` | skeleton mapping + reference pose + camera hint (humanoid-mappable) | RigAndPose, Health, procedural animation |
 
 **`VRM_KHR_Examples/`** — the "hero" character (`khr-character-example.glb`, VRM-origin, consumed via `KHR_character`; `VRMC_*` ignored) plus per-role visibility-hint variants (`-always`, `-first-person`, `-third-person`), used by CharacterShowcase and VisibilityHints.
@@ -90,7 +96,7 @@ Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consu
 This project is a **pure UPM consumer** — it vendors no plugin code. `Packages/manifest.json` pins UnityGLTF (a fork that adds the `KHR_character` plugin) by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
 
 ```jsonc
-"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#2f0c05ce879435b19353e7f7c97382dbc42adce4",
+"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#5f32eb17927696644e38c0867e39600e9b1bdc9b",
 "testables": ["org.khronos.unitygltf"]
 ```
 
@@ -108,7 +114,7 @@ Assets/
     KhrCharacter/ Expressions / GazeAndCamera / RigAndPose / RoundTrip / Health / CharacterShowcase demos
   SampleAssets/   generated SC-* GLBs + ATTRIBUTION.md
   Editor/         Enable Plugins / Generate Sample Characters / Build Sample Scenes
-  Tests/          PlayMode tests (demo spine + a neutral-wire smoke test)
+  Tests/          PlayMode tests (demo spine + a KHR-only-profile smoke test)
 Packages/         manifest.json (pinned plugin) + packages-lock.json (SHA)
 ```
 
@@ -116,7 +122,7 @@ Packages/         manifest.json (pinned plugin) + packages-lock.json (SHA)
 
 ## Running the tests
 
-PlayMode tests cover the full demo spine and the core KHR_character behaviors (expressions, gaze, rig switch, round-trip, neutrality) plus a scene-smoke gate, and act as an anti-hollow gate — they fail to compile if the plugin dependency goes missing. In the Editor: **Window ▸ General ▸ Test Runner ▸ PlayMode ▸ Run All**. Headless:
+PlayMode tests cover the full demo spine and the core KHR_character behaviors (expressions, gaze, rig switch, round-trip, and the testbed's KHR-only export profile) plus a scene-smoke gate, and act as an anti-hollow gate — they fail to compile if the plugin dependency goes missing. In the Editor: **Window ▸ General ▸ Test Runner ▸ PlayMode ▸ Run All**. Headless:
 
 ```bash
 Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults results.xml -logFile -
@@ -124,9 +130,13 @@ Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults re
 
 ---
 
-## Khronos neutrality
+## KHR-only testbed export profile
 
-The whole point: an exported character carries **zero vendor tokens** and marks **nothing** in `extensionsRequired` (canonical `KHR_*` in `extensionsUsed` only). A vendor-agnostic glTF viewer still loads and renders the base mesh — the RoundTrip demo shows this live.
+Controller-authored fixtures deliberately carry only `KHR_*` tokens and mark nothing in `extensionsRequired`.
+That is a project policy, not a glTF namespace rule: `EXT_*` is also reserved for Khronos multi-vendor extensions,
+and an extension may be validly required when its specification permits it. Imported passive expression data is
+not treated as controller-authored: export fails closed until a lossless passive writer exists. The RoundTrip demo
+shows both boundaries.
 
 ---
 

@@ -126,8 +126,15 @@ namespace Samples.Shared
         private void AddExpressionSection()
         {
             var expressions = _hub.Expressions;
+            var responses = _hub.ExpressionResponses;
             _ui.AddLabel("[Expressions]");
-            if (expressions == null) { _ui.AddLabel("(none)"); return; }
+            if (responses != null) _ui.AddLabel($"Passive responses: {responses.Count} (array-indexed)");
+            if (expressions == null)
+            {
+                if (responses == null) _ui.AddLabel("(none)");
+                else _ui.AddLabel("Unity controller adapter: not selected");
+                return;
+            }
 
             var handles = expressions.Expressions;
             int morph = 0, joint = 0, texture = 0, binary = 0;
@@ -140,17 +147,18 @@ namespace Samples.Shared
                     if (handle.IsBinary) binary++;
                 }
 
-            _ui.AddLabel($"Count: {expressions.Count}");
+            _ui.AddLabel($"Unity controller adapter: {expressions.Count}");
             _ui.AddLabel($"  Morph {morph} \u00b7 Joint {joint} \u00b7 Tex {texture}");
             _ui.AddLabel($"  Binary: {binary}");
-            AddVocabularies(expressions.VocabularySets);
+            AddVocabularies("Output vocabulary sets", expressions.OutputVocabularySets);
+            AddVocabularies("Input vocabulary sets", expressions.InputVocabularySets);
             AddExpressionNames(handles);
         }
 
-        private void AddVocabularies(IReadOnlyList<string> vocabularies)
+        private void AddVocabularies(string label, IReadOnlyList<string> vocabularies)
         {
             if (vocabularies == null || vocabularies.Count == 0) return;
-            _ui.AddLabel($"Vocab sets: {string.Join(", ", vocabularies)}");
+            _ui.AddLabel($"{label}: {string.Join(", ", vocabularies)}");
         }
 
         private void AddExpressionNames(IReadOnlyList<ExpressionController.ExpressionHandle> handles)
@@ -195,10 +203,10 @@ namespace Samples.Shared
 
         private void AddGazeSection()
         {
-            var gaze = _hub.Gaze;
-            _ui.AddLabel("[Gaze]");
-            int targets = gaze != null && gaze.AuthoredTargets != null ? gaze.AuthoredTargets.Count : 0;
-            _ui.AddLabel($"Authored targets: {targets}");
+            var targets = _hub.LookAtTargets;
+            _ui.AddLabel("[Look-at target metadata]");
+            int count = targets?.Targets != null ? targets.Targets.Count : 0;
+            _ui.AddLabel($"Authored targets: {count}");
         }
 
         private void AddGeometrySection()

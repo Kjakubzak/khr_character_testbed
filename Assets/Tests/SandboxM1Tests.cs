@@ -33,7 +33,10 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(File.Exists(path),
                 $"SC-Face.glb not found at '{path}'. Run Assets > UnityGLTF > KHR Character > Generate Sample Characters first.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             yield return SandboxTestUtil.WaitFor(task, 30f);
             var scene = SandboxTestUtil.ResolveScene(task, _created);
 

@@ -1,7 +1,7 @@
 // Smoke test for this community example: exports the KHR_character / avatar glTF extensions through UnityGLTF
 // over a tiny in-memory character and checks the result. It enables the KHR_character + AnimationPointer export
 // plugins on an isolated GLTFSettings, runs a real GLTFSceneExporter, and asserts the document carries the
-// KHR_character root extension while keeping a Khronos-neutral wire (no KHR_* extension marked required).
+// KHR_character root and expression extensions while keeping this fixture on the project's KHR-only profile.
 //
 // The test lives in this project (instead of relying on the package's `testables`) so it compiles and runs
 // against UnityGLTF consumed as a git dependency; referencing the real schema/runtime types also means it will
@@ -48,17 +48,17 @@ namespace KhrCharacterTestbed.Tests
             return exporter.GetRoot();
         }
 
-        // A single-key STEP joint rotation: enough for the expression to emit one channel (expressions with zero
-        // channels are dropped on export).
+        // A valid two-key response: time zero matches the authored initial rotation before moving to the target.
         private static JointDriver RotationDriver(Transform target) => new JointDriver
         {
             Target = target, Channel = TrsChannel.Rotation,
-            Sampler = new KhrSampler { Times = new[] { 0f }, Interp = Interp.Step, SingleKey = true },
-            DeltaQuat = new[] { Quaternion.Euler(10f, 0f, 0f) }, BaseQuat = Quaternion.identity,
+            Sampler = new KhrSampler { Times = new[] { 0f, 1f }, Interp = Interp.Step, SingleKey = false },
+            DeltaQuat = new[] { Quaternion.identity, Quaternion.Euler(10f, 0f, 0f) },
+            BaseQuat = Quaternion.identity,
         };
 
         [Test]
-        public void Export_MinimalCharacter_EmitsNeutralKhrCharacterWire()
+        public void Export_MinimalCharacter_EmitsKhrOnlyProfileWire()
         {
             // Minimal in-memory character: a KhrCharacter hub (the discoverable character root) plus one joint
             // expression on a child.
@@ -89,11 +89,23 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(gltf.Extensions != null && gltf.Extensions.ContainsKey(KHR_character.EXTENSION_NAME),
                 "root KHR_character extension should be present (proves the KHR_character export plugin ran)");
 
-            // (2) Wire neutrality: no KHR_* extension may be REQUIRED (Khronos extensions stay used-not-required).
-            if (gltf.ExtensionsRequired != null)
-                foreach (var required in gltf.ExtensionsRequired)
-                    StringAssert.DoesNotStartWith("KHR_", required,
-                        $"no KHR_ extension may be required (wire neutrality); found required '{required}'");
+            Assert.IsTrue(
+                gltf.Extensions.TryGetValue(KHR_character_expression.EXTENSION_NAME, out var expressionObject));
+            var expression = expressionObject as KHR_character_expression;
+            Assert.IsNotNull(expression);
+            Assert.AreEqual(1, expression.Expressions.Count);
+            Assert.IsNotNull(expression.Expressions[0].Joint,
+                "the smoke gate must fail if the authored joint expression is silently dropped");
+            var animation = gltf.Animations[expression.Expressions[0].Animation];
+            Assert.GreaterOrEqual(gltf.Accessors[animation.Samplers[0].Input.Id].Count, 2);
+
+            CollectionAssert.Contains(gltf.ExtensionsUsed, KHR_character_expression.EXTENSION_NAME);
+            CollectionAssert.Contains(gltf.ExtensionsUsed, KHR_character_expression_joint.EXTENSION_NAME);
+
+            // This fixture deliberately keeps all extension behavior optional for fallback consumers.
+            Assert.IsTrue(gltf.ExtensionsRequired == null || gltf.ExtensionsRequired.Count == 0);
+            SandboxTestUtil.AssertExtensionsMatchKhrOnlyProfile(gltf.ExtensionsUsed, "smoke extensionsUsed");
+            SandboxTestUtil.AssertExtensionsMatchKhrOnlyProfile(gltf.ExtensionsRequired, "smoke extensionsRequired");
         }
     }
 }

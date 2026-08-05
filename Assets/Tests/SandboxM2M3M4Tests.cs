@@ -35,7 +35,10 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(File.Exists(path),
                 $"SC-FacePlus.glb not found at '{path}'. Run Generate Sample Characters first.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             yield return SandboxTestUtil.WaitFor(task, 30f);
             var scene = SandboxTestUtil.ResolveScene(task, _created);
 
@@ -93,16 +96,21 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(File.Exists(path),
                 $"SC-Face.glb not found at '{path}'. Run Generate Sample Characters first.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             yield return SandboxTestUtil.WaitFor(task, 30f);
             var scene = SandboxTestUtil.ResolveScene(task, _created);
 
             var hub = scene.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub, "SC-Face should import a KhrCharacter hub.");
-            var gaze = hub.Gaze;
-            Assert.IsNotNull(gaze, "SC-Face should have a GazeSolver after import (it has look expressions).");
             var ec = hub.Expressions;
-            Assert.IsNotNull(ec, "KhrCharacter should have an ExpressionController.");
+            Assert.IsNotNull(ec, "the selected Unity host policy should create an ExpressionController.");
+            var gaze = hub.GetComponent<GazeSolver>();
+            if (gaze == null) gaze = hub.gameObject.AddComponent<GazeSolver>();
+            gaze.Bind(ec, hub.Skeleton);
+            Assert.IsNotNull(gaze, "M3 explicitly installs the optional Unity gaze adapter.");
 
             gaze.Weight = 1f;
             // Off-axis target so at least one look direction is driven regardless of import orientation.

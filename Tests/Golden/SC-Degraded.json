@@ -2227,10 +2227,6 @@
             "name": "Hips",
             "node": 1
           },
-          "leftFoot": {
-            "name": "LeftFoot",
-            "node": 16
-          },
           "leftHand": {
             "name": "LeftHand",
             "node": 9
@@ -2526,7 +2522,7 @@
   "scene": 0,
   "scenes": [
     {
-      "name": "SC-Body",
+      "name": "SC-Degraded",
       "nodes": [
         0
       ]

@@ -10,10 +10,9 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Phase-3 functional proofs (bounded PlayMode): M5 (export SC-FacePlus to an in-memory GLB → re-import → the
-    /// re-imported character matches A and the exported wire is Khronos-neutral) and M6 (an imported SC-Body does
-    /// not auto-play / snap to the T-pose on load). Both reference real plugin types, so they also act as
-    /// anti-hollow gates.
+    /// Phase-3 functional proofs (bounded PlayMode): M5 verifies that imported passive expression data cannot be
+    /// silently re-exported through the lossy legacy controller; M6 verifies explicit autoplay suppression for an
+    /// expression asset. Both reference real plugin types as anti-hollow gates.
     /// </summary>
     public class SandboxM5M6Tests
     {
@@ -28,65 +27,54 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator M5_RoundTrip_ExportReimportPreservesCharacter()
+        public IEnumerator M5_ImportedExpressionExportRefusesLossyProjection()
         {
             string path = CharacterLoader.SyntheticPath("SC-FacePlus.glb");
             Assert.IsTrue(File.Exists(path),
                 $"SC-FacePlus.glb not found at '{path}'. Run Generate Sample Characters first.");
 
-            var taskA = CharacterLoader.LoadAsync(path, null);
+            var taskA = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.Passive);
             yield return SandboxTestUtil.WaitFor(taskA, 30f);
             var sceneA = SandboxTestUtil.ResolveScene(taskA, _created);
 
             var a = sceneA.GetComponent<KhrCharacter>();
             Assert.IsNotNull(a, "Character A should import as a KhrCharacter.");
-            var ecA = a.Expressions;
-            Assert.IsNotNull(ecA, "Character A should have an ExpressionController.");
-            int countA = ecA.Count;
+            Assert.IsNotNull(a.ExpressionResponses, "Character A should retain the passive wire response set.");
+            Assert.IsNull(a.Expressions, "the export safety proof must not depend on a lossy controller projection");
 
-            // Export A to an in-memory GLB and inspect the exported root for neutrality.
-            byte[] glb = CharacterLoader.ExportToGlb(a.gameObject, out var exportedRoot);
-            Assert.IsNotNull(glb);
-            Assert.Greater(glb.Length, 0, "exported GLB must be non-empty.");
-            Assert.IsNotNull(exportedRoot, "exporter should expose its GLTFRoot.");
-
-            bool requiredEmpty = exportedRoot.ExtensionsRequired == null || exportedRoot.ExtensionsRequired.Count == 0;
-            Assert.IsTrue(requiredEmpty,
-                "exported extensionsRequired must be empty (Khronos-neutral wire). Found: " +
-                (exportedRoot.ExtensionsRequired == null ? "null" : string.Join(", ", exportedRoot.ExtensionsRequired)));
-
-            // Re-import the bytes as B and verify it round-trips to a character with matching expressions.
-            var taskB = CharacterLoader.LoadFromBytesAsync(glb, null);
-            yield return SandboxTestUtil.WaitFor(taskB, 30f);
-            var sceneB = SandboxTestUtil.ResolveScene(taskB, _created);
-
-            var b = sceneB.GetComponent<KhrCharacter>();
-            Assert.IsNotNull(b, "Re-imported character B must be a KhrCharacter.");
-            var ecB = b.Expressions;
-            Assert.IsNotNull(ecB, "Character B should have an ExpressionController.");
-            Assert.GreaterOrEqual(ecB.Count, 1, "Character B should have at least one expression.");
-            Assert.AreEqual(countA, ecB.Count, "Expression count should round-trip (within caveats).");
+            var exception = Assert.Catch<System.InvalidOperationException>(
+                () => CharacterLoader.ExportToGlb(a.gameObject, out _));
+            StringAssert.Contains("passive ExpressionResponseSet", exception.Message);
         }
 
         [UnityTest]
-        public IEnumerator M6_NoAutoPlay_OnImport()
+        public IEnumerator M6_ControllerOwnedPolicySuppressesExpressionAutoPlay()
         {
-            string path = CharacterLoader.SyntheticPath("SC-Body.glb");
+            string path = CharacterLoader.SyntheticPath("SC-Face.glb");
             Assert.IsTrue(File.Exists(path),
-                $"SC-Body.glb not found at '{path}'. Run Generate Sample Characters first.");
+                $"SC-Face.glb not found at '{path}'. Run Generate Sample Characters first.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             yield return SandboxTestUtil.WaitFor(task, 30f);
             var scene = SandboxTestUtil.ResolveScene(task, _created);
+
+            var hub = scene.GetComponent<KhrCharacter>();
+            Assert.IsNotNull(hub?.Expressions,
+                "M6 must exercise the optional controller-owned host policy, not a vacuous asset without responses.");
 
             // Let the frame in which a legacy Animation would otherwise auto-play its default clip pass.
             yield return null;
 
-            var animation = scene.GetComponent<Animation>();
-            if (animation != null)
-                Assert.IsFalse(animation.isPlaying,
-                    "an imported character must not auto-play its clips on load (no T-pose snap / import suppression).");
-            // A null Animation host means nothing can auto-play, which also satisfies M6.
+            var animation = scene.GetComponentInChildren<Animation>(true);
+            Assert.IsNotNull(animation, "SC-Face must provide expression clips for the suppression proof.");
+            Assert.IsFalse(animation.isPlaying,
+                "the explicitly selected controller-owned policy must suppress expression clip autoplay.");
             yield return null;
         }
     }

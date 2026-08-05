@@ -18,19 +18,15 @@ namespace Samples.Shared
         Draft,
         /// <summary>Animation import bakes CUBICSPLINE tangents to sampled LINEAR keys.</summary>
         CubicSplineToLinear,
-        /// <summary>Animated UV (texture-transform) is frame-exact only for the first cycle of a multi-key clip.</summary>
-        UvFirstCycleExact,
-        /// <summary>Renderers sharing a material collapse to one material on round-trip.</summary>
-        SharedMaterialCollapse,
-        /// <summary>Duplicate node / expression names are made unique on import.</summary>
-        DuplicateNamesDeduped,
+        /// <summary>Duplicate expression labels make name-based legacy adapter lookup ambiguous.</summary>
+        DuplicateExpressionLabels,
         /// <summary>Expression blend mode / priority (e.g. Override) is runtime-only, not on the wire.</summary>
         BlendModeRuntimeOnly,
         /// <summary>A camera hint's projection index does not round-trip through glTF.</summary>
         CameraProjectionOffWire,
         /// <summary>One KHR_character root per glTF document.</summary>
         OneCharacterPerDocument,
-        /// <summary>A skeleton mapping missing required bones degrades gracefully to Generic.</summary>
+        /// <summary>The optional Unity Humanoid adapter reports missing HumanTrait-required roles.</summary>
         SkeletonGracefulDegrade,
         /// <summary>The VRoid hero is VRM 1.0 (non-commercial); demos read only its KHR_character data.</summary>
         HeroNonCommercial,
@@ -46,9 +42,7 @@ namespace Samples.Shared
         {
             Caveat.Draft,
             Caveat.CubicSplineToLinear,
-            Caveat.UvFirstCycleExact,
-            Caveat.SharedMaterialCollapse,
-            Caveat.DuplicateNamesDeduped,
+            Caveat.DuplicateExpressionLabels,
             Caveat.BlendModeRuntimeOnly,
             Caveat.CameraProjectionOffWire,
             Caveat.OneCharacterPerDocument,
@@ -61,13 +55,11 @@ namespace Samples.Shared
         {
             [Caveat.Draft] = "Tracks glTF PR #2512 (KHR_character / avatar) — a DRAFT extension set, not ratified; the wire may still change.",
             [Caveat.CubicSplineToLinear] = "Animation import bakes CUBICSPLINE tangents to sampled LINEAR keys (curve shape approximated).",
-            [Caveat.UvFirstCycleExact] = "Animated texture-transform (UV) is frame-exact only for the first cycle of a multi-key clip.",
-            [Caveat.SharedMaterialCollapse] = "Renderers that share a material collapse to one material on round-trip (per-renderer identity not preserved).",
-            [Caveat.DuplicateNamesDeduped] = "Duplicate node / expression names are made unique on import.",
+            [Caveat.DuplicateExpressionLabels] = "Duplicate expression labels make name-based legacy adapter lookup ambiguous; passive array indices are authoritative.",
             [Caveat.BlendModeRuntimeOnly] = "Expression blend mode / priority (e.g. Override) is runtime-only — it is not written to the glTF wire.",
             [Caveat.CameraProjectionOffWire] = "A camera hint's projection index does not round-trip through glTF.",
             [Caveat.OneCharacterPerDocument] = "One KHR_character root per glTF document.",
-            [Caveat.SkeletonGracefulDegrade] = "A skeleton mapping with missing / invalid required bones degrades gracefully to Generic (never throws).",
+            [Caveat.SkeletonGracefulDegrade] = "The optional Unity Humanoid adapter reports Degraded when its selected mapping lacks a HumanTrait-required role; the glTF mapping itself is not thereby invalid.",
             [Caveat.HeroNonCommercial] = "The VRoid \"hero\" is VRM 1.0 (non-commercial); the demos read only its KHR_character data. The synthetic SC-* fallbacks are CC0.",
             [Caveat.EyeAimNonSpec] = "Geometric eye-aim is a demo convenience, not part of KHR_character.",
         };

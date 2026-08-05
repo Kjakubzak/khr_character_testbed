@@ -99,8 +99,8 @@ namespace KhrCharacterTestbed.Tests
             ec.ResetAll();
         }
 
-        // SC-Face declares a "demoVocabulary" set whose "Smile" target maps to happy(1.0) + aa(0.5). Driving the
-        // vocabulary target must drive the mapped expressions' output (the "smile" blendshape from happy).
+        // SC-Face independently authors both mapping directions for one versioned vocabulary. Forward mapping reads
+        // native drivers; input mapping accepts the endpoint command and drives the authored native targets.
         [UnityTest]
         public IEnumerator Vocabulary_DrivesMappedExpressionOutput()
         {
@@ -109,21 +109,36 @@ namespace KhrCharacterTestbed.Tests
             var hub = load.Current.GetComponent<KhrCharacter>();
             var ec = hub.Expressions;
             Assert.IsNotNull(ec, "SC-Face should have an ExpressionController.");
-            CollectionAssert.Contains(ec.VocabularySets, "demoVocabulary", "SC-Face should expose the demoVocabulary set.");
+            const string vocabulary = "https://example.com/expression-vocabularies/demo/v1";
+            CollectionAssert.Contains(ec.VocabularySets, vocabulary, "SC-Face should expose the demo vocabulary set.");
+            CollectionAssert.Contains(ec.OutputVocabularySets, vocabulary,
+                "the native-to-endpoint operation must be authored explicitly");
+            CollectionAssert.Contains(ec.InputVocabularySets, vocabulary,
+                "the endpoint-to-native operation must be authored explicitly");
             var smr = load.Current.GetComponentInChildren<SkinnedMeshRenderer>();
             int smileShape = BlendShapeIndex(smr, "smile");
             Assert.GreaterOrEqual(smileShape, 0, "SC-Face mesh should carry the 'smile' blendshape driven by 'happy'.");
+
+            ec.SetWeight("happy", 0.5f);
+            var outputs = ec.EvaluateVocabularyOutputs(vocabulary);
+            Assert.IsTrue(outputs.TryGetValue("Smile", out float smileOutput));
+            Assert.AreEqual(0.5f, smileOutput, 1e-6f,
+                "native-to-endpoint evaluation must use only the explicitly authored forward operation");
 
             ec.ResetAll();
             yield return null;
             float rest = smr.GetBlendShapeWeight(smileShape);
 
-            ec.SetWeightByVocabulary("demoVocabulary", "Smile", 1f);
+            Assert.IsTrue(ec.SelectVocabularyInputSet(vocabulary),
+                "the separately authored endpoint-to-native operation must be selected explicitly");
+            ec.SetWeightByVocabulary(vocabulary, "Smile", 1f);
             yield return null;
             float driven = smr.GetBlendShapeWeight(smileShape);
             Assert.Greater(driven, rest + 1e-3f,
                 "driving the 'Smile' vocabulary target should raise the mapped 'smile' blendshape output.");
 
+            ec.SetWeightByVocabulary(vocabulary, "Smile", 0f);
+            ec.UseDirectNativeInputs();
             ec.ResetAll();
         }
 

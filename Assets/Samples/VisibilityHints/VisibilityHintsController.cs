@@ -8,17 +8,18 @@ using UnityGLTF.VisibilityHints;
 namespace Samples.VisibilityHints
 {
     /// <summary>
-    /// VisibilityHints demo. Demonstrates view-context visibility (KHR_node_visibility_hint +
-    /// KHR_mesh_primitive_visibility_hint) driven by a <see cref="ViewContextController"/>, and lets you SWAP the
+    /// VisibilityHints demo. Demonstrates passive view-context predicates (KHR_node_visibility_hint +
+    /// KHR_mesh_primitive_visibility_hint) evaluated by a <see cref="ViewContextController"/> and realized by this
+    /// sample's optional camera-scoped material adapter. It lets you SWAP the
     /// shown asset between the built-in procedural figure and the khr_character example glbs (the per-role
     /// variants under <c>SampleAssets/VRM_KHR_Examples</c>). A "First-person view" toggle flips the active asset's
-    /// view context so you can watch renderers enable/disable and the per-primitive material swap live.
+    /// view context so you can watch the scoped no-draw material route live.
     /// <list type="bullet">
     /// <item>Procedural figure — Head: node <c>third_person</c>; Arms: node <c>first_person</c>; Mask shell:
     /// primitive <c>third_person</c> on one sub-mesh (the faceplate hides in first person via the invisible-material
     /// swap; the strap sub-mesh stays).</item>
-    /// <item>Example glbs — each variant isolates one role on the real avatar (its imported ViewContextController
-    /// drives the same enable/swap behaviour).</item>
+    /// <item>Example glbs — each variant isolates one role on the real avatar; the sample adapter consumes the same
+    /// passive predicates without making materials normative.</item>
     /// </list>
     /// <para>The procedural figure is the default (self-contained + deterministic; the scene smoke test asserts
     /// against it). <see cref="BuildSampleFigure"/> stays public/static so a test builds the same hierarchy.</para>
@@ -32,6 +33,7 @@ namespace Samples.VisibilityHints
         private Transform _contentRoot;
         private GameObject _current;
         private ViewContextController _view;
+        private VisibilityHintsCameraAdapter _renderAdapter;
         private bool _firstPerson;
         private int _swapRequestId; // monotonically increasing; a load whose id is stale was superseded
 
@@ -112,6 +114,7 @@ namespace Samples.VisibilityHints
 
             _current = go;
             _view = go.GetComponentInChildren<ViewContextController>(true);
+            ConfigureRenderAdapter();
             ApplyViewMode();
             FrameScene(go, new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)));
             SetStatus(_view != null
@@ -124,6 +127,7 @@ namespace Samples.VisibilityHints
             ClearCurrent();
             _current = BuildSampleFigure(_contentRoot);
             _view = _current.GetComponent<ViewContextController>();
+            ConfigureRenderAdapter();
             ApplyViewMode();
             FrameScene(_current, new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)));
             SetStatus("Built-in figure — Head: node third_person; Arms: node first_person; Mask shell: primitive " +
@@ -135,6 +139,7 @@ namespace Samples.VisibilityHints
             if (_current != null) Destroy(_current);
             _current = null;
             _view = null;
+            _renderAdapter = null;
         }
 
         // ── View-context toggle ──────────────────────────────────────────
@@ -148,9 +153,18 @@ namespace Samples.VisibilityHints
         private void ApplyViewMode()
         {
             if (_view != null)
-                _view.Mode = _firstPerson
-                    ? ViewContextController.ViewContext.FirstPerson
-                    : ViewContextController.ViewContext.ThirdPerson;
+                _view.SetActiveContext(_firstPerson
+                    ? VisibilityHintExtensionNames.RoleFirstPerson
+                    : VisibilityHintExtensionNames.RoleThirdPerson);
+        }
+
+        private void ConfigureRenderAdapter()
+        {
+            if (_view == null) return;
+            _renderAdapter = _view.GetComponent<VisibilityHintsCameraAdapter>();
+            if (_renderAdapter == null)
+                _renderAdapter = _view.gameObject.AddComponent<VisibilityHintsCameraAdapter>();
+            _renderAdapter.Configure(Camera.main);
         }
 
         private void SetStatus(string s) { if (_status != null) _status.text = s; }
@@ -158,8 +172,8 @@ namespace Samples.VisibilityHints
         /// <summary>
         /// Builds the hinted figure (parts + <see cref="NodeVisibilityHintSet"/> + <see cref="PrimitiveVisibilityHintSet"/>
         /// + <see cref="ViewContextController"/>) under <paramref name="parent"/> and returns its root. Public/static so
-        /// a test can build and assert the same hierarchy the demo shows. Binding resolves and applies the initial
-        /// (ThirdPerson) visibility immediately.
+        /// a test can build and assert the same hierarchy the demo shows. The passive evaluator does not alter the
+        /// hierarchy; a host must explicitly open a render scope to realize its predicates.
         /// </summary>
         public static GameObject BuildSampleFigure(Transform parent)
         {
@@ -171,7 +185,10 @@ namespace Samples.VisibilityHints
             // new Material()/new Mesh() they reference).
             var owned = root.AddComponent<ProceduralFigureResources>();
 
-            root.AddComponent<ViewContextController>();
+            var view = root.AddComponent<ViewContextController>();
+            view.SetActiveContext(VisibilityHintExtensionNames.RoleThirdPerson);
+            var materials = root.AddComponent<ScopedMaterialVisibilityAdapter>();
+            materials.NoDrawMaterial = InvisibleMaterialInstaller.GetNoDrawMaterial();
 
             // Torso: no hint authored, so the controller leaves it unmanaged — always visible.
             MakePart(root.transform, "Torso", PrimitiveType.Capsule,

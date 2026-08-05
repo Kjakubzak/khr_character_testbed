@@ -9,10 +9,9 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Expression composition + clamp saturation on a real import (01 expr lens, Phase 4-P3). SC-Face's "aa"
-    /// (delta -> 0.6) and "jawOpen" (delta -> 1.0) both drive the same blendshape additively; driving both must
-    /// clamp the accumulated input at the ceiling (it cannot exceed jawOpen alone, which already saturates). Asserts
-    /// the resolved blendshape OUTPUT (there is no public masked/clamped-weight getter). LateUpdate-timed. Anti-hollow.
+    /// Coverage for the optional Unity ExpressionController's selected additive-and-clamp policy. The extension
+    /// returns independent absolute responses and leaves final composition host-defined; this test verifies only the
+    /// legacy adapter used by the sample scenes. LateUpdate-timed and asserted at the resolved blendshape output.
     /// </summary>
     public class SandboxCompositionTests
     {
@@ -27,7 +26,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator AdditiveComposition_SaturatesAtClampCeiling()
+        public IEnumerator LegacyControllerAdditivePolicy_SaturatesAtClampCeiling()
         {
             var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
             yield return load;
@@ -58,8 +57,8 @@ namespace KhrCharacterTestbed.Tests
             // must NOT exceed that ceiling.
             float tol = Mathf.Max(0.02f, jawOnly * 0.01f);
             Assert.AreEqual(jawOnly, both, tol,
-                $"additive accumulation must clamp at the ceiling (aaOnly={aaOnly}, jawOnly={jawOnly}, both={both}).");
-            Assert.LessOrEqual(both, jawOnly + tol, "the clamped sum must not overshoot the ceiling.");
+                $"the selected Unity adapter policy must clamp at the ceiling (aaOnly={aaOnly}, jawOnly={jawOnly}, both={both}).");
+            Assert.LessOrEqual(both, jawOnly + tol, "the adapter's clamped sum must not overshoot the ceiling.");
 
             ec.ResetAll();
         }

@@ -3809,9 +3809,13 @@
     {
       "bufferView": 34,
       "componentType": 5126,
-      "count": 1,
+      "count": 2,
       "type": "VEC4",
       "values": [
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
         -0.15643,
         0.0,
         0.0,
@@ -3821,10 +3825,11 @@
     {
       "bufferView": 35,
       "componentType": 5126,
-      "count": 1,
+      "count": 2,
       "type": "SCALAR",
       "values": [
-        0.0
+        0.0,
+        1.0
       ]
     },
     {
@@ -4442,8 +4447,22 @@
       ]
     },
     "KHR_character_expression_mapping": {
+      "expressionSetInputMappings": {
+        "https://example.com/expression-vocabularies/demo/v1": {
+          "Smile": [
+            {
+              "target": 7,
+              "weight": 1.0
+            },
+            {
+              "target": 6,
+              "weight": 0.5
+            }
+          ]
+        }
+      },
       "expressionSetMappings": {
-        "demoVocabulary": {
+        "https://example.com/expression-vocabularies/demo/v1": {
           "Smile": [
             {
               "source": 7,
@@ -4460,7 +4479,6 @@
   },
   "extensionsUsed": [
     "KHR_character",
-    "KHR_xmp_json_ld",
     "KHR_animation_pointer",
     "KHR_character_expression",
     "KHR_character_expression_morphtarget",

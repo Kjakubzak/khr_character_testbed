@@ -12,6 +12,13 @@ using UnityGLTF.Plugins;
 
 namespace Samples.Shared
 {
+    public enum CharacterExpressionHostPolicy
+    {
+        Passive,
+        LegacyController,
+        LegacyControllerWithSuppression,
+    }
+
     /// <summary>
     /// Shared runtime glTF/GLB loader for the samples. It enables the KHR Character import plugin on the project
     /// settings (so the default import context picks it up), runs a <see cref="GLTFSceneImporter"/>, and returns
@@ -403,10 +410,13 @@ namespace Samples.Shared
         /// </summary>
         public static bool ForceSyntheticForTests = false;
 
-        public static Task<GameObject> LoadDemoCharacterAsync(Transform parent, string fallbackSyntheticFileName)
+        public static Task<GameObject> LoadDemoCharacterAsync(
+            Transform parent,
+            string fallbackSyntheticFileName,
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.Passive)
         {
             string path = WouldLoadHero ? HeroAbsolutePath : SyntheticPath(fallbackSyntheticFileName);
-            return LoadAsync(path, parent);
+            return LoadAsync(path, parent, expressionPolicy);
         }
 
         /// <summary>A short header noting which demo character loaded (hero vs synthetic fallback) + the VRM caveat.</summary>
@@ -422,7 +432,9 @@ namespace Samples.Shared
         /// visibility-hint plugin here (rather than only as a side effect of the VisibilityHints scene) makes hint
         /// import deterministic regardless of which demo scene ran first.
         /// </summary>
-        public static void EnableImportPlugin(RigImportMode rig = RigImportMode.Humanoid)
+        public static void EnableImportPlugin(
+            RigImportMode rig = RigImportMode.Humanoid,
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.Passive)
         {
             var settings = GLTFSettings.GetOrCreateSettings();
             if (settings == null || settings.ImportPlugins == null) return;
@@ -432,6 +444,10 @@ namespace Samples.Shared
                 {
                     characterImport.Enabled = true;
                     characterImport.Rig = rig;
+                    characterImport.CreateExpressionController =
+                        expressionPolicy != CharacterExpressionHostPolicy.Passive;
+                    characterImport.SuppressNonInteractiveAnimationAutoPlay =
+                        expressionPolicy == CharacterExpressionHostPolicy.LegacyControllerWithSuppression;
                 }
                 else if (plugin is VisibilityHintImportPlugin visibilityHint)
                 {
@@ -444,10 +460,13 @@ namespace Samples.Shared
         /// Load a GLB/glTF by absolute path, parenting the result under <paramref name="parent"/> (null = scene
         /// root). Returns the scene root GameObject, or null on failure.
         /// </summary>
-        public static async Task<GameObject> LoadAsync(string absolutePath, Transform parent)
+        public static async Task<GameObject> LoadAsync(
+            string absolutePath,
+            Transform parent,
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.Passive)
         {
             LastLoadedSourcePath = absolutePath;
-            EnableImportPlugin();
+            EnableImportPlugin(expressionPolicy: expressionPolicy);
 
             string directory = Path.GetDirectoryName(absolutePath);
             string fileName = Path.GetFileName(absolutePath);
@@ -493,8 +512,10 @@ namespace Samples.Shared
         /// <summary>
         /// Export a character to an in-memory GLB through the KHR Character export plugin (isolated default settings
         /// with the KHR Character + AnimationPointer export plugins enabled). Also returns the exported
-        /// <see cref="GLTFRoot"/> so callers can inspect neutrality (extensionsUsed / extensionsRequired). The
+        /// <see cref="GLTFRoot"/> so callers can inspect the extension profile (extensionsUsed / extensionsRequired). The
         /// expression animation channels export only under UNITY_EDITOR (the plugin gate), so run this in the editor.
+        /// Imported passive expression data intentionally aborts export because the legacy controller is not a
+        /// lossless source; use this helper only with controller-authored data or characters without expressions.
         /// </summary>
         public static byte[] ExportToGlb(GameObject root, out GLTFRoot exportedRoot)
         {
@@ -513,10 +534,13 @@ namespace Samples.Shared
         /// Re-import a self-contained GLB from an in-memory byte[] (no external data loader needed), parenting the
         /// result under <paramref name="parent"/>. Returns the scene root, or null on failure.
         /// </summary>
-        public static async Task<GameObject> LoadFromBytesAsync(byte[] glb, Transform parent)
+        public static async Task<GameObject> LoadFromBytesAsync(
+            byte[] glb,
+            Transform parent,
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.Passive)
         {
             LastLoadedSourcePath = null; // in-memory re-import has no source file on disk
-            EnableImportPlugin();
+            EnableImportPlugin(expressionPolicy: expressionPolicy);
 
             GameObject tempHost = null;
             GameObject host = parent != null ? parent.gameObject : (tempHost = new GameObject("GltfImportHost"));
@@ -550,7 +574,7 @@ namespace Samples.Shared
 
         /// <summary>
         /// Read the <c>extensionsUsed</c> array from a source GLB/glTF on disk (e.g. a VRM-origin file that lists
-        /// VRMC_* vendor extensions). Used for the "source vs neutral re-export" comparison; it never imports.
+        /// VRMC_* vendor extensions). Used to inspect source provenance before the export-safety check; it never imports.
         /// </summary>
         public static List<string> ReadSourceExtensionsUsed(string absolutePath)
         {
@@ -565,6 +589,14 @@ namespace Samples.Shared
             }
             catch (System.Exception e) { Debug.LogException(e); }
             return result;
+        }
+
+        public static GLTFRoot ReadGltfRoot(string absolutePath)
+        {
+            string json = ExtractGltfJson(File.ReadAllBytes(absolutePath));
+            if (json == null) throw new InvalidDataException($"'{absolutePath}' has no glTF JSON document.");
+            using (var reader = new StringReader(json))
+                return GLTFRoot.Deserialize(reader);
         }
 
         // Returns the JSON chunk of a binary GLB, or the whole file when it is already a .gltf JSON document.

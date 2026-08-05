@@ -39,8 +39,14 @@ namespace Samples.Characters
             try
             {
                 scene = string.IsNullOrEmpty(GlbPath)
-                    ? await CharacterLoader.LoadDemoCharacterAsync(_contentRoot, fallbackFile)
-                    : await CharacterLoader.LoadAsync(GlbPath, _contentRoot);
+                    ? await CharacterLoader.LoadDemoCharacterAsync(
+                        _contentRoot,
+                        fallbackFile,
+                        CharacterExpressionHostPolicy.LegacyControllerWithSuppression)
+                    : await CharacterLoader.LoadAsync(
+                        GlbPath,
+                        _contentRoot,
+                        CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
             }
             catch (System.Exception e)
             {
@@ -81,16 +87,19 @@ namespace Samples.Characters
                 SetPairBlendMode(controller, on ? ExpressionBlendMode.Override : ExpressionBlendMode.Additive), false);
 
             // N2: 'happy' blend-masks 'aa' (raise both 'happy' and 'aa' above to watch aa attenuate); plus a
-            // vocabulary slider per mapping target (SetWeightByVocabulary distributes to its source expressions).
-            ui.AddLabel("N2: 'happy' blend-masks 'aa'. Vocabulary targets distribute to several expressions:");
-            foreach (var setName in controller.VocabularySets)
+            // input-vocabulary slider per command (SetWeightByVocabulary distributes to native expressions).
+            ui.AddLabel("N2: 'happy' blend-masks 'aa'. Endpoint input commands distribute to native expressions:");
+            foreach (var setName in controller.InputVocabularySets)
             {
                 string vocab = setName;
                 foreach (var target in controller.VocabularyExpressions(vocab))
                 {
                     string targetName = target;
-                    ui.AddSlider($"Vocab {vocab}/{targetName}",
-                        v => controller.SetWeightByVocabulary(vocab, targetName, v), 0f, 1f, 0f);
+                    ui.AddSlider($"Input {vocab}/{targetName}", v =>
+                    {
+                        if (controller.SelectVocabularyInputSet(vocab))
+                            controller.SetWeightByVocabulary(vocab, targetName, v);
+                    }, 0f, 1f, 0f);
                 }
             }
         }

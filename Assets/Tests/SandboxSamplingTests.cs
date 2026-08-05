@@ -11,8 +11,8 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Sampling fidelity (02 anim lens, Phase 4-P3): import, re-export, and assert the animation SAMPLERS on the wire -
-    /// binary/discrete drivers use STEP interpolation, multi-key UV-transform uses LINEAR, key counts match the authored
+    /// Sampling fidelity (02 anim lens, Phase 4-P3): assert the committed animation samplers on the wire -
+    /// discrete response tracks use STEP interpolation, multi-key UV-transform uses LINEAR, key counts match the authored
     /// keyframes, and the time/input accessor carries min/max. Anti-hollow via real plugin types.
     /// </summary>
     public class SandboxSamplingTests
@@ -37,47 +37,36 @@ namespace KhrCharacterTestbed.Tests
                && root.Extensions.TryGetValue(KHR_character_expression.EXTENSION_NAME, out var e)
                 ? e as KHR_character_expression : null;
 
-        [UnityTest]
-        public IEnumerator Morph_BinaryDriver_UsesStepSamplerWithMinMaxInput()
+        [Test]
+        public void EveryResponseChannel_HasTwoKeysAndInputMetadata()
         {
-            var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
-            yield return load;
-            var hub = load.Current.GetComponent<KhrCharacter>();
-            Assert.IsNotNull(hub, "SC-Face should import a KhrCharacter hub.");
-
-            CharacterLoader.ExportToGlb(hub.gameObject, out var root);
+            var root = CharacterLoader.ReadGltfRoot(CharacterLoader.SyntheticPath("SC-Face.glb"));
             var expr = GetExpression(root);
-            Assert.IsNotNull(expr, "SC-Face re-export should carry KHR_character_expression.");
+            Assert.IsNotNull(expr, "SC-Face should carry KHR_character_expression.");
 
-            // SC-Face's binary morphs (e.g. blink/jawOpen) author STEP samplers; at least one morph channel must be STEP.
+            // Classifiers are metadata, never channel filters. Check every channel in every referenced response.
             bool foundStep = false;
             foreach (var item in expr.Expressions)
             {
-                if (item == null || item.Morphtarget == null) continue;
+                if (item == null) continue;
                 var anim = root.Animations[item.Animation];
-                foreach (int ci in item.Morphtarget.Channels)
+                foreach (var ch in anim.Channels)
                 {
-                    var ch = anim.Channels[ci];
                     var sampler = anim.Samplers[ch.Sampler.Id];
                     var input = root.Accessors[sampler.Input.Id];
                     Assert.IsNotNull(input.Min, "a sampler's time/input accessor must carry min.");
                     Assert.IsNotNull(input.Max, "a sampler's time/input accessor must carry max.");
-                    Assert.GreaterOrEqual(input.Count, 1, "a sampler must have at least one keyframe.");
+                    Assert.GreaterOrEqual(input.Count, 2, "an expression response sampler must have at least two keys.");
                     if (sampler.Interpolation == InterpolationType.STEP) foundStep = true;
                 }
             }
-            Assert.IsTrue(foundStep, "SC-Face's binary morph drivers must export STEP-interpolated samplers.");
+            Assert.IsTrue(foundStep, "SC-Face's discrete morph responses must export STEP-interpolated samplers.");
         }
 
-        [UnityTest]
-        public IEnumerator TextureUv_MultiKeyDriver_UsesLinearSampler()
+        [Test]
+        public void TextureUv_MultiKeyDriver_UsesLinearSampler()
         {
-            var load = SandboxTestUtil.LoadSynthetic("SC-FacePlus.glb", _created);
-            yield return load;
-            var hub = load.Current.GetComponent<KhrCharacter>();
-            Assert.IsNotNull(hub, "SC-FacePlus should import a KhrCharacter hub.");
-
-            CharacterLoader.ExportToGlb(hub.gameObject, out var root);
+            var root = CharacterLoader.ReadGltfRoot(CharacterLoader.SyntheticPath("SC-FacePlus.glb"));
             var expr = GetExpression(root);
             Assert.IsNotNull(expr);
             var item = expr.Expressions.Find(i => i != null && i.Texture != null);

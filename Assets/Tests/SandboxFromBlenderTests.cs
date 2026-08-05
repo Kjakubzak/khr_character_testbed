@@ -119,7 +119,6 @@ namespace KhrCharacterTestbed.Tests
             var expected = new[]
             {
                 "KHR_character",
-                "KHR_xmp_json_ld",
                 "KHR_character_expression",
                 "KHR_character_expression_morphtarget",
                 "KHR_character_expression_joint",
@@ -142,7 +141,7 @@ namespace KhrCharacterTestbed.Tests
             var glbBytes = System.IO.File.ReadAllBytes(CharacterLoader.FromBlenderPath("expressions_morph.glb"));
             var root = JObject.Parse(CharacterLoader.ExtractGltfJson(glbBytes));
             var used = root["extensionsUsed"] as JArray;
-            CollectionAssert.Contains(used?.ToObject<string[]>(), "KHR_xmp_json_ld");
+            CollectionAssert.DoesNotContain(used?.ToObject<string[]>(), "KHR_xmp_json_ld");
             CollectionAssert.DoesNotContain(used?.ToObject<string[]>(), "KHR_animation_pointer",
                 "ordinary weights channels do not require KHR_animation_pointer");
 
@@ -159,7 +158,7 @@ namespace KhrCharacterTestbed.Tests
             }
         }
 
-        // ── Minimal fixture carries only the character marker plus its declaration-only XMP dependency ──
+        // ── Minimal fixture carries only the character marker ──
 
         [UnityTest]
         public IEnumerator Minimal_HasZeroExpressionsAndNoSkeleton()
