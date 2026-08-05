@@ -10,10 +10,9 @@ namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
     /// LOOK-01 (test-rig lens): full-disk wiring proof for KHR_node_lookat_target, which previously had zero
-    /// coverage (bug B7). Imports the SC-LookAt fixture and asserts the importer rehydrated the authored look-at
-    /// targets onto the KhrCharacter hub's GazeSolver, with node identity (by name) and the optional hint
-    /// round-tripping (one named "primary" hint + one hint-less empty {} target). References real plugin types,
-    /// so it also acts as an anti-hollow gate.
+    /// coverage (bug B7). Imports the SC-LookAt fixture and asserts the importer exposes authored look-at targets
+    /// as passive live metadata, with node identity and the optional hint round-tripping. No gaze or animation
+    /// behavior is created by the marker.
     /// </summary>
     public class SandboxLookAtTests
     {
@@ -28,7 +27,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator LookAt_AuthoredTargets_RoundTripOntoGaze()
+        public IEnumerator LookAt_AuthoredTargets_RoundTripAsPassiveMetadata()
         {
             var load = SandboxTestUtil.LoadSynthetic("SC-LookAt.glb", _created);
             yield return load;
@@ -37,13 +36,12 @@ namespace KhrCharacterTestbed.Tests
             var hub = scene.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub, "SC-LookAt should import a KhrCharacter hub.");
 
-            // The fixture carries KHR_node_lookat_target (no expressions), so the importer must still attach a
-            // GazeSolver purely to surface the authored targets.
-            var gaze = hub.Gaze;
-            Assert.IsNotNull(gaze, "SC-LookAt carries KHR_node_lookat_target, so the importer must attach a GazeSolver.");
+            var targetSet = hub.LookAtTargets;
+            Assert.IsNotNull(targetSet, "SC-LookAt should expose a passive LookAtTargetSet.");
+            Assert.IsNull(hub.GetComponent<GazeSolver>(), "A look-at marker must not create a gaze consumer.");
 
-            var targets = gaze.AuthoredTargets;
-            Assert.IsNotNull(targets, "GazeSolver.AuthoredTargets should be populated from the imported look-at targets.");
+            var targets = targetSet.Targets;
+            Assert.IsNotNull(targets);
             Assert.AreEqual(2, targets.Count, "SC-LookAt authored exactly two look-at target nodes.");
 
             // Node identity round-trips by name; the optional hint round-trips (one "primary", one hint-less {}).

@@ -32,10 +32,9 @@ namespace KhrCharacterTestbed.Tests
             var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
             yield return load;
             var hub = load.Current.GetComponent<KhrCharacter>();
-            var gaze = hub.Gaze;
-            Assert.IsNotNull(gaze, "SC-Face has look expressions, so a GazeSolver must be attached.");
             var ec = hub.Expressions;
             Assert.IsNotNull(ec);
+            var gaze = CreateGazeAdapter(hub, ec);
 
             var frame = gaze.transform;   // SC-Face has no mapped head bone, so the gaze frame is this transform
             gaze.Weight = 1f;
@@ -66,9 +65,9 @@ namespace KhrCharacterTestbed.Tests
             var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
             yield return load;
             var hub = load.Current.GetComponent<KhrCharacter>();
-            var gaze = hub.Gaze;
-            Assert.IsNotNull(gaze);
             var ec = hub.Expressions;
+            Assert.IsNotNull(ec);
+            var gaze = CreateGazeAdapter(hub, ec);
 
             var frame = gaze.transform;
             gaze.Weight = 1f;
@@ -85,6 +84,14 @@ namespace KhrCharacterTestbed.Tests
             }
 
             gaze.Weight = 0f;
+        }
+
+        private static GazeSolver CreateGazeAdapter(KhrCharacter hub, ExpressionController expressions)
+        {
+            var gaze = hub.GetComponent<GazeSolver>();
+            if (gaze == null) gaze = hub.gameObject.AddComponent<GazeSolver>();
+            gaze.Bind(expressions, hub.Skeleton);
+            return gaze;
         }
     }
 }

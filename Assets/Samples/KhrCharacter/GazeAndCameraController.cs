@@ -8,10 +8,9 @@ using Samples.Shared;
 namespace Samples.Characters
 {
     /// <summary>
-    /// GazeAndCamera demo (M3). Loads SC-Face for expression-driven gaze (a movable world target drives the
-    /// look-left/right/up/down expressions via <see cref="GazeSolver"/>) and SC-Body for camera hints (role buttons
-    /// frame a preview camera via <see cref="CameraHintSet.Apply"/>). Applicable caveats are surfaced from the
-    /// shared <see cref="Caveats"/> registry (notably the camera projection index not round-tripping through glTF).
+    /// GazeAndCamera demo (M3). Loads SC-Face and explicitly installs the optional <see cref="GazeSolver"/> host
+    /// adapter so a movable world target can drive look expressions. SC-Body supplies passive camera hints whose
+    /// role buttons frame a preview camera via <see cref="CameraHintSet.Apply"/>.
     /// </summary>
     public class GazeAndCameraController : DemoControllerBase
     {
@@ -153,8 +152,17 @@ namespace Samples.Characters
             _targetAnchor = GazeTargetUtil.InFrontOfHead(hub);
             UpdateTarget();
 
-            _gaze = hub.Gaze;
-            if (_gaze == null) { _ui.AddLabel("Face asset has no gaze solver."); return; }
+            if (hub.Expressions == null)
+            {
+                _ui.AddLabel("Face asset has no expression host adapter.");
+                return;
+            }
+
+            // KHR_node_lookat_target is passive and never creates behavior. This sample deliberately chooses the
+            // Unity expression-based gaze adapter and owns its target, vocabulary, and response policy.
+            _gaze = hub.GetComponent<GazeSolver>();
+            if (_gaze == null) _gaze = hub.gameObject.AddComponent<GazeSolver>();
+            _gaze.Bind(hub.Expressions, hub.Skeleton);
             _gaze.Mode = GazeSolver.LookAtMode.CustomTarget;
             _gaze.Target = _gazeTarget;
             _gaze.Weight = 1f;

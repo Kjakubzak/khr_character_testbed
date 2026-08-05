@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#943dd12a98212a8dac8fb035e60b110836b14000",
+    "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#2f0c05ce879435b19353e7f7c97382dbc42adce4",
     "com.unity.animation.rigging": "1.3.0",
     "com.unity.test-framework": "1.1.33",
     "com.unity.render-pipelines.universal": "14.0.7",
