@@ -2,7 +2,7 @@
 
 A public, open-source example project that demonstrates the Khronos **`KHR_character` / avatar glTF extensions** (glTF PR #2512) in Unity, via a [UnityGLTF](https://github.com/Kjakubzak/UnityGLTF) fork that adds the `KHR_character` import/export plugin (pending upstream into [KhronosGroup/UnityGLTF](https://github.com/KhronosGroup/UnityGLTF)).
 
-Clone it, press Play, and watch a character import, emote, gaze, animate, switch rigs, toggle first/third-person visibility, and round-trip through a **Khronos-neutral** glTF wire — all on license-clean sample assets.
+Clone it, press Play, and watch a character import, emote, gaze, animate, switch rigs, toggle first/third-person visibility, and round-trip through a **Khronos-neutral** glTF wire — all on sample assets with documented provenance and terms.
 
 > ⚠️ Tracks the **non-ratified** `KHR_character_*` extensions (glTF PR #2512). Schema and behavior may change as the proposal evolves. Both KHR character plugins are **disabled by default** and enabled by this project.
 
@@ -69,7 +69,7 @@ Under **Assets ▸ UnityGLTF ▸ KHR Character**:
 
 ## Sample assets
 
-Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consumed vendor-neutrally — see `Assets/SampleAssets/ATTRIBUTION.md`):
+Three sources are stored under `Assets/SampleAssets/`: CC0 synthetic fixtures, CC0 Blender-generated fixtures, and VRM-origin hero assets with more restrictive embedded terms. See `Assets/SampleAssets/ATTRIBUTION.md` and the checksum-pinned `Assets/SampleAssets/ASSET_MANIFEST.tsv`.
 
 **`Synthetic/`** — CC0 characters built in code and dogfood-exported through the plugin:
 
