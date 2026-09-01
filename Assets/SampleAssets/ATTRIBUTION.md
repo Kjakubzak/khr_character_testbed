@@ -1,7 +1,6 @@
 # Sample Asset Attribution
 
-All assets in this folder are license-clean and safe to redistribute as part of this open-source,
-Khronos-community glTF example. Each entry lists its source and SPDX license identifier.
+Assets in this folder fall into two categories: unrestricted CC0 synthetic fixtures and VRM-origin hero assets with restricted embedded terms. Each entry lists its source and license identifier. The checksum-pinned inventory is maintained in [`ASSET_MANIFEST.tsv`](./ASSET_MANIFEST.tsv).
 
 ## Synthetic/ — tool-generated, committed
 
@@ -60,7 +59,7 @@ then copy the resulting `tests/fixtures/*.glb` into this folder.
 | `khr-character-example-first-person.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `first_person` `KHR_node_visibility_hint` role. Inherits the base hero's VRM 1.0 terms (**non-commercial**). Stored via **Git LFS** (~11 MB). |
 | `khr-character-example-third-person.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `third_person` `KHR_node_visibility_hint` role; also carries a `KHR_mesh_primitive_visibility_hint` example. Inherits the base hero's VRM 1.0 terms (**non-commercial**). Stored via **Git LFS** (~11 MB). |
 
-> **License — read from the model's embedded `VRMC_vrm.meta`** (authoritative for its declared terms): author
+> **License — read from every hero binary's embedded `VRMC_vrm.meta`** (authoritative for its declared terms): author
 > **0b5vr**, under the [**VRM 1.0 license**](https://vrm.dev/licenses/1.0/). There is no SPDX short-identifier for the
 > VRM license, so it is recorded above with the SPDX `LicenseRef-` form (`LicenseRef-VRM-1.0`). Declared permissions:
 > **redistribution allowed** (`allowRedistribution: true`) and **modification + redistribution allowed**
@@ -86,4 +85,5 @@ permitted — no vendor, internal, or scanned characters.
 
 - Geometry, textures, and animations must be CC0, public domain, or a clearly-attributed open license.
 - Record provenance (source + SPDX) for every committed or downloaded asset in this file.
+- Record every committed GLB and its SHA-256 digest in `ASSET_MANIFEST.tsv`.
 - Prefer small, diffable, regenerable synthetic assets for committed fixtures.
