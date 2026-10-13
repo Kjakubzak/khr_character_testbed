@@ -22,19 +22,24 @@ cubes. All primitives — no third-party content.
 |---|---:|---|
 | `minimal.glb` | 256 B | `KHR_character` (no geometry) |
 | `skeleton.glb` | 27 KB | + `_skeleton_mapping` (5 humanoid joints) — includes torso + head skinned to armature |
-| `skeleton_refpose.glb` | 30 KB | + `_reference_pose` (TPose on the armature) |
+| `skeleton_refpose.glb` | 30 KB | + `_reference_pose` (`t_pose` on the armature) |
 | `expressions_morph.glb` | 29 KB | UV-sphere head + smile/frown morph exprs (`+ _expression + _expression_morphtarget`) |
 | `expressions_joint.glb` | 31 KB | armature + torso + head + nod joint expr (`+ _expression + _expression_joint`) |
-| `expressions_mask.glb` | 30 KB | morph exprs + smile blocks frown (`+ _expression_mask`) |
+| `expressions_mask.glb` | 30 KB | morph exprs + smile block-suppresses frown (`+ _expression_suppression`) |
 | `expressions_mapping.glb` | 29 KB | morph expr + ARKit routing `mouthSmileLeft/Right → smile` at 0.5 each (`+ _expression_mapping`) |
 | `node_hints.glb` | 496 B | root + camera hint ("portrait" role) + lookat target ("eyes" hint) — no geometry (`KHR_node_camera_hint + KHR_node_lookat_target`) |
 | `visibility_hints.glb` | 2.7 KB | root + a `first_person` node hint (on an empty view-model) + a 2-primitive cube whose accent primitive is `third_person` (`KHR_node_visibility_hint + KHR_mesh_primitive_visibility_hint`) |
 | `full.glb` | 46 KB | Everything above combined |
-| `starter.glb` | 42 KB | The canonical starter (matches `samples/generate_starter.py` output — character + humanoid armature + TPose ref pose + shape-keyed head + morph exprs) |
+| `starter.glb` | 42 KB | The canonical starter (matches `samples/generate_starter.py` output — character + humanoid armature + `t_pose` ref pose + shape-keyed head + morph exprs) |
 
-Only `KHR_character_expression_texture` is absent — it requires
+Only `KHR_character_expression_texture_transform` is absent — it requires
 `KHR_animation_pointer` material channels which are outside the Blender
 addon's current authoring surface.
+
+The committed files carry the current wire vocabulary: `KHR_character: {}`,
+expression entries labeled with `name`, `KHR_character_expression_suppression`
+with a `suppressions` array, and `t_pose`. `Tools/ci/normalize-character-fixtures.py`
+produced it from the addon's earlier output (see below).
 
 ## What the character looks like
 
@@ -89,8 +94,10 @@ To refresh (whenever the Blender addon's exporter output changes):
 1. Regenerate in `khr_character_blender`.
 2. Copy the resulting `tests/fixtures/*.glb` into this folder,
    overwriting.
-3. Until the Blender exporter emits index-based expression references and absolute mapping identifiers, run
-   `python3 Tools/ci/normalize-character-fixtures.py Assets/SampleAssets/FromBlender/*.glb`.
+3. Until the Blender exporter emits the current wire vocabulary, run
+   `python3 Tools/ci/normalize-character-fixtures.py Assets/SampleAssets/FromBlender/*.glb`. It is safe to
+   re-run. It also replaces the addon's mapping-set identifiers with version-pinned ones: any nonempty
+   identifier is valid, but exporters SHOULD write one that names a single vocabulary version.
 4. Delete the corresponding `.meta` files first if Unity's importer
    pinned any stale GUIDs (usually not necessary).
 

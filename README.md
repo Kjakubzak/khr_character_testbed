@@ -33,11 +33,13 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
 
 Use the in-scene **Back to Hub** button to move between demos.
 
-`KHR_character_expression` itself exposes passive, absolute response records; it does not choose a driver source,
-animation order, mixing rule, or scene writer. Imports are passive by default; only **Expressions**,
-**GazeAndCamera**, and **CharacterShowcase** explicitly opt into UnityGLTF's legacy `ExpressionController` host
-adapter. Its blendshape, transform, and `MaterialPropertyBlock` behavior is one Unity integration route among many,
-not portable extension runtime behavior.
+A consumer that supports `KHR_character_expression` also implements its derived extensions (`_morphtarget`,
+`_joint`, `_texture_transform`) and the normative composition stage: each update takes one driver snapshot, samples
+every listed channel at `t = e * T`, and adds the deltas over the authored value (`y = b + sum(s - n)`, no clamp).
+Only how that result mixes with other animation writers is host-defined. Imports are passive by default (the
+`ExpressionResponseSet` computes but writes nothing); only **Expressions**, **GazeAndCamera**, and
+**CharacterShowcase** explicitly opt into UnityGLTF's `ExpressionController`, which applies the composed result to
+blendshapes, transforms, and `MaterialPropertyBlock`s. That scene writing is one Unity integration route among many.
 
 ---
 
@@ -49,17 +51,17 @@ Launch any of these from **SampleHub**:
 |---|---|---|
 | **CharacterShowcase** | Drive a full character through every `KHR_character` capability | The combined demo — every capability on one character (hero asset, or `SC-FacePlus` fallback) |
 | **GlbViewer** | Import any `.glb`/`.gltf` at runtime + capability discovery | Load a character; read the Active/Degraded/Inert capability list |
-| **Expressions** | Morph + joint + texture expression control | Drag `jawOpen`, the jaw-bone slider, and the texture UV-transform slider |
+| **Expressions** | Morph + joint + texture-transform expression control | Drag `jawOpen`, the jaw-bone slider, and the `texFx` texture-transform slider |
 | **GazeAndCamera** | Expression-driven gaze + advisory camera hints | Move the target → eyes track it; click a camera-hint role |
 | **RigAndPose** | Runtime Generic ↔ Humanoid rig switch + reference pose | Toggle to Humanoid (builds a Mecanim Avatar); "Apply Reference Pose" |
 | **RoundTrip** | Lossless host-data export plus passive-expression safety | Round-trip SC-Body; load an expression asset to see lossy legacy-controller export fail closed |
 | **Health** | Per-capability Active/Degraded/Inert triage | Load a partial character; see what's inert |
-| **VisibilityHints** | First/third-person view-context visibility (`KHR_node_visibility_hint` + `KHR_mesh_primitive_visibility_hint`) | Swap between the built-in figure and the khr-character example variants; toggle first-person — head/eyes/brows hide (via an invisible-material swap) while hair + body stay |
+| **VisibilityHints** | View-tag visibility (`KHR_node_visibility_hint` + `KHR_mesh_primitive_visibility_hint`) | Swap between the built-in figure and the khr-character example variants; pick the view's tags (third_person, first_person, both, none) — `third_person` content such as the head/eyes/brows hides (via an invisible-material swap) without the `third_person` tag, while `always` content such as hair + body stays |
 | **HumanoidAnimation** | Procedural clips on a humanoid rig | Play a wave / nod / idle-sway |
 | **AnimationRigging** | Runtime aim constraint (Unity Animation Rigging) | Move the target; a bone tracks it |
 | **AnimationSandbox** | Any character + any rig mode + any clip | Defaults to Generic; pick a character-adaptive procedural clip and Play (clips are filtered to the compatible rig mode) |
 
-Every scene carries an on-screen **caveat banner** so the demo never over-promises (e.g. one character per document; the camera index doesn't round-trip). The caveats come from a single registry (`Assets/Samples/_Shared/Caveats.cs`) and are indexed once in [`docs/caveats.md`](docs/caveats.md).
+Every scene carries an on-screen **caveat banner** so the demo never over-promises (e.g. at most one character per asset; the camera index doesn't round-trip). The caveats come from a single registry (`Assets/Samples/_Shared/Caveats.cs`) and are indexed once in [`docs/caveats.md`](docs/caveats.md).
 
 ---
 
@@ -82,10 +84,10 @@ Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consu
 | Asset | Carries | Used by |
 |---|---|---|
 | `SC-Face.glb` | `KHR_character` + expression (morph + joint) | GlbViewer, Expressions, Gaze |
-| `SC-FacePlus.glb` | + texture expression (`KHR_texture_transform` UV transform) | Expressions |
+| `SC-FacePlus.glb` | + texture-transform expression (`KHR_character_expression_texture_transform` on a `KHR_texture_transform` offset) | Expressions |
 | `SC-Body.glb` | skeleton mapping + reference pose + camera hint (humanoid-mappable) | RigAndPose, Health, procedural animation |
 
-**`VRM_KHR_Examples/`** — the "hero" character (`khr-character-example.glb`, VRM-origin, consumed via `KHR_character`; `VRMC_*` ignored) plus per-role visibility-hint variants (`-always`, `-first-person`, `-third-person`), used by CharacterShowcase and VisibilityHints.
+**`VRM_KHR_Examples/`** — the "hero" character (`khr-character-example.glb`, VRM-origin, consumed via `KHR_character`; `VRMC_*` ignored) plus per-role visibility-hint variants (`-always`, `-first-person`, `-third-person`), used by CharacterShowcase and VisibilityHints. The hero is pending re-export (caveat C10): its expression entries have no `name` and its look expressions share the eye rotations, so its expression data does not import and the expression demos use the synthetic fallbacks until 0b5vr re-exports it.
 
 **`FromBlender/`** — fixtures authored by the sibling [`khr_character_blender`](https://github.com/kenjimeta/khr_character_blender) addon (one per extension combination, incl. `visibility_hints.glb`), so the importer is tested against Blender-authored wire too.
 
@@ -134,9 +136,11 @@ Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults re
 
 Controller-authored fixtures deliberately carry only `KHR_*` tokens and mark nothing in `extensionsRequired`.
 That is a project policy, not a glTF namespace rule: `EXT_*` is also reserved for Khronos multi-vendor extensions,
-and an extension may be validly required when its specification permits it. Imported passive expression data is
-not treated as controller-authored: export fails closed until a lossless passive writer exists. The RoundTrip demo
-shows both boundaries.
+and an extension may be validly required when its specification permits it. Because nothing is required, a viewer
+without `KHR_character` support (for example the public glTF Sample Viewer) loads the fixtures, but it also lists
+and may auto-play the expression and reference-pose animations as ordinary clips; this testbed's importer keeps
+them out of its clip pickers. Imported passive expression data is not treated as controller-authored: export fails
+closed until a lossless passive writer exists. The RoundTrip demo shows both boundaries.
 
 ---
 

@@ -17,3 +17,12 @@ These committed files are produced by Unity. Regenerate them intentionally with:
 
 Re-run `-Update` whenever you intentionally change the wire, and review the resulting diff in code review. Local
 checks and CI fail closed when a snapshot or committed golden is missing from either side.
+
+`export-goldens.sh` uses `mapfile`, which needs bash 4 or later; macOS ships bash 3.2 as `/bin/bash`. On a Mac, either
+run the script with a newer bash (for example `$(brew --prefix)/bin/bash Tools/ci/export-goldens.sh --update`), or
+run the export directly and copy the snapshots yourself:
+
+```bash
+Unity -batchmode -nographics -quit -projectPath . -executeMethod Samples.Editor.SandboxCI.ExportGoldens -logFile -
+cp Artifacts/snapshots/*.json Tests/Golden/
+```
