@@ -132,11 +132,14 @@ jobs:
   # pinned commit predates them: it still requires KHR_character.rootNode and reads the old expression/_mask/_texture
   # vocabulary, so it reports errors on the conformant fixtures. The job runs, uploads every report, and never fails
   # the workflow; the PlayMode wire checker (SandboxSchemaConformanceTests, gate 2) enforces the current rules
-  # meanwhile. To restore the gate: bump `ref:` below (and docs/ci.md), then drop continue-on-error from the job and
-  # from the Synthetic and FromBlender steps. Keep the VRM_KHR_Examples step non-blocking until the hero is
-  # re-exported (its expression entries lack `name` and its look expressions share the eye rotations).
+  # meanwhile. Keep the job name `glTF-Validator`: branch protection matches required status checks by name, so a
+  # renamed job would leave a required check pending forever, and the step-level continue-on-error already keeps
+  # this check green whatever the validator finds. To restore the gate: bump `ref:` below (and docs/ci.md), then drop
+  # continue-on-error from the job and from the Synthetic and FromBlender steps. Keep the VRM_KHR_Examples step
+  # non-blocking until the hero is re-exported (its expression entries lack `name` and its look expressions share the
+  # eye rotations).
   gltf-validator:
-    name: glTF-Validator (report-only)
+    name: glTF-Validator
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:

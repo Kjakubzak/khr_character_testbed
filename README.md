@@ -33,13 +33,18 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
 
 Use the in-scene **Back to Hub** button to move between demos.
 
-A consumer that supports `KHR_character_expression` also implements its derived extensions (`_morphtarget`,
-`_joint`, `_texture_transform`) and the normative composition stage: each update takes one driver snapshot, samples
-every listed channel at `t = e * T`, and adds the deltas over the authored value (`y = b + sum(s - n)`, no clamp).
-Only how that result mixes with other animation writers is host-defined. Imports are passive by default (the
-`ExpressionResponseSet` computes but writes nothing); only **Expressions**, **GazeAndCamera**, and
-**CharacterShowcase** explicitly opt into UnityGLTF's `ExpressionController`, which applies the composed result to
-blendshapes, transforms, and `MaterialPropertyBlock`s. That scene writing is one Unity integration route among many.
+`KHR_character_expression` defines the response evaluator and a normative composition stage. Each update takes one
+driver snapshot. An entry whose effective driver `e` is positive is sampled at `t = e * T` on each channel the
+consumer supports: a channel listed by a derived extension the consumer supports (`_morphtarget`, `_joint`,
+`_texture_transform`) whose target extensions, such as `KHR_animation_pointer` and `KHR_texture_transform`, it also
+supports. Each derived extension is a separate conformance claim, so a consumer that supports only the base
+extension animates nothing; the `KHR_character` plugin supports all three. Additive components compose over the
+authored value as `y = b + sum(s - n)`, with no clamp. Single-writer properties (node rotation and scale, and
+texture-transform scale) keep their one absolute sample. Only how that result mixes with other animation writers is
+host-defined. Imports are passive by default (the `ExpressionResponseSet` computes but writes nothing); only
+**Expressions**, **GazeAndCamera**, and **CharacterShowcase** explicitly opt into UnityGLTF's `ExpressionController`,
+which applies the composed result to blendshapes, transforms, and `MaterialPropertyBlock`s. That scene writing is
+one Unity integration route among many.
 
 ---
 
