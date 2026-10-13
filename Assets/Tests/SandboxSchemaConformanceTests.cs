@@ -406,7 +406,7 @@ namespace KhrCharacterTestbed.Tests
                                 errors.Add("mapping source does not resolve in KHR_character_expression.expressions.");
                             else if (source?["name"] != null
                                 && (source["name"].Type != JTokenType.String
-                                    || (string)source["name"] != (string)expressions[(int)index]?["expression"]))
+                                    || (string)source["name"] != EntryName(expressions[(int)index])))
                                 errors.Add("mapping name does not match the source expression label.");
                         }
                     }
@@ -430,7 +430,7 @@ namespace KhrCharacterTestbed.Tests
                                 errors.Add("input mapping target does not resolve in KHR_character_expression.expressions.");
                             else if (target?["name"] != null
                                 && (target["name"].Type != JTokenType.String
-                                    || (string)target["name"] != (string)expressions[(int)index]?["expression"]))
+                                    || (string)target["name"] != EntryName(expressions[(int)index])))
                                 errors.Add("input mapping name does not match the target expression label.");
                         }
                     }
@@ -438,6 +438,10 @@ namespace KhrCharacterTestbed.Tests
             }
             return errors;
         }
+
+        // The hero fixtures still carry the legacy `expression` label until they are re-exported.
+        private static string EntryName(JToken expression)
+            => (string)(expression?["name"] ?? expression?["expression"]);
 
         private static void CheckMappingSetIdentifiers(JObject mappingSets, List<string> errors)
         {

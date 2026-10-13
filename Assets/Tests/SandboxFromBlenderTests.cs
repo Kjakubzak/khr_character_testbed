@@ -122,7 +122,7 @@ namespace KhrCharacterTestbed.Tests
                 "KHR_character_expression",
                 "KHR_character_expression_morphtarget",
                 "KHR_character_expression_joint",
-                "KHR_character_expression_mask",
+                "KHR_character_expression_suppression",
                 "KHR_character_expression_mapping",
                 "KHR_character_reference_pose",
                 "KHR_character_skeleton_mapping",

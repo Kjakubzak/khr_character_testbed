@@ -1,5 +1,21 @@
 #!/usr/bin/env python3
-"""Normalize dependency declarations, mapping identifiers, and references in character GLBs."""
+"""Normalize character GLBs written by older exporters to the current KHR_character wire format.
+
+The rewrite is idempotent, so the script is safe to re-run on already normalized files:
+
+- ``KHR_character`` becomes the empty marker ``{}`` (a legacy ``rootNode`` is dropped);
+- an expression entry's legacy ``expression`` label becomes ``name``;
+- ``KHR_character_expression_mask`` / ``masks`` become ``KHR_character_expression_suppression`` /
+  ``suppressions``; a suppression ``name`` is dropped, and so is ``threshold`` on a blend or omitted type;
+- ``KHR_character_expression_texture`` becomes ``KHR_character_expression_texture_transform``;
+- both renames also apply to ``extensionsUsed`` and ``extensionsRequired``;
+- the legacy ``TPose`` / ``APose`` / ``IPose`` labels become ``t_pose`` / ``a_pose`` / ``i_pose``;
+- the unqualified look-at hint ``eyes`` becomes ``ACME_eye_target``;
+- legacy expression-name references become expression indices.
+
+Mapping-set identifiers may be any nonempty string. Exporters SHOULD still use a version-pinned identifier, so
+the short legacy identifiers below are replaced with version-pinned ones.
+"""
 
 import json
 import pathlib
@@ -8,11 +24,29 @@ import sys
 
 
 JSON_CHUNK = 0x4E4F534A
+CHARACTER = "KHR_character"
 EXPRESSION = "KHR_character_expression"
 MAPPING = "KHR_character_expression_mapping"
-MASK = "KHR_character_expression_mask"
+LEGACY_MASK = "KHR_character_expression_mask"
+SUPPRESSION = "KHR_character_expression_suppression"
+LEGACY_TEXTURE = "KHR_character_expression_texture"
+TEXTURE_TRANSFORM = "KHR_character_expression_texture_transform"
+REFERENCE_POSE = "KHR_character_reference_pose"
+LOOKAT_TARGET = "KHR_node_lookat_target"
 SKELETON_MAPPING = "KHR_character_skeleton_mapping"
 XMP = "KHR_xmp_json_ld"
+EXTENSION_RENAMES = {
+    LEGACY_MASK: SUPPRESSION,
+    LEGACY_TEXTURE: TEXTURE_TRANSFORM,
+}
+POSE_LABEL_REPLACEMENTS = {
+    "TPose": "t_pose",
+    "APose": "a_pose",
+    "IPose": "i_pose",
+}
+LOOKAT_HINT_REPLACEMENTS = {
+    "eyes": "ACME_eye_target",
+}
 EXPRESSION_MAPPING_IDENTIFIER_REPLACEMENTS = {
     "ARKit": "https://example.com/expression-vocabularies/arkit/v1",
     "demoVocabulary": "https://example.com/expression-vocabularies/demo/v1",
@@ -33,6 +67,10 @@ SKELETON_MAPPING_IDENTIFIER_REPLACEMENTS = {
 }
 
 
+def entry_name(expression: dict) -> object:
+    return expression["name"] if "name" in expression else expression.get("expression")
+
+
 def expression_indices(root: dict) -> dict[str, int]:
     expression_root = root.get("extensions", {}).get(EXPRESSION, {})
     expressions = expression_root.get("expressions", [])
@@ -41,7 +79,7 @@ def expression_indices(root: dict) -> dict[str, int]:
     for index, expression in enumerate(expressions):
         if not isinstance(expression, dict):
             continue
-        name = expression.get("expression")
+        name = entry_name(expression)
         if not isinstance(name, str):
             continue
         if name in indices:
@@ -75,6 +113,143 @@ def normalize_mapping_identifiers(mapping_sets: object, replacements: dict[str, 
     return changed
 
 
+def rename_key(container: dict, legacy: str, replacement: str, path: str) -> bool:
+    if legacy not in container:
+        return False
+    if replacement in container:
+        raise ValueError(f"{path}: contains both legacy {legacy!r} and replacement {replacement!r}")
+    container[replacement] = container.pop(legacy)
+    return True
+
+
+def rename_declarations(declarations: object) -> bool:
+    if not isinstance(declarations, list):
+        return False
+    changed = False
+    for legacy, replacement in EXTENSION_RENAMES.items():
+        if legacy not in declarations:
+            continue
+        renamed = [replacement if name == legacy else name for name in declarations]
+        deduplicated = []
+        for name in renamed:
+            if name not in deduplicated:
+                deduplicated.append(name)
+        declarations[:] = deduplicated
+        changed = True
+    return changed
+
+
+def normalize_character_marker(extensions: dict) -> bool:
+    marker = extensions.get(CHARACTER)
+    if marker is None:
+        return False
+    if not isinstance(marker, dict):
+        extensions[CHARACTER] = {}
+        return True
+    normalized = {key: value for key, value in marker.items() if key in ("extensions", "extras")}
+    if normalized == marker:
+        return False
+    extensions[CHARACTER] = normalized
+    return True
+
+
+def normalize_suppressions(suppression: object) -> bool:
+    if not isinstance(suppression, dict):
+        return False
+    changed = rename_key(suppression, "masks", "suppressions", SUPPRESSION)
+    entries = suppression.get("suppressions", [])
+    if not isinstance(entries, list):
+        return changed
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        if "name" in entry:
+            del entry["name"]
+            changed = True
+        if "threshold" in entry and entry.get("type", "blend") == "blend":
+            del entry["threshold"]
+            changed = True
+    return changed
+
+
+def normalize_expression_entries(extensions: dict) -> bool:
+    expressions = extensions.get(EXPRESSION, {}).get("expressions", [])
+    if not isinstance(expressions, list):
+        return False
+    changed = False
+    for expression_index, expression in enumerate(expressions):
+        if not isinstance(expression, dict):
+            continue
+        path = f"expressions[{expression_index}]"
+        if "expression" in expression:
+            legacy = expression["expression"]
+            if "name" in expression:
+                if expression["name"] != legacy:
+                    raise ValueError(f"{path}: name {expression['name']!r} differs from legacy expression {legacy!r}")
+                del expression["expression"]
+            else:
+                renamed = {("name" if key == "expression" else key): value for key, value in expression.items()}
+                expression.clear()
+                expression.update(renamed)
+            changed = True
+        entry_extensions = expression.get("extensions")
+        if not isinstance(entry_extensions, dict):
+            continue
+        for legacy, replacement in EXTENSION_RENAMES.items():
+            changed |= rename_key(entry_extensions, legacy, replacement, f"{path}.extensions")
+        changed |= normalize_suppressions(entry_extensions.get(SUPPRESSION))
+    return changed
+
+
+def resolve_suppression_targets(extensions: dict, indices: dict[str, int]) -> bool:
+    expressions = extensions.get(EXPRESSION, {}).get("expressions", [])
+    if not isinstance(expressions, list):
+        return False
+    changed = False
+    for expression_index, expression in enumerate(expressions):
+        if not isinstance(expression, dict):
+            continue
+        suppressions = expression.get("extensions", {}).get(SUPPRESSION, {}).get("suppressions", [])
+        if not isinstance(suppressions, list):
+            continue
+        for suppression_index, suppression in enumerate(suppressions):
+            if not isinstance(suppression, dict) or "target" not in suppression:
+                continue
+            resolved = resolve_legacy_reference(
+                suppression["target"],
+                indices,
+                f"expressions[{expression_index}].suppressions[{suppression_index}].target",
+            )
+            if resolved != suppression["target"]:
+                suppression["target"] = resolved
+                changed = True
+    return changed
+
+
+def normalize_pose_labels(root: dict) -> bool:
+    changed = False
+    for animation in root.get("animations", []):
+        if not isinstance(animation, dict):
+            continue
+        pose = animation.get("extensions", {}).get(REFERENCE_POSE)
+        if isinstance(pose, dict) and pose.get("poseType") in POSE_LABEL_REPLACEMENTS:
+            pose["poseType"] = POSE_LABEL_REPLACEMENTS[pose["poseType"]]
+            changed = True
+    return changed
+
+
+def normalize_lookat_hints(root: dict) -> bool:
+    changed = False
+    for node in root.get("nodes", []):
+        if not isinstance(node, dict):
+            continue
+        target = node.get("extensions", {}).get(LOOKAT_TARGET)
+        if isinstance(target, dict) and target.get("hint") in LOOKAT_HINT_REPLACEMENTS:
+            target["hint"] = LOOKAT_HINT_REPLACEMENTS[target["hint"]]
+            changed = True
+    return changed
+
+
 def normalize_json(root: dict) -> bool:
     changed = False
     used = root.get("extensionsUsed")
@@ -86,27 +261,17 @@ def normalize_json(root: dict) -> bool:
     if isinstance(required, list) and XMP in required and XMP not in root_extensions:
         required.remove(XMP)
         changed = True
+    changed |= rename_declarations(used)
+    changed |= rename_declarations(required)
+
+    extensions = root_extensions
+    changed |= normalize_character_marker(extensions)
+    changed |= normalize_expression_entries(extensions)
+    changed |= normalize_pose_labels(root)
+    changed |= normalize_lookat_hints(root)
 
     indices = expression_indices(root)
-    extensions = root_extensions
-    expression_root = extensions.get(EXPRESSION, {})
-    expressions = expression_root.get("expressions", [])
-    if isinstance(expressions, list):
-        for expression_index, expression in enumerate(expressions):
-            if not isinstance(expression, dict):
-                continue
-            masks = expression.get("extensions", {}).get(MASK, {}).get("masks", [])
-            if not isinstance(masks, list):
-                continue
-            for mask_index, mask in enumerate(masks):
-                if not isinstance(mask, dict) or "target" not in mask:
-                    continue
-                resolved = resolve_legacy_reference(
-                    mask["target"], indices, f"expressions[{expression_index}].masks[{mask_index}].target"
-                )
-                if resolved != mask["target"]:
-                    mask["target"] = resolved
-                    changed = True
+    changed |= resolve_suppression_targets(extensions, indices)
 
     mapping_extension = extensions.get(MAPPING, {})
     mapping_sets = mapping_extension.get("expressionSetMappings", {})
