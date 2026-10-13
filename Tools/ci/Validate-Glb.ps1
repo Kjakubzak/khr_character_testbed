@@ -26,11 +26,11 @@ if (-not $validator) {
 }
 if (-not $validator) {
     if ($Required) {
-        Write-Error "[ci] GATE 3 (glTF-Validator) FAILED -- validator not found and -Required was set. Install:  npm i -g gltf-validator   (or set `$env:GLTF_VALIDATOR)."
+        Write-Error "[ci] GATE 3 (glTF-Validator) FAILED -- validator not found and -Required was set. Set `$env:GLTF_VALIDATOR to the proposal-aware native CLI."
         exit 1
     }
     Write-Warning "[ci] glTF-Validator not found -- SKIPPING GATE 3 (non-fatal)."
-    Write-Warning "[ci] Install:  npm i -g gltf-validator   (or download 'gltf_validator' from KhronosGroup/glTF-Validator releases and set `$env:GLTF_VALIDATOR)."
+    Write-Warning "[ci] Build the pinned proposal-aware validator and set `$env:GLTF_VALIDATOR to its native CLI."
     exit 0
 }
 
@@ -42,18 +42,10 @@ New-Item -ItemType Directory -Force -Path $ReportDir | Out-Null
 $totalErrors = 0; $totalWarnings = 0; $parsed = 0
 
 foreach ($f in $files) {
-    # The Khronos CLI writes a JSON report into the -o directory. Naming varies by version, so glob for it.
-    & $validator -a -o $ReportDir $f.FullName 2>$null | Out-Null
-    $report = Get-ChildItem -LiteralPath $ReportDir -Filter "*$($f.BaseName)*.json" -File -ErrorAction SilentlyContinue | Select-Object -First 1
-
+    $reportPath = Join-Path $ReportDir "$($f.BaseName).report.json"
+    & $validator -a -o $f.FullName 2>$null | Set-Content -LiteralPath $reportPath -Encoding utf8
     $json = $null
-    if ($report) {
-        try { $json = Get-Content -LiteralPath $report.FullName -Raw | ConvertFrom-Json } catch { $json = $null }
-    }
-    if (-not $json) {
-        # Fallback: some builds print the JSON report to stdout instead of a file.
-        try { $json = (& $validator -a -p $f.FullName 2>$null | Out-String) | ConvertFrom-Json } catch { $json = $null }
-    }
+    try { $json = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json } catch { $json = $null }
     if (-not $json -or -not $json.issues) {
         if ($Required) { Write-Error "[ci]   $($f.Name): could not parse a validator report (-Required); failing GATE 3."; exit 1 }
         Write-Warning "[ci]   $($f.Name): could not parse a validator report (skipping this file). Check your gltf_validator version/flags."

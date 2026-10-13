@@ -12,6 +12,19 @@ using UnityGLTF.Plugins;
 
 namespace Samples.Shared
 {
+    /// <summary>How a sample import hosts <c>KHR_character_expression</c> data.</summary>
+    public enum CharacterExpressionHostPolicy
+    {
+        /// <summary>Only the passive <see cref="ExpressionResponseSet"/>; nothing writes the scene.</summary>
+        Passive,
+        /// <summary>Also the optional Unity <see cref="ExpressionController"/> applicator.</summary>
+        LegacyController,
+        /// <summary>
+        /// The controller, and the importer stops the expression and reference-pose clips from auto-playing.
+        /// </summary>
+        LegacyControllerWithAutoPlaySuppression,
+    }
+
     /// <summary>
     /// Shared runtime glTF/GLB loader for the samples. It enables the KHR Character import plugin on the project
     /// settings (so the default import context picks it up), runs a <see cref="GLTFSceneImporter"/>, and returns
@@ -344,6 +357,101 @@ namespace Samples.Shared
         /// </summary>
         public static bool WouldLoadHero => !ForceSyntheticForTests && HeroIsRealGlb;
 
+        /// <summary>
+        /// <see cref="WouldLoadHero"/>, except that a demo using expression features takes its synthetic fallback while
+        /// <see cref="HeroNeedsReexport"/> is true.
+        /// </summary>
+        public static bool WouldLoadHeroFor(bool expressionFeatures)
+            => WouldLoadHero && !(expressionFeatures && HeroNeedsReexport);
+
+        private static bool? _heroNeedsReexport;
+
+        /// <summary>
+        /// True while the committed hero carries expression data that the current <c>KHR_character_expression</c>
+        /// rejects (see <see cref="PendingReexportDefects"/>). The importer then binds none of the hero's expression
+        /// data and logs an error, so demos use the synthetic fallback for expression features (caveat C10). Checked
+        /// once from the hero's JSON; false when the hero is not a real GLB.
+        /// </summary>
+        public static bool HeroNeedsReexport
+        {
+            get
+            {
+                if (!_heroNeedsReexport.HasValue) _heroNeedsReexport = HeroIsRealGlb && NeedsReexport(HeroAbsolutePath);
+                return _heroNeedsReexport.Value;
+            }
+        }
+
+        /// <summary>True when the GLB/glTF at <paramref name="absolutePath"/> has any <see cref="PendingReexportDefects"/>.</summary>
+        public static bool NeedsReexport(string absolutePath)
+        {
+            try
+            {
+                string json = ExtractGltfJson(File.ReadAllBytes(absolutePath));
+                return json != null && PendingReexportDefects(JObject.Parse(json)).Count > 0;
+            }
+            catch (System.Exception e) { Debug.LogException(e); return false; }
+        }
+
+        /// <summary>
+        /// The expression defects that keep the VRM-origin hero from importing until it is re-exported: entries without
+        /// a nonempty <c>name</c>, and a node <c>rotation</c> or <c>scale</c> listed by more than one entry, which is a
+        /// prohibited single-writer conflict (core and <c>KHR_animation_pointer</c> forms name the same property).
+        /// </summary>
+        public static List<string> PendingReexportDefects(JObject root)
+        {
+            var defects = new List<string>();
+            var expressions = root?["extensions"]?["KHR_character_expression"]?["expressions"] as JArray;
+            if (expressions == null) return defects;
+            var animations = root["animations"] as JArray;
+            var listers = new SortedDictionary<string, List<int>>(System.StringComparer.Ordinal);
+            for (int index = 0; index < expressions.Count; index++)
+            {
+                var entry = expressions[index] as JObject;
+                if (entry?["name"]?.Type != JTokenType.String || ((string)entry["name"]).Length == 0)
+                    defects.Add($"expression entry {index} has no name");
+                if (entry?["animation"]?.Type != JTokenType.Integer || animations == null) continue;
+                int animationIndex = (int)entry["animation"];
+                if (animationIndex < 0 || animationIndex >= animations.Count) continue;
+                var channels = animations[animationIndex]?["channels"] as JArray;
+                var listed = new HashSet<string>(System.StringComparer.Ordinal);
+                foreach (var extension in new[] { "KHR_character_expression_joint", "KHR_character_expression_morphtarget" })
+                {
+                    if (!(entry["extensions"]?[extension]?["channels"] is JArray indices) || channels == null) continue;
+                    foreach (var token in indices)
+                    {
+                        if (token.Type != JTokenType.Integer || (int)token < 0 || (int)token >= channels.Count) continue;
+                        string property = NodeTrsProperty(channels[(int)token]?["target"] as JObject);
+                        if (property != null && !property.EndsWith("/translation", System.StringComparison.Ordinal))
+                            listed.Add(property);
+                    }
+                }
+                foreach (var property in listed)
+                {
+                    if (!listers.TryGetValue(property, out var entries)) listers.Add(property, entries = new List<int>());
+                    entries.Add(index);
+                }
+            }
+            foreach (var pair in listers)
+                if (pair.Value.Count > 1)
+                    defects.Add($"single-writer property {pair.Key} is listed by expression entries {string.Join(", ", pair.Value)}");
+            return defects;
+        }
+
+        // "/nodes/{n}/translation|rotation|scale" for a core or pointer node-TRS target, else null.
+        private static string NodeTrsProperty(JObject target)
+        {
+            if (target == null) return null;
+            string path = (string)target["path"];
+            if ((path == "translation" || path == "rotation" || path == "scale")
+                && target["node"]?.Type == JTokenType.Integer)
+                return $"/nodes/{(int)target["node"]}/{path}";
+            if (path != "pointer") return null;
+            var match = System.Text.RegularExpressions.Regex.Match(
+                (string)target["extensions"]?["KHR_animation_pointer"]?["pointer"] ?? string.Empty,
+                "^/nodes/(0|[1-9][0-9]*)/(translation|rotation|scale)$");
+            return match.Success ? $"/nodes/{match.Groups[1].Value}/{match.Groups[2].Value}" : null;
+        }
+
         // The first four bytes of a binary glTF container spell "glTF": g=0x67 l=0x6C T=0x54 F=0x46
         // (the magic 0x676C5446). A Git LFS pointer that was never smudged is a ~130-byte ASCII text file
         // ("version https://git-lfs..."), so it fails this check and reads as NOT a real GLB.
@@ -390,29 +498,46 @@ namespace Samples.Shared
         }
 
         /// <summary>
-        /// Load the demo's character: the local hero (VRM-origin, consumed via KHR_character) when present, else the
-        /// scene-appropriate committed synthetic fallback (e.g. "SC-Face.glb"). Returns the scene root, or null on
-        /// failure. Read <see cref="WouldLoadHero"/> to label which one loaded; show a "Loading…" hint while awaiting
-        /// (the hero is a ~10 MB GLB).
-        /// TODO: if runtime-loading the hero per scene proves slow at validation, switch this to instantiate the
-        /// editor-imported prefab in the editor; keep this runtime LoadAsync path for player builds / fresh clones.
-        /// </summary>
-        /// <summary>
         /// When true, <see cref="LoadDemoCharacterAsync"/> skips the (large) hero and always loads the synthetic
         /// fallback. Smoke tests set this so demo scenes boot fast and deterministically without the ~10 MB hero import.
         /// </summary>
         public static bool ForceSyntheticForTests = false;
 
-        public static Task<GameObject> LoadDemoCharacterAsync(Transform parent, string fallbackSyntheticFileName)
+        /// <summary>
+        /// Load the demo's character: the local hero (VRM-origin, consumed via KHR_character) when present, else the
+        /// scene-appropriate committed synthetic fallback (e.g. "SC-Face.glb"). Returns the scene root, or null on
+        /// failure. Read <see cref="WouldLoadHeroFor"/> with the same <paramref name="expressionFeatures"/> to label
+        /// which one loaded; show a "Loading…" hint while awaiting (the hero is a ~10 MB GLB).
+        /// TODO: if runtime-loading the hero per scene proves slow at validation, switch this to instantiate the
+        /// editor-imported prefab in the editor; keep this runtime LoadAsync path for player builds / fresh clones.
+        /// </summary>
+        /// <param name="expressionFeatures">
+        /// True for a demo that shows expression data; it takes the fallback while <see cref="HeroNeedsReexport"/>.
+        /// </param>
+        public static Task<GameObject> LoadDemoCharacterAsync(
+            Transform parent,
+            string fallbackSyntheticFileName,
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.Passive,
+            bool expressionFeatures = false)
         {
-            string path = WouldLoadHero ? HeroAbsolutePath : SyntheticPath(fallbackSyntheticFileName);
-            return LoadAsync(path, parent);
+            string path = WouldLoadHeroFor(expressionFeatures) ? HeroAbsolutePath : SyntheticPath(fallbackSyntheticFileName);
+            return LoadAsync(path, parent, expressionPolicy);
         }
 
-        /// <summary>A short header noting which demo character loaded (hero vs synthetic fallback) + the VRM caveat.</summary>
-        public static string DemoCharacterBlurb(bool usingHero, string fallbackName) => usingHero
-            ? "Character: hero khr-character-example (VRM-origin — consumed via KHR_character; VRMC_* ignored)."
-            : $"Character: synthetic fallback ({fallbackName}).";
+        /// <summary>
+        /// A short header noting which demo character loaded (hero vs synthetic fallback) + the VRM caveat, and, while
+        /// <see cref="HeroNeedsReexport"/>, that the hero's expression data is not imported (caveat C10).
+        /// </summary>
+        public static string DemoCharacterBlurb(bool usingHero, string fallbackName)
+        {
+            if (usingHero)
+                return "Character: hero khr-character-example (VRM-origin — consumed via KHR_character; VRMC_* ignored)." +
+                       (HeroNeedsReexport ? $" Its expression data is pending re-export and does not import [{HeroCaveatId}]." : string.Empty);
+            return $"Character: synthetic fallback ({fallbackName})." +
+                   (WouldLoadHero && HeroNeedsReexport ? $" The hero's expressions are pending re-export [{HeroCaveatId}]." : string.Empty);
+        }
+
+        private static string HeroCaveatId => Caveats.Id(Caveat.HeroPendingReexport);
 
         /// <summary>
         /// Enable the (disabled-by-default, non-ratified) KHR-Character import plugin (and set its Rig) plus the
@@ -422,7 +547,9 @@ namespace Samples.Shared
         /// visibility-hint plugin here (rather than only as a side effect of the VisibilityHints scene) makes hint
         /// import deterministic regardless of which demo scene ran first.
         /// </summary>
-        public static void EnableImportPlugin(RigImportMode rig = RigImportMode.Humanoid)
+        public static void EnableImportPlugin(
+            RigImportMode rig = RigImportMode.Humanoid,
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.Passive)
         {
             var settings = GLTFSettings.GetOrCreateSettings();
             if (settings == null || settings.ImportPlugins == null) return;
@@ -432,6 +559,10 @@ namespace Samples.Shared
                 {
                     characterImport.Enabled = true;
                     characterImport.Rig = rig;
+                    characterImport.CreateExpressionController =
+                        expressionPolicy != CharacterExpressionHostPolicy.Passive;
+                    characterImport.SuppressNonInteractiveAnimationAutoPlay =
+                        expressionPolicy == CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression;
                 }
                 else if (plugin is VisibilityHintImportPlugin visibilityHint)
                 {
@@ -444,10 +575,13 @@ namespace Samples.Shared
         /// Load a GLB/glTF by absolute path, parenting the result under <paramref name="parent"/> (null = scene
         /// root). Returns the scene root GameObject, or null on failure.
         /// </summary>
-        public static async Task<GameObject> LoadAsync(string absolutePath, Transform parent)
+        public static async Task<GameObject> LoadAsync(
+            string absolutePath,
+            Transform parent,
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.Passive)
         {
             LastLoadedSourcePath = absolutePath;
-            EnableImportPlugin();
+            EnableImportPlugin(expressionPolicy: expressionPolicy);
 
             string directory = Path.GetDirectoryName(absolutePath);
             string fileName = Path.GetFileName(absolutePath);
@@ -493,8 +627,10 @@ namespace Samples.Shared
         /// <summary>
         /// Export a character to an in-memory GLB through the KHR Character export plugin (isolated default settings
         /// with the KHR Character + AnimationPointer export plugins enabled). Also returns the exported
-        /// <see cref="GLTFRoot"/> so callers can inspect neutrality (extensionsUsed / extensionsRequired). The
+        /// <see cref="GLTFRoot"/> so callers can inspect the extension profile (extensionsUsed / extensionsRequired). The
         /// expression animation channels export only under UNITY_EDITOR (the plugin gate), so run this in the editor.
+        /// Imported passive expression data intentionally aborts export because the legacy controller is not a
+        /// lossless source; use this helper only with controller-authored data or characters without expressions.
         /// </summary>
         public static byte[] ExportToGlb(GameObject root, out GLTFRoot exportedRoot)
         {
@@ -513,10 +649,13 @@ namespace Samples.Shared
         /// Re-import a self-contained GLB from an in-memory byte[] (no external data loader needed), parenting the
         /// result under <paramref name="parent"/>. Returns the scene root, or null on failure.
         /// </summary>
-        public static async Task<GameObject> LoadFromBytesAsync(byte[] glb, Transform parent)
+        public static async Task<GameObject> LoadFromBytesAsync(
+            byte[] glb,
+            Transform parent,
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.Passive)
         {
             LastLoadedSourcePath = null; // in-memory re-import has no source file on disk
-            EnableImportPlugin();
+            EnableImportPlugin(expressionPolicy: expressionPolicy);
 
             GameObject tempHost = null;
             GameObject host = parent != null ? parent.gameObject : (tempHost = new GameObject("GltfImportHost"));
@@ -550,7 +689,7 @@ namespace Samples.Shared
 
         /// <summary>
         /// Read the <c>extensionsUsed</c> array from a source GLB/glTF on disk (e.g. a VRM-origin file that lists
-        /// VRMC_* vendor extensions). Used for the "source vs neutral re-export" comparison; it never imports.
+        /// VRMC_* vendor extensions). Used to inspect source provenance before the export-safety check; it never imports.
         /// </summary>
         public static List<string> ReadSourceExtensionsUsed(string absolutePath)
         {
@@ -565,6 +704,44 @@ namespace Samples.Shared
             }
             catch (System.Exception e) { Debug.LogException(e); }
             return result;
+        }
+
+        /// <summary>
+        /// Names of the clips UnityGLTF creates for the source's expression animations (those referenced by
+        /// <c>KHR_character_expression</c> entries) and reference-pose animations (tagged
+        /// <c>KHR_character_reference_pose</c>). They hold response curves and poses rather than playback content, so
+        /// clip pickers leave them out. A clip is named after its animation, or <c>animation:&lt;index&gt;</c>.
+        /// </summary>
+        public static HashSet<string> ReadNonPlaybackClipNames(string absolutePath)
+        {
+            var names = new HashSet<string>(System.StringComparer.Ordinal);
+            try
+            {
+                if (string.IsNullOrEmpty(absolutePath) || !File.Exists(absolutePath)) return names;
+                string json = ExtractGltfJson(File.ReadAllBytes(absolutePath));
+                if (json == null) return names;
+                var root = JObject.Parse(json);
+                if (!(root["animations"] is JArray animations)) return names;
+                var indices = new HashSet<int>();
+                if (root["extensions"]?["KHR_character_expression"]?["expressions"] is JArray expressions)
+                    foreach (var entry in expressions)
+                        if (entry?["animation"]?.Type == JTokenType.Integer) indices.Add((int)entry["animation"]);
+                for (int index = 0; index < animations.Count; index++)
+                    if (animations[index]?["extensions"]?["KHR_character_reference_pose"] != null) indices.Add(index);
+                foreach (int index in indices)
+                    if (index >= 0 && index < animations.Count)
+                        names.Add((string)animations[index]?["name"] ?? $"animation:{index}");
+            }
+            catch (System.Exception e) { Debug.LogException(e); }
+            return names;
+        }
+
+        public static GLTFRoot ReadGltfRoot(string absolutePath)
+        {
+            string json = ExtractGltfJson(File.ReadAllBytes(absolutePath));
+            if (json == null) throw new InvalidDataException($"'{absolutePath}' has no glTF JSON document.");
+            using (var reader = new StringReader(json))
+                return GLTFRoot.Deserialize(reader);
         }
 
         // Returns the JSON chunk of a binary GLB, or the whole file when it is already a .gltf JSON document.

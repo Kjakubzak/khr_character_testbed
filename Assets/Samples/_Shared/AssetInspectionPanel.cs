@@ -126,8 +126,16 @@ namespace Samples.Shared
         private void AddExpressionSection()
         {
             var expressions = _hub.Expressions;
+            var responses = _hub.ExpressionResponses;
             _ui.AddLabel("[Expressions]");
-            if (expressions == null) { _ui.AddLabel("(none)"); return; }
+            AddDerivedExpressionTypes();
+            if (responses != null) _ui.AddLabel($"Passive responses: {responses.Count} (array-indexed)");
+            if (expressions == null)
+            {
+                if (responses == null) _ui.AddLabel("(none)");
+                else _ui.AddLabel("Unity controller adapter: not selected");
+                return;
+            }
 
             var handles = expressions.Expressions;
             int morph = 0, joint = 0, texture = 0, binary = 0;
@@ -140,17 +148,45 @@ namespace Samples.Shared
                     if (handle.IsBinary) binary++;
                 }
 
-            _ui.AddLabel($"Count: {expressions.Count}");
-            _ui.AddLabel($"  Morph {morph} \u00b7 Joint {joint} \u00b7 Tex {texture}");
+            _ui.AddLabel($"Unity controller adapter: {expressions.Count}");
+            _ui.AddLabel($"  Morph {morph} \u00b7 Joint {joint} \u00b7 TexTransform {texture}");
             _ui.AddLabel($"  Binary: {binary}");
-            AddVocabularies(expressions.VocabularySets);
+            AddVocabularies("Output vocabulary sets", expressions.OutputVocabularySets);
+            AddVocabularies("Input vocabulary sets", expressions.InputVocabularySets);
             AddExpressionNames(handles);
         }
 
-        private void AddVocabularies(IReadOnlyList<string> vocabularies)
+        // The expression types the source declares in extensionsUsed, and whether this importer animates their channels.
+        private void AddDerivedExpressionTypes()
+        {
+            var used = CharacterLoader.ReadSourceExtensionsUsed(CharacterLoader.LastLoadedSourcePath);
+            var types = new List<string>();
+            foreach (var extension in used)
+            {
+                bool registered = ExpressionDerivedExtensionRegistry.Default.TryGet(extension, out var derived);
+                if (registered && !derived.ListsChannels) continue;
+                if (!registered && !extension.StartsWith("KHR_character_expression_", System.StringComparison.Ordinal)) continue;
+                if (extension == "KHR_character_expression_mapping") continue;
+                types.Add($"{ShortExpressionType(extension)} ({(registered && derived.IsSupported ? "supported" : "unsupported")})");
+            }
+            if (types.Count > 0) _ui.AddLabel($"Types: {string.Join(", ", types)}");
+        }
+
+        private static string ShortExpressionType(string extension)
+        {
+            switch (extension)
+            {
+                case "KHR_character_expression_morphtarget": return "Morph";
+                case "KHR_character_expression_joint": return "Joint";
+                case "KHR_character_expression_texture_transform": return "TexTransform";
+                default: return extension;
+            }
+        }
+
+        private void AddVocabularies(string label, IReadOnlyList<string> vocabularies)
         {
             if (vocabularies == null || vocabularies.Count == 0) return;
-            _ui.AddLabel($"Vocab sets: {string.Join(", ", vocabularies)}");
+            _ui.AddLabel($"{label}: {string.Join(", ", vocabularies)}");
         }
 
         private void AddExpressionNames(IReadOnlyList<ExpressionController.ExpressionHandle> handles)
@@ -175,6 +211,10 @@ namespace Samples.Shared
             _ui.AddLabel($"Humanoid: {skeleton.HumanoidAvailable}");
             if (skeleton.RigVocabularies != null && skeleton.RigVocabularies.Count > 0)
                 _ui.AddLabel($"Rig: {string.Join(", ", skeleton.RigVocabularies)}");
+            foreach (var pose in skeleton.ReferencePoses)
+                if (pose != null)
+                    _ui.AddLabel($"Reference pose (animation {pose.AnimationIndex}): {pose.PoseType}" +
+                                 (pose.IsValid ? string.Empty : " (invalid)"));
         }
 
         private void AddCameraHintSection()
@@ -183,22 +223,23 @@ namespace Samples.Shared
             _ui.AddLabel("[Camera hints]");
             if (hints == null || hints.Hints == null || hints.Hints.Count == 0) { _ui.AddLabel("(none)"); return; }
 
+            // A diagnostic view lists every hint, including unrecognized custom roles that menus leave out.
             _ui.AddLabel($"Count: {hints.Hints.Count}");
             foreach (var hint in hints.Hints)
             {
                 if (hint == null) continue;
                 string role = string.IsNullOrEmpty(hint.Role) ? "(role?)" : hint.Role;
-                string label = string.IsNullOrEmpty(hint.Label) ? string.Empty : $" \u2014 {hint.Label}";
-                _ui.AddLabel($"  {role}{label}");
+                string custom = hints.IsRecognizedRole(hint.Role) ? string.Empty : ", custom";
+                _ui.AddLabel($"  {hints.GetDisplayName(hint)} ({role}{custom})");
             }
         }
 
         private void AddGazeSection()
         {
-            var gaze = _hub.Gaze;
-            _ui.AddLabel("[Gaze]");
-            int targets = gaze != null && gaze.AuthoredTargets != null ? gaze.AuthoredTargets.Count : 0;
-            _ui.AddLabel($"Authored targets: {targets}");
+            var targets = _hub.LookAtTargets;
+            _ui.AddLabel("[Look-at target metadata]");
+            int count = targets?.Targets != null ? targets.Targets.Count : 0;
+            _ui.AddLabel($"Authored targets: {count}");
         }
 
         private void AddGeometrySection()

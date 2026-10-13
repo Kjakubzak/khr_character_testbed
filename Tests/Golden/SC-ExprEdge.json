@@ -294,53 +294,48 @@
     {}
   ],
   "extensions": {
-    "KHR_character": {
-      "rootNode": 0
-    },
+    "KHR_character": {},
     "KHR_character_expression": {
       "expressions": [
         {
           "animation": 0,
-          "expression": "edgeA",
           "extensions": {
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
             }
-          }
+          },
+          "name": "edgeA"
         },
         {
           "animation": 1,
-          "expression": "edgeB",
           "extensions": {
-            "KHR_character_expression_mask": {
-              "masks": [
-                {
-                  "amount": 1.0,
-                  "target": 0,
-                  "threshold": 0.0,
-                  "type": "block"
-                }
-              ]
-            },
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
+            },
+            "KHR_character_expression_suppression": {
+              "suppressions": [
+                {
+                  "target": 0,
+                  "type": "block"
+                }
+              ]
             }
-          }
+          },
+          "name": "edgeB"
         }
       ]
     }
   },
   "extensionsUsed": [
     "KHR_character",
-    "KHR_xmp_json_ld",
     "KHR_animation_pointer",
     "KHR_character_expression",
     "KHR_character_expression_morphtarget",
-    "KHR_character_expression_mask"
+    "KHR_character_expression_suppression"
   ],
   "materials": [
     {

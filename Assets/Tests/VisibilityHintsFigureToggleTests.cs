@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Samples.VisibilityHints;
 using UnityEngine;
@@ -8,20 +9,26 @@ using UnityGLTF.VisibilityHints;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Confirms the view-context visibility hints drive BOTH hint types when <see cref="ViewContextController.Mode"/>
-    /// is toggled, exercising the demo's public <see cref="VisibilityHintsController.BuildSampleFigure"/> (the same
-    /// runtime wiring a runtime-imported VH asset uses). Complements <see cref="SandboxVisibilityHintsTests"/> (which
-    /// only checks one node hint on the demo scene): here both node roles and the primitive hint are asserted.
+    /// Confirms the optional material host route realizes both passive hint types inside an explicit render scope,
+    /// exercising the demo's public <see cref="VisibilityHintsController.BuildSampleFigure"/>. Complements
+    /// <see cref="SandboxVisibilityHintsTests"/>, which verifies the evaluator itself is non-mutating.
     /// <list type="bullet">
-    /// <item>Node hint <c>third_person</c> (Head): <c>renderer.enabled</c> follows ThirdPerson.</item>
-    /// <item>Node hint <c>first_person</c> (Arms): <c>renderer.enabled</c> follows FirstPerson.</item>
-    /// <item>Primitive hint <c>third_person</c> (Mask sub-mesh 1): the faceplate sub-mesh material swaps to/from
-    /// the shared invisible material (visible in third person, hidden in first person).</item>
+    /// <item>Node hints replace all material slots only within a view where their predicate is false.</item>
+    /// <item>The primitive hint replaces only the targeted faceplate slot.</item>
+    /// <item>A view's tag set decides the standard roles: an untagged view shows only <c>always</c> and un-hinted
+    /// content; custom or differently cased roles are hidden unless the host supports them.</item>
+    /// <item>Disposing each scope restores every authored material and never toggles Renderer.enabled.</item>
     /// </list>
     /// </summary>
     public class VisibilityHintsFigureToggleTests
     {
+        private static readonly string[] Untagged = new string[0];
+        private static readonly string[] ThirdPerson = { "third_person" };
+        private static readonly string[] FirstPerson = { "first_person" };
+        private static readonly string[] BothTags = { "first_person", "third_person" };
+
         private GameObject _figure;
+        private ScopedMaterialVisibilityAdapter _adapter;
 
         [UnityTearDown]
         public IEnumerator Cleanup()
@@ -31,48 +38,151 @@ namespace KhrCharacterTestbed.Tests
             yield return null;
         }
 
-        [UnityTest]
-        public IEnumerator SampleFigure_TogglesNodeAndPrimitiveHintsByViewContext()
+        [Test]
+        public void SampleFigure_ScopesNodeAndPrimitiveHintsByViewTags()
         {
-            _figure = VisibilityHintsController.BuildSampleFigure(null);
-            Assert.IsNotNull(_figure, "BuildSampleFigure should return a figure root.");
-            yield return null; // let the initial (ThirdPerson) state settle
-
-            var view = _figure.GetComponent<ViewContextController>();
-            Assert.IsNotNull(view, "the figure should carry a ViewContextController.");
-            Assert.IsNotNull(_figure.GetComponent<NodeVisibilityHintSet>(), "the figure should carry a NodeVisibilityHintSet.");
-            Assert.IsNotNull(_figure.GetComponent<PrimitiveVisibilityHintSet>(), "the figure should carry a PrimitiveVisibilityHintSet.");
-
+            BuildFigure();
             var head = RendererFor("Head");    // node hint: third_person
             var arms = RendererFor("Arms");    // node hint: first_person
             var mask = RendererFor("Mask");    // primitive hint on sub-mesh 1: third_person
             var torso = RendererFor("Torso");  // no hint: always visible
             Assert.AreEqual(2, mask.sharedMaterials.Length, "Mask should have two sub-mesh material slots.");
 
-            var invisible = InvisibleMaterialCache.Get();
-            bool MaskShellHidden() => ReferenceEquals(mask.sharedMaterials[1], invisible);
+            var renderers = new[] { head, arms, mask, torso };
+            var headMaterial = head.sharedMaterial;
+            var armsMaterial = arms.sharedMaterial;
+            var maskMaterials = mask.sharedMaterials;
+            var torsoMaterial = torso.sharedMaterial;
 
-            // --- Default view: ThirdPerson ---
-            Assert.AreEqual(ViewContextController.ViewContext.ThirdPerson, view.Mode, "figure should start in ThirdPerson.");
-            Assert.IsTrue(head.enabled, "node hint: third_person Head should be VISIBLE in ThirdPerson.");
-            Assert.IsFalse(arms.enabled, "node hint: first_person Arms should be HIDDEN in ThirdPerson.");
-            Assert.IsFalse(MaskShellHidden(), "primitive hint: third_person Mask shell should be VISIBLE (authored material) in ThirdPerson.");
-            Assert.IsTrue(torso.enabled, "unhinted Torso should always be visible.");
+            using (_adapter.ApplyForView(renderers, ThirdPerson, CoreVisible))
+            {
+                Assert.IsFalse(Hidden(head), "third_person Head should render in the third-person scope.");
+                Assert.IsTrue(Hidden(arms), "first_person Arms should be suppressed in the third-person scope.");
+                Assert.IsFalse(Hidden(mask, 1), "third_person Mask shell should render in the third-person scope.");
+                Assert.IsFalse(Hidden(torso), "unhinted Torso should always render.");
+                Assert.IsTrue(head.enabled && arms.enabled && mask.enabled && torso.enabled,
+                    "the material route must not toggle Renderer.enabled.");
+            }
 
-            // --- Toggle to FirstPerson ---
-            view.Mode = ViewContextController.ViewContext.FirstPerson;
-            yield return null;
-            Assert.IsFalse(head.enabled, "node hint: Head should HIDE in FirstPerson.");
-            Assert.IsTrue(arms.enabled, "node hint: Arms should SHOW in FirstPerson.");
-            Assert.IsTrue(MaskShellHidden(), "primitive hint: Mask shell should HIDE (invisible material) in FirstPerson.");
-            Assert.IsTrue(torso.enabled, "unhinted Torso should stay visible in FirstPerson.");
+            CollectionAssert.AreEqual(new[] { headMaterial }, head.sharedMaterials);
+            CollectionAssert.AreEqual(new[] { armsMaterial }, arms.sharedMaterials);
+            CollectionAssert.AreEqual(maskMaterials, mask.sharedMaterials);
+            CollectionAssert.AreEqual(new[] { torsoMaterial }, torso.sharedMaterials);
 
-            // --- Toggle back to ThirdPerson ---
-            view.Mode = ViewContextController.ViewContext.ThirdPerson;
-            yield return null;
-            Assert.IsTrue(head.enabled, "node hint: Head should RESTORE to visible in ThirdPerson.");
-            Assert.IsFalse(arms.enabled, "node hint: Arms should HIDE again in ThirdPerson.");
-            Assert.IsFalse(MaskShellHidden(), "primitive hint: Mask shell should be VISIBLE again in ThirdPerson.");
+            using (_adapter.ApplyForView(renderers, FirstPerson, CoreVisible))
+            {
+                Assert.IsTrue(Hidden(head), "third_person Head should be suppressed in the first-person scope.");
+                Assert.IsFalse(Hidden(arms), "first_person Arms should render in the first-person scope.");
+                Assert.IsTrue(Hidden(mask, 1), "third_person Mask shell should be suppressed in the first-person scope.");
+                Assert.IsFalse(Hidden(torso));
+            }
+
+            CollectionAssert.AreEqual(new[] { headMaterial }, head.sharedMaterials);
+            CollectionAssert.AreEqual(new[] { armsMaterial }, arms.sharedMaterials);
+            CollectionAssert.AreEqual(maskMaterials, mask.sharedMaterials);
+            CollectionAssert.AreEqual(new[] { torsoMaterial }, torso.sharedMaterials);
+        }
+
+        [Test]
+        public void SampleFigure_UntaggedViewShowsOnlyUnhintedAndAlwaysContent()
+        {
+            BuildFigure();
+            var head = RendererFor("Head");
+            var arms = RendererFor("Arms");
+            var mask = RendererFor("Mask");
+            var torso = RendererFor("Torso");
+
+            using (_adapter.ApplyForView(new[] { head, arms, mask, torso }, Untagged, CoreVisible))
+            {
+                Assert.IsTrue(Hidden(head), "third_person Head needs a third_person view tag.");
+                Assert.IsTrue(Hidden(arms), "first_person Arms need a first_person view tag.");
+                Assert.IsTrue(Hidden(mask, 1), "the third_person Mask shell needs a third_person view tag.");
+                Assert.IsFalse(Hidden(mask, 0), "the unhinted Mask strap renders in every view.");
+                Assert.IsFalse(Hidden(torso), "the unhinted Torso renders in every view.");
+            }
+        }
+
+        [Test]
+        public void SampleFigure_ViewWithBothTagsShowsEverything()
+        {
+            BuildFigure();
+            var head = RendererFor("Head");
+            var arms = RendererFor("Arms");
+            var mask = RendererFor("Mask");
+            var torso = RendererFor("Torso");
+
+            using (_adapter.ApplyForView(new[] { head, arms, mask, torso }, BothTags, CoreVisible))
+            {
+                Assert.IsFalse(Hidden(head));
+                Assert.IsFalse(Hidden(arms));
+                Assert.IsFalse(Hidden(mask, 0));
+                Assert.IsFalse(Hidden(mask, 1));
+                Assert.IsFalse(Hidden(torso));
+            }
+        }
+
+        [Test]
+        public void SampleFigure_CustomRolesAreHiddenInEveryStandardView()
+        {
+            BuildFigure();
+            var mirrorOnly = AddHintedPart("MirrorDetail", "ACME_mirror_only");
+            var cased = AddHintedPart("CasedDetail", "First_Person");
+            var renderers = new[] { mirrorOnly, cased };
+
+            foreach (var tags in new[] { Untagged, ThirdPerson, FirstPerson, BothTags })
+                using (_adapter.ApplyForView(renderers, tags, CoreVisible))
+                {
+                    string viewName = $"{{{string.Join(", ", tags)}}}";
+                    Assert.IsTrue(Hidden(mirrorOnly), $"the unsupported custom role ACME_mirror_only must be hidden in {viewName}.");
+                    Assert.IsTrue(Hidden(cased), $"'First_Person' is a custom role, not first_person, and must be hidden in {viewName}.");
+                }
+
+            // The application may choose to render content whose role it does not support.
+            _figure.GetComponent<ViewContextController>().RenderUnsupportedRoles = true;
+            using (_adapter.ApplyForView(renderers, ThirdPerson, CoreVisible))
+            {
+                Assert.IsFalse(Hidden(mirrorOnly));
+                Assert.IsFalse(Hidden(cased));
+            }
+        }
+
+        private void BuildFigure()
+        {
+            _figure = VisibilityHintsController.BuildSampleFigure(null);
+            Assert.IsNotNull(_figure, "BuildSampleFigure should return a figure root.");
+            Assert.IsNotNull(_figure.GetComponent<ViewContextController>(), "the figure should carry a ViewContextController.");
+            Assert.IsNotNull(_figure.GetComponent<NodeVisibilityHintSet>(), "the figure should carry a NodeVisibilityHintSet.");
+            Assert.IsNotNull(_figure.GetComponent<PrimitiveVisibilityHintSet>(), "the figure should carry a PrimitiveVisibilityHintSet.");
+            _adapter = _figure.GetComponent<ScopedMaterialVisibilityAdapter>();
+            Assert.IsNotNull(_adapter, "the sample figure should explicitly install the optional material adapter.");
+            Assert.IsNotNull(_adapter.NoDrawMaterial, "the material route requires a pipeline-compatible no-draw material.");
+        }
+
+        // Adds a renderer under the figure whose node carries the given role, keeping the authored hints.
+        private Renderer AddHintedPart(string name, string role)
+        {
+            var part = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            part.name = name;
+            part.transform.SetParent(_figure.transform, false);
+            var renderer = part.GetComponent<Renderer>();
+            renderer.sharedMaterial = RendererFor("Torso").sharedMaterial;
+
+            var hints = _figure.GetComponent<NodeVisibilityHintSet>();
+            var entries = new List<NodeVisibilityHintSet.NodeVisibilityEntry>(hints.Entries)
+            {
+                new NodeVisibilityHintSet.NodeVisibilityEntry { Node = part.transform, Role = role },
+            };
+            hints.Bind(entries);
+            return renderer;
+        }
+
+        private bool Hidden(Renderer renderer, int slot = 0)
+            => ReferenceEquals(renderer.sharedMaterials[slot], _adapter.NoDrawMaterial);
+
+        private static bool CoreVisible(Transform node)
+        {
+            var renderer = node.GetComponent<Renderer>();
+            return renderer == null || renderer.enabled;
         }
 
         private Renderer RendererFor(string name)

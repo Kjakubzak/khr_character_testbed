@@ -32,11 +32,11 @@ namespace Samples.Characters
             {
                 var ui = gameObject.AddComponent<DemoUiBuilder>();   // or reuse the scene's panel
                 var ec = c.Expressions;
-                // index-based writes — never foreach over Expressions while calling SetWeight
+                // bind each slider to its array index: expression names need not be unique
                 for (int i = 0; i < ec.Expressions.Count; i++)
                 {
-                    var h = ec.Expressions[i];
-                    ui.AddSlider(h.Name, v => ec.SetWeight(h.Name, v));
+                    int index = i;
+                    ui.AddSlider(ec.Expressions[index].Name, v => ec.SetWeight(index, v));
                 }
             });
         }

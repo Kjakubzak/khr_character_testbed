@@ -13,7 +13,7 @@ namespace Samples.Characters
     /// <see cref="HealthPanel"/> (driven by <see cref="KhrCharacter.GetHealth"/>). A picker switches between the
     /// default demo character and shipped fixtures chosen to make the tri-state observable: SC-Body (a full skeleton
     /// mapping → SkeletonMapping Active), SC-Partial (a minimal character → most capabilities simply absent), and
-    /// SC-Degraded (a skeleton mapping missing a required bone → SkeletonMapping Degraded).
+    /// SC-Degraded (a mapping missing a Unity Humanoid adapter-required role → SkeletonMapping Degraded).
     /// </summary>
     public class HealthController : DemoControllerBase
     {
@@ -39,14 +39,14 @@ namespace Samples.Characters
             _ui = CreatePanel("Health");
             _ui.AddLabel("Capability health for the loaded character (Active / Degraded / Inert).");
             _ui.AddLabel("Pick a character to see the tri-state vary: SC-Partial omits capabilities; " +
-                         "SC-Degraded's skeleton mapping is missing a required bone.");
+                         "SC-Degraded's mapping is missing a Unity Humanoid adapter-required role.");
 
             var options = new List<string>();
             foreach (var c in Choices) options.Add(c.Label);
             _ui.AddDropdown("Character", options, i => { _ = LoadChoice(i); }, 0);
             _healthText = _ui.AddLabel("Loading ...");
 
-            Caveats.Render(_ui, Caveat.Draft, Caveat.SkeletonGracefulDegrade, Caveat.HeroNonCommercial);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft, Caveat.SkeletonGracefulDegrade, Caveat.HeroNonCommercial));
 
             await LoadChoice(0);
         }
@@ -73,8 +73,10 @@ namespace Samples.Characters
                 {
                     if (index == 0)
                     {
+                        // Health reports expression capabilities, so a hero pending re-export is not the default.
                         scene = string.IsNullOrEmpty(GlbPath)
-                            ? await CharacterLoader.LoadDemoCharacterAsync(_root, fallbackFile)
+                            ? await CharacterLoader.LoadDemoCharacterAsync(
+                                _root, fallbackFile, expressionFeatures: true)
                             : await CharacterLoader.LoadAsync(GlbPath, _root);
                     }
                     else

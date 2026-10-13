@@ -183,28 +183,25 @@
     {}
   ],
   "extensions": {
-    "KHR_character": {
-      "rootNode": 0
-    },
+    "KHR_character": {},
     "KHR_character_expression": {
       "expressions": [
         {
           "animation": 0,
-          "expression": "blink",
           "extensions": {
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
             }
-          }
+          },
+          "name": "blink"
         }
       ]
     }
   },
   "extensionsUsed": [
     "KHR_character",
-    "KHR_xmp_json_ld",
     "KHR_animation_pointer",
     "KHR_character_expression",
     "KHR_character_expression_morphtarget"

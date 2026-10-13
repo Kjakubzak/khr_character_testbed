@@ -78,7 +78,7 @@ namespace Samples.Characters
 
             _status = _ui.AddLabel(string.Empty);
 
-            Caveats.Render(_ui, Caveat.Draft, Caveat.CubicSplineToLinear);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft, Caveat.CubicSplineToLinear));
         }
 
         // ── Dropdown builders ────────────────────────────────────────────
@@ -221,11 +221,24 @@ namespace Samples.Characters
                 _status.text = $"Loading {System.IO.Path.GetFileName(path)} ...";
                 try
                 {
-                    _currentCharacter = await CharacterLoader.LoadAsync(path, _contentRoot);
+                    // This sandbox selects Unity's animation host as the sole scene-target owner. Passive character
+                    // response metadata remains available, but no standalone expression controller competes with
+                    // the clip the user chooses below.
+                    _currentCharacter = await CharacterLoader.LoadAsync(
+                        path,
+                        _contentRoot,
+                        CharacterExpressionHostPolicy.Passive);
                 }
                 catch (System.Exception e) { Debug.LogException(e); if (this != null && _status != null) _status.text = "Load failed: " + e.Message; return; }
                 if (this == null) return; // scene changed / object destroyed mid-import
                 if (_currentCharacter == null) { _status.text = "Load failed (no scene)."; return; }
+
+                var importedAnimation = _currentCharacter.GetComponentInChildren<Animation>(true);
+                if (importedAnimation != null)
+                {
+                    importedAnimation.Stop();
+                    importedAnimation.playAutomatically = false;
+                }
 
                 CaptureBindPose(_currentCharacter);
                 FrameScene(_currentCharacter);
@@ -233,10 +246,12 @@ namespace Samples.Characters
                 _status.text = "Character loaded. Rig mode defaults to Generic (right for the shipped clips). Bind + Play.";
 
                 // Register a per-character clip source so its embedded animations flow into the clip
-                // dropdown. Removed on the next character load (see above).
+                // dropdown. Removed on the next character load (see above). Expression and reference-pose clips
+                // are response curves and poses, not playback content, so they stay out of the list.
                 var captured = _currentCharacter;
+                var nonPlayback = CharacterLoader.ReadNonPlaybackClipNames(path);
                 AnimationClipCatalog.TryRegister("Character",
-                    () => AnimationBinder.EnumerateCharacterClips(captured), autoDetected: false);
+                    () => AnimationBinder.EnumerateCharacterClips(captured, nonPlayback), autoDetected: false);
 
                 // Register a per-character PROCEDURAL source that resolves paths from the KHR
                 // skeleton_mapping — so procedural clips actually drive the loaded character's bones

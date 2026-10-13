@@ -1565,10 +1565,10 @@
       ],
       "extensions": {
         "KHR_character_reference_pose": {
-          "poseType": "TPose"
+          "poseType": "t_pose"
         }
       },
-      "name": "ReferencePose_TPose",
+      "name": "ReferencePose_t_pose",
       "samplers": [
         {
           "input": 0,
@@ -2209,41 +2209,95 @@
     {}
   ],
   "extensions": {
-    "KHR_character": {
-      "rootNode": 0
-    },
+    "KHR_character": {},
     "KHR_character_skeleton_mapping": {
       "skeletalRigMappings": {
-        "unityHumanoid": {
-          "chest": 3,
-          "head": 5,
-          "hips": 1,
-          "leftFoot": 16,
-          "leftHand": 9,
-          "leftLowerArm": 8,
-          "leftLowerLeg": 15,
-          "leftShoulder": 6,
-          "leftUpperArm": 7,
-          "leftUpperLeg": 14,
-          "neck": 4,
-          "rightFoot": 19,
-          "rightHand": 13,
-          "rightLowerArm": 12,
-          "rightLowerLeg": 18,
-          "rightShoulder": 10,
-          "rightUpperArm": 11,
-          "rightUpperLeg": 17,
-          "spine": 2
+        "https://example.com/skeleton-vocabularies/unity-humanoid/v1": {
+          "chest": {
+            "name": "Chest",
+            "node": 3
+          },
+          "head": {
+            "name": "Head",
+            "node": 5
+          },
+          "hips": {
+            "name": "Hips",
+            "node": 1
+          },
+          "leftFoot": {
+            "name": "LeftFoot",
+            "node": 16
+          },
+          "leftHand": {
+            "name": "LeftHand",
+            "node": 9
+          },
+          "leftLowerArm": {
+            "name": "LeftLowerArm",
+            "node": 8
+          },
+          "leftLowerLeg": {
+            "name": "LeftLowerLeg",
+            "node": 15
+          },
+          "leftShoulder": {
+            "name": "LeftShoulder",
+            "node": 6
+          },
+          "leftUpperArm": {
+            "name": "LeftUpperArm",
+            "node": 7
+          },
+          "leftUpperLeg": {
+            "name": "LeftUpperLeg",
+            "node": 14
+          },
+          "neck": {
+            "name": "Neck",
+            "node": 4
+          },
+          "rightFoot": {
+            "name": "RightFoot",
+            "node": 19
+          },
+          "rightHand": {
+            "name": "RightHand",
+            "node": 13
+          },
+          "rightLowerArm": {
+            "name": "RightLowerArm",
+            "node": 12
+          },
+          "rightLowerLeg": {
+            "name": "RightLowerLeg",
+            "node": 18
+          },
+          "rightShoulder": {
+            "name": "RightShoulder",
+            "node": 10
+          },
+          "rightUpperArm": {
+            "name": "RightUpperArm",
+            "node": 11
+          },
+          "rightUpperLeg": {
+            "name": "RightUpperLeg",
+            "node": 17
+          },
+          "spine": {
+            "name": "Spine",
+            "node": 2
+          }
         }
       }
     }
   },
   "extensionsUsed": [
+    "KHR_node_camera_hint",
     "KHR_character",
-    "KHR_xmp_json_ld",
     "KHR_character_skeleton_mapping",
-    "KHR_character_reference_pose",
-    "KHR_node_camera_hint"
+    "KHR_character_reference_pose"
   ],
   "nodes": [
     {

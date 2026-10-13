@@ -19,12 +19,12 @@ namespace Samples.Editor
     /// editor assembly.
     ///
     /// - SC-Face       : head mesh + 6 morph expressions (incl. lookL/R/U/D) + a jaw joint.
-    /// - SC-FacePlus   : SC-Face + a texture expression (UV transform) on a distinct material.
-    /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + TPose reference pose + a camera hint.
-    /// - SC-LookAt     : a KHR_character root + GazeSolver AuthoredTargets that mark nodes as KHR_node_lookat_target.
-    /// - SC-Partial    : a KHR_character root with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
-    /// - SC-PseudoVRM  : SC-Partial post-processed to carry synthetic VRMC_* vendor tokens (always-on neutralization gate).
-    /// - SC-ExprEdge   : two morph expressions where one BLOCK-masks the other (mask-domain edge: block vs blend).
+    /// - SC-FacePlus   : SC-Face + a texture-transform expression (UV offset) on a distinct material.
+    /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + t_pose reference pose + a camera hint.
+    /// - SC-LookAt     : a KHR_character marker + passive LookAtTargetSet metadata on ordinary target nodes.
+    /// - SC-Partial    : a KHR_character marker with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
+    /// - SC-PseudoVRM  : SC-Partial post-processed with synthetic VRMC_* tokens for import/export-safety coverage.
+    /// - SC-ExprEdge   : two morph expressions where one BLOCK-suppresses the other (suppression edge: block vs blend).
     /// - VH-Node       : a Head node carrying KHR_node_visibility_hint (third_person) - a node-scoped hint only.
     /// - VH-Primitive  : a two-sub-mesh Body whose sub-mesh 1 carries KHR_mesh_primitive_visibility_hint (first_person).
     /// - VH-ViewContext: both visibility-hint extensions on one hierarchy (Head node hint + Body sub-mesh hint).
@@ -32,6 +32,10 @@ namespace Samples.Editor
     public static class SampleCharacterFactory
     {
         private const string DefaultOutputDirectory = "Assets/SampleAssets/Synthetic";
+        private const string DemoExpressionVocabulary =
+            "https://example.com/expression-vocabularies/demo/v1";
+        private const string UnityHumanoidVocabulary =
+            "https://example.com/skeleton-vocabularies/unity-humanoid/v1";
 
         // Blendshape order defines the blendshape index each MorphDriver targets. "smile" (index 6) is added by
         // BuildHeadMesh after these six and is driven by the custom "happy" expression (not one of these auto-tracks).
@@ -134,8 +138,8 @@ namespace Samples.Editor
         /// <summary>
         /// Build SC-PseudoVRM: a real, importable KHR_character (the SC-Partial body) whose exported GLB is then
         /// post-processed to inject synthetic <c>VRMC_*</c> vendor tokens into extensionsUsed + a stub root extension,
-        /// so it reads like a VRM-origin asset. CC0/synthetic - NOT a real VRM. Used by the always-on neutralization
-        /// gate (source carries VRMC_*; a KHR re-export drops them).
+        /// so it reads like a VRM-origin asset. CC0/synthetic - NOT a real VRM. Used to prove that importing
+        /// expressions never enables a silent lossy controller-based re-export.
         /// </summary>
         [SampleCharacter("SC-PseudoVRM")]
         public static string GenerateSCPseudoVRM(string outputDirectory)
@@ -156,11 +160,11 @@ namespace Samples.Editor
         }
 
         /// <summary>
-        /// Build SC-Degraded: the SC-Body humanoid whose exported GLB is then post-processed so a REQUIRED humanoid
-        /// joint (leftFoot) points at a non-existent node. On import the skeleton mapping resolves its other bones but
-        /// flags leftFoot missing (Report.IsValid=false) → <c>SkeletonMapping: Degraded</c>. This is the only committed
-        /// fixture that exercises the Degraded tri-state (Area 2 A3); the Health demo's picker loads it so the state is
-        /// observable with a shipped asset. CC0/synthetic.
+        /// Build SC-Degraded: the SC-Body humanoid whose exported GLB is then post-processed to omit the
+        /// <c>leftFoot</c> association. The mapping remains schema-valid because the extension defines no required
+        /// anatomy, while Unity's optional Humanoid adapter reports the selected mapping as Degraded. This is the
+        /// only committed fixture that exercises the Degraded tri-state (Area 2 A3); the Health demo's picker loads
+        /// it so the state is observable with a shipped asset. CC0/synthetic.
         /// </summary>
         [SampleCharacter("SC-Degraded")]
         public static string GenerateSCDegraded(string outputDirectory)
@@ -173,14 +177,14 @@ namespace Samples.Editor
                 temps.Add(root);
 
                 string path = Export(root, outputDirectory, "SC-Degraded");
-                DanglingRequiredBone(path, "leftFoot");
+                RemoveSkeletonRoleAssociation(path, "leftFoot");
                 ImportIfUnderAssets(path);
                 return path;
             }
             finally { Cleanup(temps); }
         }
 
-        /// <summary>Build SC-ExprEdge (two morph expressions where one BLOCK-masks the other) and export to SC-ExprEdge.glb.</summary>
+        /// <summary>Build SC-ExprEdge (two morph expressions where one BLOCK-suppresses the other) and export to SC-ExprEdge.glb.</summary>
         [SampleCharacter("SC-ExprEdge")]
         public static string GenerateSCExprEdge(string outputDirectory)
         {
@@ -274,6 +278,7 @@ namespace Samples.Editor
             {
                 Expressions = tracks.ToArray(),
                 MappingSets = BuildMappingSets(tracks),
+                InputMappingSets = BuildInputMappingSets(tracks),
             };
             root.AddComponent<ExpressionController>().Initialize(set);
             return root;
@@ -293,31 +298,27 @@ namespace Samples.Editor
                 {
                     Target = jaw,
                     Channel = TrsChannel.Rotation,
-                    Sampler = new Sampler { Times = new[] { 0f }, Interp = Interp.Step, SingleKey = true },
-                    DeltaQuat = new[] { Quaternion.Euler(18f, 0f, 0f) },
+                    Sampler = new Sampler { Times = new[] { 0f, 1f }, Interp = Interp.Step, SingleKey = false },
+                    DeltaQuat = new[] { Quaternion.identity, Quaternion.Euler(18f, 0f, 0f) },
                     BaseQuat = Quaternion.identity,
                 },
             };
 
-            // N1 (additive vs override): "aa" drives the SAME blendshape as "jawOpen" (index 0), so a demo can show
-            // their additive sum vs the override winner. A higher Priority makes "aa" win in Override mode.
             int jawOpenIndex = tracks.FindIndex(t => t.Name == "jawOpen");
             var aa = MorphTrack("aa", smr, jawOpenIndex >= 0 ? jawOpenIndex : 0);
-            aa.MorphDrivers[0].Priority = 1;
-            // Half-strength + LINEAR so the overlap with "jawOpen" is demonstrable: Additive sums (and saturates)
-            // while Override takes the winner (aa, higher Priority). With equal STEP drivers the two are identical.
+            // Half-strength + LINEAR, so its sum with "jawOpen" on the shared blendshape is distinguishable.
             aa.MorphDrivers[0].Sampler = new Sampler { Times = new[] { 0f, 1f }, Interp = Interp.Linear, SingleKey = false };
             aa.MorphDrivers[0].DeltaValues = new[] { 0f, 0.6f };
             int aaIndex = tracks.Count;
             tracks.Add(aa);
 
-            // N2 (mask): "happy" drives the "smile" blendshape (index 6) AND blend-masks "aa" -> emits
-            // KHR_character_expression_mask on the "happy" expression item.
+            // N2 (suppression): "happy" drives the "smile" blendshape (index 6) AND blend-suppresses "aa" -> emits
+            // KHR_character_expression_suppression on the "happy" expression item.
             var happy = MorphTrack("happy", smr, SmileBlendShapeIndex);
             int happyIndex = tracks.Count;
-            happy.Masks = new[]
+            happy.Suppressions = new[]
             {
-                new MaskEntry { TargetIndex = aaIndex, SourceIndex = happyIndex, Type = MaskType.Blend, Amount = 1f },
+                new SuppressionEntry { TargetIndex = aaIndex, SourceIndex = happyIndex, Type = SuppressionType.Blend },
             };
             tracks.Add(happy);
 
@@ -351,8 +352,7 @@ namespace Samples.Editor
             go.transform.localPosition = localPosition;
         }
 
-        // N2 (vocabulary mapping): a "demoVocabulary" set whose "Smile" target maps to two morph expressions
-        // (happy + aa) -> emits KHR_character_expression_mapping keyed by the set name.
+        // N2 forward mapping: happy + aa contribute to the endpoint output "Smile" in a versioned vocabulary.
         private static ExpressionMappingSet[] BuildMappingSets(List<ExpressionTrack> tracks)
         {
             int happyIndex = tracks.FindIndex(t => t.Name == "happy");
@@ -362,7 +362,7 @@ namespace Samples.Editor
             {
                 new ExpressionMappingSet
                 {
-                    SetName = "demoVocabulary",
+                    SetName = DemoExpressionVocabulary,
                     Targets = new[]
                     {
                         new MappingTarget
@@ -379,8 +379,35 @@ namespace Samples.Editor
             };
         }
 
-        // Builds a separate quad renderer with its OWN material (distinct material per renderer, caveat C6) and a
-        // texture expression carrying a UV-offset driver on that material's base-color slot.
+        // N2 input mapping: the separately authored endpoint command "Smile" drives happy + aa.
+        private static ExpressionInputMappingSet[] BuildInputMappingSets(List<ExpressionTrack> tracks)
+        {
+            int happyIndex = tracks.FindIndex(t => t.Name == "happy");
+            int aaIndex = tracks.FindIndex(t => t.Name == "aa");
+            if (happyIndex < 0 || aaIndex < 0) return null;
+            return new[]
+            {
+                new ExpressionInputMappingSet
+                {
+                    SetName = DemoExpressionVocabulary,
+                    Commands = new[]
+                    {
+                        new InputMappingCommand
+                        {
+                            CommandName = "Smile",
+                            Contributions = new[]
+                            {
+                                new InputMappingContribution { TargetIndex = happyIndex, Weight = 1f },
+                                new InputMappingContribution { TargetIndex = aaIndex, Weight = 0.5f },
+                            },
+                        },
+                    },
+                },
+            };
+        }
+
+        // Builds a separate quad renderer with its own material and a texture expression carrying a UV-offset driver
+        // on that material's base-color slot.
         private static ExpressionTrack BuildTextureExpression(Transform parent, List<Object> temps)
         {
             var quad = new GameObject("TexturePanel", typeof(MeshFilter), typeof(MeshRenderer))
@@ -397,7 +424,7 @@ namespace Samples.Editor
 
             var renderer = quad.GetComponent<MeshRenderer>();
             // Use a LIT material (URP Lit or Built-in Standard) rather than Unlit so UnityGLTF does NOT emit
-            // KHR_materials_unlit as a REQUIRED extension -> SC-FacePlus extensionsRequired stays empty (neutral).
+            // KHR_materials_unlit as a REQUIRED extension -> SC-FacePlus keeps extensionsRequired empty by project policy.
             // The base-color texture property name differs per pipeline (_BaseMap on URP, _MainTex on Built-in),
             // so detect it and point the texture drivers at it.
             string baseProperty = "_MainTex";
@@ -418,6 +445,7 @@ namespace Samples.Editor
                 PropertyId = Shader.PropertyToID(baseProperty + "_ST"),
                 PropertyName = baseProperty,
                 GltfTextureSlot = "pbrMetallicRoughness/baseColorTexture",
+                TransformTarget = TextureTransformTarget.Offset,
                 Sampler = new Sampler { Times = new[] { 0f, 1f }, Interp = Interp.Linear, SingleKey = false },
                 StValues = new[] { Vector4.zero, new Vector4(0f, 0f, 1f, 0f) },
                 BaseSt = new Vector4(1f, 1f, 0f, 0f),
@@ -434,9 +462,9 @@ namespace Samples.Editor
         // ── Body assembly (SC-Body) ──────────────────────────────────────────
 
         // Builds a minimal but complete humanoid T-pose skeleton (all Unity-required bones plus chest/neck/
-        // shoulders), authors KHR_character_skeleton_mapping (canonical-joint -> bone) with a TPose reference pose,
-        // and adds a "portrait" camera hint. Bone node names are unique + neutral (caveats C7/C11). No skinned mesh
-        // is attached (bones only); the wire still carries the skeleton/pose/hint extensions.
+        // shoulders), authors KHR_character_skeleton_mapping under a versioned Unity Humanoid vocabulary URI with
+        // a t_pose reference pose, and adds a "portrait" camera hint. Bone node names are unique and generic.
+        // No skinned mesh is attached (bones only); the wire still carries the extensions.
         private static GameObject AssembleBodyCharacter(List<Object> temps)
         {
             var root = new GameObject("SC-Body") { hideFlags = HideFlags.HideAndDontSave };
@@ -480,11 +508,11 @@ namespace Samples.Editor
             var rightLowerLeg = Bone("rightLowerLeg", "RightLowerLeg", rightUpperLeg, new Vector3(0f, -0.42f, 0f));
             Bone("rightFoot", "RightFoot", rightLowerLeg, new Vector3(0f, -0.42f, 0.08f));
 
-            // Reference pose (TPose) captured from the authored local transforms.
+            // Reference pose (t_pose) captured from the authored local transforms.
             var ordered = new List<Transform>(bones.Values);
             var referencePose = new ReferencePose
             {
-                PoseType = "TPose",
+                PoseType = ReferencePoseLabels.TPose,
                 Bones = ordered.ToArray(),
                 LocalPositions = ordered.ConvertAll(t => t.localPosition).ToArray(),
                 LocalRotations = ordered.ConvertAll(t => t.localRotation).ToArray(),
@@ -495,7 +523,7 @@ namespace Samples.Editor
             skeleton.Bind(new SkeletonMappingResult
             {
                 Bones = bones,
-                SelectedRig = "unityHumanoid",
+                SelectedRig = UnityHumanoidVocabulary,
                 ReferencePose = referencePose,
             });
 
@@ -513,11 +541,11 @@ namespace Samples.Editor
 
         // ── Look-at assembly (SC-LookAt) ─────────────────────────────────────
 
-        // The minimal carrier for KHR_node_lookat_target (bug B7 had zero coverage): a KHR_character root whose
-        // GazeSolver.AuthoredTargets mark two ordinary nodes as look-at targets. One target carries a "hint" string;
+        // The minimal carrier for KHR_node_lookat_target (bug B7 had zero coverage): a character (KHR_character marker)
+        // whose LookAtTargetSet marks two ordinary nodes as passive look-at targets. One target carries a "hint" string;
         // the other is hint-less (an empty {} target - presence alone marks the node). No expressions or skeleton are
-        // needed: the exporter's node-feature gate emits on AuthoredTargets alone, and the importer attaches a
-        // GazeSolver and rehydrates the targets whenever any look-at target is present.
+        // needed: the exporter emits the node markers from passive metadata, and the importer rehydrates that metadata
+        // without selecting a gaze, camera, IK, or animation consumer.
         private static GameObject AssembleLookAtCharacter(List<Object> temps)
         {
             var root = new GameObject("SC-LookAt") { hideFlags = HideFlags.HideAndDontSave };
@@ -531,20 +559,20 @@ namespace Samples.Editor
             aux.transform.SetParent(root.transform, false);
             aux.transform.localPosition = new Vector3(0.6f, 1.5f, 1.6f);
 
-            var gaze = root.AddComponent<GazeSolver>();
-            gaze.Bind(new List<LookAtTarget>
+            var targets = root.AddComponent<LookAtTargetSet>();
+            targets.Bind(new List<LookAtTarget>
             {
-                new LookAtTarget { Node = focus.transform, Hint = "primary" },
+                new LookAtTarget { Node = focus.transform, Hint = "ACME_eye_target" },
                 new LookAtTarget { Node = aux.transform, Hint = null },
-            }, null);
+            });
 
             return root;
         }
 
         // ── Partial assembly (SC-Partial / SC-PseudoVRM) ────────────────────────
 
-        // The minimal graceful-degradation carrier: a KHR_character root with ONLY a single morph expression - no
-        // joint, texture, mask, mapping, skeleton, reference pose, camera hint, or look-at target. Proves the importer
+        // The minimal graceful-degradation carrier: a character (KHR_character marker) with ONLY one morph expression - no
+        // joint, texture, suppression, mapping, skeleton, reference pose, camera hint, or look-at target. Proves the importer
         // surfaces just the present capabilities and leaves the rest cleanly absent. Also the body of SC-PseudoVRM
         // (which then gets VRMC_* injected post-export).
         private static GameObject AssemblePartialCharacter(List<Object> temps)
@@ -574,9 +602,9 @@ namespace Samples.Editor
 
         // ── Expression-edge assembly (SC-ExprEdge) ────────────────────────
 
-        // Two morph expressions on a two-blendshape mesh: 'edgeA' drives shapeA; 'edgeB' drives shapeB AND BLOCK-masks
+        // Two morph expressions on a two-blendshape mesh: 'edgeA' drives shapeA; 'edgeB' drives shapeB AND BLOCK-suppresses
         // edgeA (amount 1, threshold 0) - so driving edgeB above the threshold fully zeroes edgeA's output while edgeB
-        // still drives its own shape. The block-mask counterpart to SC-Face's blend mask.
+        // still drives its own shape. The block counterpart to SC-Face's blend suppression.
         private static GameObject AssembleExprEdgeCharacter(List<Object> temps)
         {
             var root = new GameObject("SC-ExprEdge") { hideFlags = HideFlags.HideAndDontSave };
@@ -595,17 +623,17 @@ namespace Samples.Editor
             smr.localBounds = mesh.bounds;
 
             var edgeA = MorphTrack("edgeA", smr, 0);   // drives shapeA
-            var edgeB = MorphTrack("edgeB", smr, 1);   // drives shapeB AND block-masks edgeA
-            edgeB.Masks = new[]
+            var edgeB = MorphTrack("edgeB", smr, 1);   // drives shapeB AND block-suppresses edgeA
+            edgeB.Suppressions = new[]
             {
-                new MaskEntry { TargetIndex = 0, SourceIndex = 1, Type = MaskType.Block, Amount = 1f, Threshold = 0f },
+                new SuppressionEntry { TargetIndex = 0, SourceIndex = 1, Type = SuppressionType.Block },
             };
             var set = new CharacterExpressionSet { Expressions = new[] { edgeA, edgeB } };
             root.AddComponent<ExpressionController>().Initialize(set);
             return root;
         }
 
-        // A tiny triangle with two blendshapes (shapeA, shapeB) for the block-mask edge fixture.
+        // A tiny triangle with two blendshapes (shapeA, shapeB) for the block-suppression edge fixture.
         private static Mesh BuildTwoShapeMesh()
         {
             var mesh = new Mesh { name = "SC-ExprEdge-Mesh", hideFlags = HideFlags.HideAndDontSave };
@@ -626,8 +654,8 @@ namespace Samples.Editor
         // ── Visibility-hint assembly (VH-Node / VH-Primitive / VH-ViewContext) ─
 
         // VH-Node: a single-mesh "Head" node carrying KHR_node_visibility_hint (third_person), authored on a
-        // NodeVisibilityHintSet. In the default third-person view a third_person node stays visible, so nothing
-        // is toggled; the exporter emits the hint from the serialized entry and no other extension appears.
+        // NodeVisibilityHintSet. The passive hint set changes no renderer; the exporter emits the hint from the
+        // serialized entry and no other extension appears.
         private static GameObject AssembleVHNode(List<Object> temps)
         {
             var root = new GameObject("VH-Node") { hideFlags = HideFlags.HideAndDontSave };
@@ -651,9 +679,9 @@ namespace Samples.Editor
         }
 
         // VH-Primitive: a two-sub-mesh "Body" whose sub-mesh 1 carries KHR_mesh_primitive_visibility_hint
-        // (first_person). Bind resolves the hint and, in the default third-person view, swaps sub-mesh 1 to the
-        // shared invisible material; we restore the authored materials before export so the wire carries the real
-        // materials (the exporter reads the role from the serialized entry, not from live material state).
+        // (first_person). The passive hint set changes no material, and the authored materials are assigned
+        // explicitly so the wire carries them (the exporter reads the role from the serialized entry, not from live
+        // material state).
         private static GameObject AssembleVHPrimitive(List<Object> temps)
         {
             var root = new GameObject("VH-Primitive") { hideFlags = HideFlags.HideAndDontSave };
@@ -682,7 +710,7 @@ namespace Samples.Editor
 
         // VH-ViewContext: the combined fixture - a Head node hint (third_person) AND a Body sub-mesh-1 primitive
         // hint (first_person), so both extensions appear in one wire. As in AssembleVHPrimitive, the Body's
-        // authored materials are restored after Bind (the third-person view would otherwise swap sub-mesh 1).
+        // authored materials are assigned explicitly after Bind.
         private static GameObject AssembleVHViewContext(List<Object> temps)
         {
             var root = new GameObject("VH-ViewContext") { hideFlags = HideFlags.HideAndDontSave };
@@ -860,11 +888,10 @@ namespace Samples.Editor
             }
         }
 
-        // Post-process an exported GLB so a REQUIRED humanoid joint in KHR_character_skeleton_mapping points at a
-        // non-existent node index, forcing the importer's skeleton baker to flag it missing (Report.IsValid=false)
-        // so the capability reports Degraded. Other bones keep resolving, so the mapping is degraded, not absent.
+        // Post-process an exported GLB by omitting one role association. The generic skeleton mapping remains valid;
+        // SC-Degraded relies on the optional Unity Humanoid adapter to classify the selected mapping as incomplete.
         // Mirrors InjectVendorExtensions' GLB JSON rewrite (re-pad JSON chunk to 4 bytes; BIN chunk preserved).
-        private static void DanglingRequiredBone(string glbPath, string requiredJoint)
+        private static void RemoveSkeletonRoleAssociation(string glbPath, string role)
         {
             const uint GlbMagic = 0x46546C67;   // "glTF"
             const uint ChunkJson = 0x4E4F534A;  // "JSON"
@@ -881,21 +908,14 @@ namespace Samples.Editor
             string json = Encoding.UTF8.GetString(bytes, jsonStart, (int)jsonLen);
             var root = JObject.Parse(json);
 
-            // A node index one past the end of the nodes array can never resolve, so the joint dangles.
-            int danglingIndex = (root["nodes"] as JArray)?.Count ?? 9999;
             var mappings = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
             if (mappings == null)
                 throw new System.Exception("SC-Degraded: exported GLB has no KHR_character_skeleton_mapping.skeletalRigMappings to degrade.");
             bool patched = false;
             foreach (var rig in mappings.Properties())
-                if (rig.Value is JObject joints && joints[requiredJoint] is JObject association)
-                {
-                    association["node"] = danglingIndex;
-                    association.Remove("name");
-                    patched = true;
-                }
+                if (rig.Value is JObject joints && joints.Remove(role)) patched = true;
             if (!patched)
-                throw new System.Exception($"SC-Degraded: required joint '{requiredJoint}' not present in any rig mapping to degrade.");
+                throw new System.Exception($"SC-Degraded: role '{role}' not present in any rig mapping to remove.");
 
             byte[] newJson = Encoding.UTF8.GetBytes(root.ToString(Newtonsoft.Json.Formatting.None));
             int pad = (4 - (newJson.Length % 4)) % 4;

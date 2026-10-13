@@ -18,24 +18,22 @@ namespace Samples.Shared
         Draft,
         /// <summary>Animation import bakes CUBICSPLINE tangents to sampled LINEAR keys.</summary>
         CubicSplineToLinear,
-        /// <summary>Animated UV (texture-transform) is frame-exact only for the first cycle of a multi-key clip.</summary>
-        UvFirstCycleExact,
-        /// <summary>Renderers sharing a material collapse to one material on round-trip.</summary>
-        SharedMaterialCollapse,
-        /// <summary>Duplicate node / expression names are made unique on import.</summary>
-        DuplicateNamesDeduped,
-        /// <summary>Expression blend mode / priority (e.g. Override) is runtime-only, not on the wire.</summary>
-        BlendModeRuntimeOnly,
+        /// <summary>Expression names need not be unique, so the demos address expressions by array index.</summary>
+        DuplicateExpressionLabels,
+        /// <summary>Expression composition is normative; only its mix with other animation writers is host-defined.</summary>
+        HostDefinedWriterMix,
         /// <summary>A camera hint's projection index does not round-trip through glTF.</summary>
         CameraProjectionOffWire,
-        /// <summary>One KHR_character root per glTF document.</summary>
+        /// <summary>KHR_character marks the asset as containing at most one character and names no nodes.</summary>
         OneCharacterPerDocument,
-        /// <summary>A skeleton mapping missing required bones degrades gracefully to Generic.</summary>
+        /// <summary>The optional Unity Humanoid adapter reports missing HumanTrait-required roles.</summary>
         SkeletonGracefulDegrade,
         /// <summary>The VRoid hero is VRM 1.0 (non-commercial); demos read only its KHR_character data.</summary>
         HeroNonCommercial,
         /// <summary>Geometric eye-aim is a demo convenience, not part of KHR_character.</summary>
         EyeAimNonSpec,
+        /// <summary>The hero's expression data is rejected until 0b5vr re-exports it.</summary>
+        HeroPendingReexport,
     }
 
     public static class Caveats
@@ -46,30 +44,28 @@ namespace Samples.Shared
         {
             Caveat.Draft,
             Caveat.CubicSplineToLinear,
-            Caveat.UvFirstCycleExact,
-            Caveat.SharedMaterialCollapse,
-            Caveat.DuplicateNamesDeduped,
-            Caveat.BlendModeRuntimeOnly,
+            Caveat.DuplicateExpressionLabels,
+            Caveat.HostDefinedWriterMix,
             Caveat.CameraProjectionOffWire,
             Caveat.OneCharacterPerDocument,
             Caveat.SkeletonGracefulDegrade,
             Caveat.HeroNonCommercial,
             Caveat.EyeAimNonSpec,
+            Caveat.HeroPendingReexport,
         };
 
         private static readonly Dictionary<Caveat, string> Bodies = new Dictionary<Caveat, string>
         {
             [Caveat.Draft] = "Tracks glTF PR #2512 (KHR_character / avatar) — a DRAFT extension set, not ratified; the wire may still change.",
             [Caveat.CubicSplineToLinear] = "Animation import bakes CUBICSPLINE tangents to sampled LINEAR keys (curve shape approximated).",
-            [Caveat.UvFirstCycleExact] = "Animated texture-transform (UV) is frame-exact only for the first cycle of a multi-key clip.",
-            [Caveat.SharedMaterialCollapse] = "Renderers that share a material collapse to one material on round-trip (per-renderer identity not preserved).",
-            [Caveat.DuplicateNamesDeduped] = "Duplicate node / expression names are made unique on import.",
-            [Caveat.BlendModeRuntimeOnly] = "Expression blend mode / priority (e.g. Override) is runtime-only — it is not written to the glTF wire.",
+            [Caveat.DuplicateExpressionLabels] = "Duplicate expression names are valid, so a name does not identify an expression; the demos address expressions by their authoritative array index.",
+            [Caveat.HostDefinedWriterMix] = "Expression composition is normative (y = b + sum(s - n) per additive component, no clamp); only how the result mixes with other animation writers is host-defined.",
             [Caveat.CameraProjectionOffWire] = "A camera hint's projection index does not round-trip through glTF.",
-            [Caveat.OneCharacterPerDocument] = "One KHR_character root per glTF document.",
-            [Caveat.SkeletonGracefulDegrade] = "A skeleton mapping with missing / invalid required bones degrades gracefully to Generic (never throws).",
+            [Caveat.OneCharacterPerDocument] = "KHR_character marks the asset as containing at most one character; it names no root or member nodes.",
+            [Caveat.SkeletonGracefulDegrade] = "The optional Unity Humanoid adapter reports Degraded when its selected mapping lacks a HumanTrait-required role; the glTF mapping itself is not thereby invalid.",
             [Caveat.HeroNonCommercial] = "The VRoid \"hero\" is VRM 1.0 (non-commercial); the demos read only its KHR_character data. The synthetic SC-* fallbacks are CC0.",
             [Caveat.EyeAimNonSpec] = "Geometric eye-aim is a demo convenience, not part of KHR_character.",
+            [Caveat.HeroPendingReexport] = "The hero is pending re-export: its expression entries have no name and its look expressions rotate the same eye nodes (a prohibited single-writer conflict), so its expression data does not import. Expression demos use the synthetic fallback until it is re-exported.",
         };
 
         /// <summary>Stable display id for a caveat, e.g. <c>"C1"</c>. Dense (no gaps) by construction.</summary>
@@ -92,6 +88,18 @@ namespace Samples.Shared
             ui.AddLabel("Caveats (demo limitations — see docs/caveats.md):");
             foreach (var c in caveats)
                 ui.AddLabel(Line(c));
+        }
+
+        /// <summary>
+        /// <paramref name="caveats"/>, plus <see cref="Caveat.HeroPendingReexport"/> while
+        /// <see cref="CharacterLoader.HeroNeedsReexport"/>, for demos that load or offer the hero.
+        /// </summary>
+        public static Caveat[] WithHeroStatus(params Caveat[] caveats)
+        {
+            var list = new List<Caveat>(caveats ?? System.Array.Empty<Caveat>());
+            if (CharacterLoader.HeroNeedsReexport && !list.Contains(Caveat.HeroPendingReexport))
+                list.Add(Caveat.HeroPendingReexport);
+            return list.ToArray();
         }
 
         /// <summary>Convenience for callers that already have a single uGUI label to fill (e.g. one banner

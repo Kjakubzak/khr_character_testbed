@@ -35,7 +35,10 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(File.Exists(path),
                 $"SC-FacePlus.glb not found at '{path}'. Run Generate Sample Characters first.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             yield return SandboxTestUtil.WaitFor(task, 30f);
             var scene = SandboxTestUtil.ResolveScene(task, _created);
 
@@ -66,7 +69,7 @@ namespace KhrCharacterTestbed.Tests
             Quaternion restRotation = jaw.localRotation;
             Assert.AreEqual(0f, restShape, 1e-3f, "At rest the jawOpen blendshape weight should be 0.");
 
-            // Drive jawOpen fully. The morph delta saturates to 1.0, so the renderer weight is exactly
+            // Drive jawOpen fully. The morph delta reaches 1.0 at the final key, so the renderer weight is exactly
             // 1.0 * frameWeight; the jaw bone rotates by the authored ~18 deg delta, measured rebased to its rest
             // rotation (an angle is invariant under the glTF<->Unity handedness conversion, unlike raw coordinates).
             ec.SetWeight("jawOpen", 1f);
@@ -93,16 +96,21 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(File.Exists(path),
                 $"SC-Face.glb not found at '{path}'. Run Generate Sample Characters first.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             yield return SandboxTestUtil.WaitFor(task, 30f);
             var scene = SandboxTestUtil.ResolveScene(task, _created);
 
             var hub = scene.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub, "SC-Face should import a KhrCharacter hub.");
-            var gaze = hub.Gaze;
-            Assert.IsNotNull(gaze, "SC-Face should have a GazeSolver after import (it has look expressions).");
             var ec = hub.Expressions;
-            Assert.IsNotNull(ec, "KhrCharacter should have an ExpressionController.");
+            Assert.IsNotNull(ec, "the selected Unity host policy should create an ExpressionController.");
+            var gaze = hub.GetComponent<GazeSolver>();
+            if (gaze == null) gaze = hub.gameObject.AddComponent<GazeSolver>();
+            gaze.Bind(ec, hub.Skeleton);
+            Assert.IsNotNull(gaze, "M3 explicitly installs the optional Unity gaze adapter.");
 
             gaze.Weight = 1f;
             // Off-axis target so at least one look direction is driven regardless of import orientation.

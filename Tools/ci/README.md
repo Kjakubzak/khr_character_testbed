@@ -10,7 +10,7 @@ Linux CI) form with the same behavior and the same exit-code contract (`0` = pas
 | `_Common.ps1` / `_common.sh` | — | Shared helpers: locate Unity, detached launch + bounded poll + hard-timeout kill, lockfile guard, compile-log check. |
 | `Warm-Library` | 1 | Cold-prime `Library/` (resolve packages + import + compile) so later runs are fast. |
 | `Run-Tests` | 1 + 2 | Compile-only first, then `-runTests` per platform; enforces `failed/inconclusive/skipped == 0` **and** the min-test-count floor. |
-| `Validate-Glb` | 3 | Runs the Khronos `gltf_validator` over every exported GLB; gates on `numErrors == 0`; skips non-fatally if the validator is absent. |
+| `Validate-Glb` | 3 | Runs the Khronos `gltf_validator` over every exported GLB; gates on `numErrors == 0`; skips non-fatally if the validator is absent. CI runs it report-only until a validator that implements the current `KHR_character` drafts is pinned (see `docs/ci.md`). |
 | `Export-Goldens` | 4 | Re-export + normalize the fixture wire (via `SandboxCI.ExportGoldens`); `-Check` diffs against committed goldens, `-Update` rewrites them. |
 
 Full documentation, local examples, validator install, golden updates, and the GitHub Actions wiring: see

@@ -259,7 +259,7 @@ namespace Samples.Editor
                 DecodeFloatAccessors(obj, bin);
                 StripPackingFields(obj);
             }
-            return SortToken(root).ToString(Newtonsoft.Json.Formatting.Indented);
+            return SortToken(root).ToString(Newtonsoft.Json.Formatting.Indented) + "\n";
         }
 
         // Decode each FLOAT (componentType 5126) accessor's values from the GLB BIN chunk, round to 1e-5, and store

@@ -8,6 +8,7 @@ namespace Samples.Shared
     /// visibility-hint plugin was enabled only as a side effect of the VisibilityHints scene's Start(), which made
     /// import order-dependent (Area 1 A2 / Area 4 A2 / Area 5 A18). <see cref="CharacterLoader.EnableImportPlugin"/>
     /// is the single source of truth for which import plugins this project turns on; this just calls it eagerly.
+    /// The default is passive: expression-driving demos opt into a scene-writing adapter explicitly.
     /// </summary>
     public static class SamplePluginBootstrap
     {

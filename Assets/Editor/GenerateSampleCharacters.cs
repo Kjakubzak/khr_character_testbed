@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Samples.Editor
 {
     /// <summary>
-    /// Tool B — generates the synthetic sample characters (SC-Face, SC-FacePlus, SC-Body) by delegating to
+    /// Tool B — generates the eight synthetic SC-* sample characters by delegating to
     /// <see cref="SampleCharacterFactory"/> and writing them under <c>Assets/SampleAssets/Synthetic/</c>. Each
     /// factory method is also callable directly from CI/tests. Batchmode-safe (no blocking dialog when headless).
     /// </summary>

@@ -84,7 +84,7 @@ ScriptedImporter:
     supported: 1
     used: 1
     required: 0
-  - name: KHR_character_expression_mask
+  - name: KHR_character_expression_suppression
     supported: 1
     used: 1
     required: 0

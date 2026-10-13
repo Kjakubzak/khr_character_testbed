@@ -28,27 +28,44 @@ if [[ -z "$VALIDATOR" || ! -x "$VALIDATOR" ]]; then
 fi
 if [[ -z "$VALIDATOR" ]]; then
   if [[ $REQUIRED -eq 1 ]]; then
-    echo "[ci] GATE 3 (glTF-Validator) FAILED -- validator not found and --required was set. Install:  npm i -g gltf-validator   (or set GLTF_VALIDATOR)." >&2
+    echo "[ci] GATE 3 (glTF-Validator) FAILED -- validator not found and --required was set. Set GLTF_VALIDATOR to the proposal-aware native CLI." >&2
     exit 1
   fi
   echo "[ci] glTF-Validator not found -- SKIPPING GATE 3 (non-fatal)." >&2
-  echo "[ci] Install:  npm i -g gltf-validator   (or download 'gltf_validator' from KhronosGroup/glTF-Validator releases and set GLTF_VALIDATOR)." >&2
+  echo "[ci] Build the pinned proposal-aware validator and set GLTF_VALIDATOR to its native CLI." >&2
   exit 0
+fi
+if [[ "$INPUT_DIR" = /* ]]; then
+  if [[ "$INPUT_DIR" != "$PROJECT"/* ]]; then
+    echo "[ci] Input dir '$INPUT_DIR' must be inside project '$PROJECT'." >&2
+    exit 2
+  fi
+  input_rel="${INPUT_DIR#"$PROJECT"/}"
+else
+  input_rel="${INPUT_DIR#./}"
+  INPUT_DIR="$PROJECT/$input_rel"
 fi
 if [[ ! -d "$INPUT_DIR" ]]; then echo "[ci] Input dir '$INPUT_DIR' missing -- nothing to validate." >&2; exit 0; fi
 
 mkdir -p "$REPORT_DIR"
-mapfile -t files < <(find "$INPUT_DIR" -type f \( -iname '*.glb' -o -iname '*.gltf' \) | sort)
+tracked=()
+while IFS= read -r tracked_file; do tracked+=("$tracked_file"); done < <(
+  git -C "$PROJECT" ls-files -- "$input_rel" |
+    awk 'tolower($0) ~ /\.glb$/ || tolower($0) ~ /\.gltf$/' |
+    sort
+)
+files=()
+for tracked_file in "${tracked[@]}"; do files+=("$PROJECT/$tracked_file"); done
 if [[ ${#files[@]} -eq 0 ]]; then echo "[ci] No GLB/glTF under '$INPUT_DIR'." >&2; exit 0; fi
 
 total_errors=0; total_warnings=0; parsed=0
 for f in "${files[@]}"; do
   base="$(basename "$f")"; base="${base%.*}"
-  "$VALIDATOR" -a -o "$REPORT_DIR" "$f" >/dev/null 2>&1 || true
-  report="$(find "$REPORT_DIR" -type f -name "*${base}*.json" | head -n1)"
+  report="$REPORT_DIR/${base}.report.json"
+  "$VALIDATOR" -a -o "$f" >"$report" 2>"$REPORT_DIR/${base}.log" || true
 
   errs=""; warns=""
-  if [[ -n "$report" ]]; then
+  if [[ -s "$report" ]]; then
     if command -v jq >/dev/null 2>&1; then
       errs="$(jq -r '.issues.numErrors // empty' "$report" 2>/dev/null || true)"
       warns="$(jq -r '.issues.numWarnings // empty' "$report" 2>/dev/null || true)"

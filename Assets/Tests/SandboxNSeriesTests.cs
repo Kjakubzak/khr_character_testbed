@@ -10,9 +10,9 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Phase-4b functional proofs (bounded PlayMode) for the N-series demos: N1 (additive vs override), N2 (mask +
-    /// vocabulary), N4 (view-mode visibility), N8 (eye-aim), N9 (extract/resolve round-trip). All reference real
-    /// plugin types, so they also act as anti-hollow gates.
+    /// Phase-4b functional proofs (bounded PlayMode) for the N-series demos: N1 (additive composition), N2
+    /// (suppression + vocabulary), N4 (view-mode visibility), N8 (eye-aim), N9 (extract/resolve round-trip). All
+    /// reference real plugin types, so they also act as anti-hollow gates.
     /// </summary>
     public class SandboxNSeriesTests
     {
@@ -27,7 +27,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator N1_OverrideChangesComposedWeightVsAdditive()
+        public IEnumerator N1_OverlappingExpressionsAddWithoutClamp()
         {
             var scene = LoadScene("SC-FacePlus.glb");
             yield return scene;
@@ -36,24 +36,19 @@ namespace KhrCharacterTestbed.Tests
             var smr = go.GetComponentInChildren<SkinnedMeshRenderer>();
             Assert.IsNotNull(controller); Assert.IsNotNull(smr);
 
-            // "aa" + "jawOpen" both drive blendshape 0. Additive sums (and saturates); Override takes the winner.
-            SetPairBlendMode(controller, ExpressionBlendMode.Additive);
+            // "jawOpen" (1.0) and "aa" (0.6) both drive blendshape 0; their responses add without a clamp.
+            controller.ResetAll();
             controller.SetWeight("jawOpen", 1f);
             controller.SetWeight("aa", 1f);
             yield return null; yield return null;
-            float additive = smr.GetBlendShapeWeight(0);
-
-            SetPairBlendMode(controller, ExpressionBlendMode.Override);
-            yield return null; yield return null;
-            float overridden = smr.GetBlendShapeWeight(0);
-
-            Assert.Greater(additive, overridden,
-                $"Additive ({additive}) should exceed Override ({overridden}) when both drive blendshape 0.");
+            float frameWeight = smr.sharedMesh.GetBlendShapeFrameWeight(0, 0);
+            Assert.AreEqual(1.6f * frameWeight, smr.GetBlendShapeWeight(0), 1e-3f * frameWeight,
+                "'jawOpen' + 'aa' on blendshape 0 should be the unclamped sum 1.6 times the frame weight.");
             controller.ResetAll();
         }
 
         [UnityTest]
-        public IEnumerator N2_MaskAttenuates_AndVocabularyDrivesSources()
+        public IEnumerator N2_SuppressionAttenuates_AndVocabularyDrivesSources()
         {
             var scene = LoadScene("SC-FacePlus.glb");
             yield return scene;
@@ -62,7 +57,7 @@ namespace KhrCharacterTestbed.Tests
             var smr = go.GetComponentInChildren<SkinnedMeshRenderer>();
             Assert.IsNotNull(controller); Assert.IsNotNull(smr);
 
-            // Mask: "happy" blend-masks "aa". With happy active, aa's contribution to blendshape 0 collapses.
+            // Suppression: "happy" blend-suppresses "aa". With happy active, aa's contribution to blendshape 0 collapses.
             controller.ResetAll();
             controller.SetWeight("aa", 1f);
             yield return null; yield return null;
@@ -70,16 +65,20 @@ namespace KhrCharacterTestbed.Tests
 
             controller.SetWeight("happy", 1f);
             yield return null; yield return null;
-            float aaMasked = smr.GetBlendShapeWeight(0);
-            Assert.Greater(aaAlone, aaMasked, "'happy' should blend-mask (attenuate) 'aa' on blendshape 0.");
+            float aaSuppressed = smr.GetBlendShapeWeight(0);
+            Assert.Greater(aaAlone, aaSuppressed, "'happy' should blend-suppress (attenuate) 'aa' on blendshape 0.");
 
-            // Vocabulary: the "Smile" target maps to 2 sources and, when driven, activates at least one of them.
+            // The input operation maps the "Smile" command to two native drivers. It is authored independently of
+            // the native-to-endpoint output operation and must be selected explicitly by this host adapter.
             controller.ResetAll();
-            CollectionAssert.Contains((ICollection)controller.VocabularySets, "demoVocabulary");
-            CollectionAssert.Contains((ICollection)controller.VocabularyExpressions("demoVocabulary"), "Smile");
-            Assert.AreEqual(2, SmileContributionCount(controller), "'Smile' should map to two source expressions.");
+            const string vocabulary = "https://example.com/expression-vocabularies/demo/v1";
+            CollectionAssert.Contains((ICollection)controller.VocabularySets, vocabulary);
+            CollectionAssert.Contains((ICollection)controller.VocabularyExpressions(vocabulary), "Smile");
+            Assert.AreEqual(2, SmileInputContributionCount(controller),
+                "the input operation should map 'Smile' to two native expression drivers");
 
-            controller.SetWeightByVocabulary("demoVocabulary", "Smile", 1f);
+            Assert.IsTrue(controller.SelectVocabularyInputSet(vocabulary));
+            controller.SetWeightByVocabulary(vocabulary, "Smile", 1f);
             yield return null; yield return null;
             float smile = smr.GetBlendShapeWeight(6); // 'happy' drives the smile blendshape (index 6)
             Assert.Greater(smile, 0f, "Driving the 'Smile' vocabulary target should activate its 'happy' source.");
@@ -166,17 +165,21 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator Neutralize_VrmOriginCharacter_ReexportsVendorNeutral()
+        public IEnumerator VrmOriginCharacter_ImportedExpressionExportIsRejectedAsLossy()
         {
             // Prefer the real VRM-origin hero (gate on the GLB magic, not File.Exists: an un-smudged LFS pointer
-            // exists but would throw on import). When the hero is absent (e.g. a fork without LFS objects) fall back to
-            // the committed synthetic pseudo-VRM, which carries the same VRMC_* vendor tokens - so this gate ALWAYS
-            // runs a real neutralization check and never skips (a skip would red the build: the gate fails on skipped != 0).
-            bool hero = CharacterLoader.HeroIsRealGlb;
+            // exists but would throw on import). When the hero is absent (e.g. a fork without LFS objects), or its
+            // expression data is pending re-export so the importer rejects it (D7, caveat C10), fall back to the
+            // committed synthetic pseudo-VRM, which carries the same VRMC_* vendor tokens. Either source proves the
+            // importer retains passive expression data that must not be silently projected through the controller.
+            bool hero = CharacterLoader.HeroIsRealGlb && !CharacterLoader.HeroNeedsReexport;
             string path = hero ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-PseudoVRM.glb");
-            Assert.IsTrue(File.Exists(path), $"Neutralization source missing at '{path}'.");
+            Assert.IsTrue(File.Exists(path), $"VRM-origin source missing at '{path}'.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.Passive);
             float deadline = Time.realtimeSinceStartup + (hero ? 60f : 30f); // complex hero -> longer budget
             while (!task.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.IsTrue(task.IsCompleted, "VRM-origin import did not complete in time.");
@@ -188,35 +191,32 @@ namespace KhrCharacterTestbed.Tests
 
             var hub = scene.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub, "The VRM-origin character should import with KHR_character data (VRMC_* ignored).");
-            var ec = hub.Expressions;
-            Assert.IsNotNull(ec);
-            Assert.GreaterOrEqual(ec.Count, 1, "Expected at least one KHR expression on the VRM-origin character.");
-
-            byte[] glb = CharacterLoader.ExportToGlb(hub.gameObject, out var root);
-            Assert.IsNotNull(glb); Assert.Greater(glb.Length, 0); Assert.IsNotNull(root);
-
-            // Vendor-neutral guarantee via the ^KHR_ allow-list: UnityGLTF has no VRMC_* importer, so vendor
-            // tokens cannot survive into the re-export, and every surviving extension must be Khronos-neutral.
-            // (extensionsRequired may legitimately carry a RATIFIED KHR_ extension - e.g. KHR_materials_unlit from a
-            // VRoid MToon/unlit material - which is still vendor-neutral; we assert neutrality and log the rest.)
-            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsUsed, "Re-export extensionsUsed");
-            SandboxTestUtil.AssertExtensionsNeutral(root.ExtensionsRequired, "Re-export extensionsRequired");
-            if (root.ExtensionsRequired != null && root.ExtensionsRequired.Count > 0)
-                Debug.Log("[Neutralize] re-export extensionsRequired (ratified/non-vendor): " +
-                    string.Join(", ", root.ExtensionsRequired));
+            Assert.IsNotNull(hub.ExpressionResponses,
+                "the imported character must retain its passive response data before the export safety check");
+            Assert.GreaterOrEqual(hub.ExpressionResponses.Count, 1,
+                "Expected at least one passive KHR expression response on the VRM-origin character.");
+            Assert.IsNull(hub.Expressions,
+                "the export safety proof must not depend on a lossy controller projection");
+            var exception = Assert.Catch<System.InvalidOperationException>(
+                () => CharacterLoader.ExportToGlb(hub.gameObject, out _));
+            StringAssert.Contains("passive ExpressionResponseSet", exception.Message);
         }
 
         [UnityTest]
         [Category("Hero")]
         public IEnumerator Showcase_LoadsAndDrivesCharacter()
         {
-            // Mirror the showcase's path logic: hero if a REAL GLB is present (LFS-smudged, not just a pointer),
-            // else the committed synthetic fallback (so a fresh public clone still passes).
-            bool hero = CharacterLoader.HeroIsRealGlb;
+            // Mirror the showcase's path logic: hero if a REAL GLB is present (LFS-smudged, not just a pointer) and its
+            // expression data imports, else the committed synthetic fallback (so a fresh public clone, and a checkout
+            // whose hero is pending re-export, still pass).
+            bool hero = CharacterLoader.HeroIsRealGlb && !CharacterLoader.HeroNeedsReexport;
             string path = hero ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-FacePlus.glb");
             Assert.IsTrue(File.Exists(path), $"Showcase fallback asset missing at '{path}'. Run Generate Sample Characters first.");
 
-            var task = CharacterLoader.LoadAsync(path, null);
+            var task = CharacterLoader.LoadAsync(
+                path,
+                null,
+                CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             float deadline = Time.realtimeSinceStartup + (hero ? 60f : 30f);
             while (!task.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.IsTrue(task.IsCompleted, "Showcase character import did not complete in time.");
@@ -244,25 +244,16 @@ namespace KhrCharacterTestbed.Tests
 
         // ── helpers ──────────────────────────────────────────────────────────
 
-        private static void SetPairBlendMode(ExpressionController controller, ExpressionBlendMode mode)
+        private static int SmileInputContributionCount(ExpressionController controller)
         {
-            var set = controller.Set;
-            if (set?.Expressions == null) return;
-            foreach (var track in set.Expressions)
-                if (track != null && (track.Name == "aa" || track.Name == "jawOpen"))
-                    track.BlendMode = mode;
-        }
-
-        private static int SmileContributionCount(ExpressionController controller)
-        {
-            var sets = controller.Set?.MappingSets;
+            var sets = controller.Set?.InputMappingSets;
             if (sets == null) return 0;
             foreach (var ms in sets)
             {
-                if (ms == null || ms.SetName != "demoVocabulary" || ms.Targets == null) continue;
-                foreach (var target in ms.Targets)
-                    if (target != null && target.TargetName == "Smile")
-                        return target.Contributions?.Length ?? 0;
+                if (ms == null || ms.SetName != "https://example.com/expression-vocabularies/demo/v1" || ms.Commands == null) continue;
+                foreach (var command in ms.Commands)
+                    if (command != null && command.CommandName == "Smile")
+                        return command.Contributions?.Length ?? 0;
             }
             return 0;
         }
