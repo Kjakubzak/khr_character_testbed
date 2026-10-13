@@ -153,9 +153,12 @@ namespace Samples.VisibilityHints
         private void ApplyViewMode()
         {
             if (_view != null)
-                _view.SetActiveContext(_firstPerson
-                    ? VisibilityHintExtensionNames.RoleFirstPerson
-                    : VisibilityHintExtensionNames.RoleThirdPerson);
+                _view.SetDefaultViewTags(new[]
+                {
+                    _firstPerson
+                        ? VisibilityHintExtensionNames.ViewTagFirstPerson
+                        : VisibilityHintExtensionNames.ViewTagThirdPerson,
+                });
         }
 
         private void ConfigureRenderAdapter()
@@ -186,7 +189,7 @@ namespace Samples.VisibilityHints
             var owned = root.AddComponent<ProceduralFigureResources>();
 
             var view = root.AddComponent<ViewContextController>();
-            view.SetActiveContext(VisibilityHintExtensionNames.RoleThirdPerson);
+            view.SetDefaultViewTags(new[] { VisibilityHintExtensionNames.ViewTagThirdPerson });
             var materials = root.AddComponent<ScopedMaterialVisibilityAdapter>();
             materials.NoDrawMaterial = InvisibleMaterialInstaller.GetNoDrawMaterial();
 

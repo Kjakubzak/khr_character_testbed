@@ -30,7 +30,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [Test]
-        public void SampleFigure_ScopesNodeAndPrimitiveHintsByViewContext()
+        public void SampleFigure_ScopesNodeAndPrimitiveHintsByViewTags()
         {
             _figure = VisibilityHintsController.BuildSampleFigure(null);
             Assert.IsNotNull(_figure, "BuildSampleFigure should return a figure root.");
@@ -64,7 +64,7 @@ namespace KhrCharacterTestbed.Tests
 
             using (adapter.ApplyForView(
                 renderers,
-                "third_person",
+                new[] { "third_person" },
                 CoreVisible))
             {
                 Assert.IsFalse(Hidden(head), "third_person Head should render in the third-person scope.");
@@ -82,7 +82,7 @@ namespace KhrCharacterTestbed.Tests
 
             using (adapter.ApplyForView(
                 renderers,
-                "first_person",
+                new[] { "first_person" },
                 CoreVisible))
             {
                 Assert.IsTrue(Hidden(head), "third_person Head should be suppressed in the first-person scope.");

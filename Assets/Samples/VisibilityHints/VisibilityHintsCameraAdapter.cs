@@ -64,7 +64,7 @@ namespace Samples.VisibilityHints
             if (_materials == null || _materials.NoDrawMaterial == null) return;
             _scope = _materials.ApplyForView(
                 _renderers,
-                _view != null ? _view.ActiveContext : null,
+                _view != null ? _view.DefaultViewTags : Array.Empty<string>(),
                 IsCoreVisible);
             _scopeCamera = camera;
         }
