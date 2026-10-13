@@ -10,9 +10,9 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Phase-4b functional proofs (bounded PlayMode) for the N-series demos: N1 (additive composition), N2 (mask +
-    /// vocabulary), N4 (view-mode visibility), N8 (eye-aim), N9 (extract/resolve round-trip). All reference real
-    /// plugin types, so they also act as anti-hollow gates.
+    /// Phase-4b functional proofs (bounded PlayMode) for the N-series demos: N1 (additive composition), N2
+    /// (suppression + vocabulary), N4 (view-mode visibility), N8 (eye-aim), N9 (extract/resolve round-trip). All
+    /// reference real plugin types, so they also act as anti-hollow gates.
     /// </summary>
     public class SandboxNSeriesTests
     {
@@ -48,7 +48,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator N2_MaskAttenuates_AndVocabularyDrivesSources()
+        public IEnumerator N2_SuppressionAttenuates_AndVocabularyDrivesSources()
         {
             var scene = LoadScene("SC-FacePlus.glb");
             yield return scene;
@@ -57,7 +57,7 @@ namespace KhrCharacterTestbed.Tests
             var smr = go.GetComponentInChildren<SkinnedMeshRenderer>();
             Assert.IsNotNull(controller); Assert.IsNotNull(smr);
 
-            // Mask: "happy" blend-masks "aa". With happy active, aa's contribution to blendshape 0 collapses.
+            // Suppression: "happy" blend-suppresses "aa". With happy active, aa's contribution to blendshape 0 collapses.
             controller.ResetAll();
             controller.SetWeight("aa", 1f);
             yield return null; yield return null;
@@ -65,8 +65,8 @@ namespace KhrCharacterTestbed.Tests
 
             controller.SetWeight("happy", 1f);
             yield return null; yield return null;
-            float aaMasked = smr.GetBlendShapeWeight(0);
-            Assert.Greater(aaAlone, aaMasked, "'happy' should blend-mask (attenuate) 'aa' on blendshape 0.");
+            float aaSuppressed = smr.GetBlendShapeWeight(0);
+            Assert.Greater(aaAlone, aaSuppressed, "'happy' should blend-suppress (attenuate) 'aa' on blendshape 0.");
 
             // The input operation maps the "Smile" command to two native drivers. It is authored independently of
             // the native-to-endpoint output operation and must be selected explicitly by this host adapter.
@@ -168,10 +168,11 @@ namespace KhrCharacterTestbed.Tests
         public IEnumerator VrmOriginCharacter_ImportedExpressionExportIsRejectedAsLossy()
         {
             // Prefer the real VRM-origin hero (gate on the GLB magic, not File.Exists: an un-smudged LFS pointer
-            // exists but would throw on import). When the hero is absent (e.g. a fork without LFS objects) fall back to
-            // the committed synthetic pseudo-VRM, which carries the same VRMC_* vendor tokens. Either source proves
-            // the importer retains passive expression data that must not be silently projected through the controller.
-            bool hero = CharacterLoader.HeroIsRealGlb;
+            // exists but would throw on import). When the hero is absent (e.g. a fork without LFS objects), or its
+            // expression data is pending re-export so the importer rejects it (D7, caveat C10), fall back to the
+            // committed synthetic pseudo-VRM, which carries the same VRMC_* vendor tokens. Either source proves the
+            // importer retains passive expression data that must not be silently projected through the controller.
+            bool hero = CharacterLoader.HeroIsRealGlb && !CharacterLoader.HeroNeedsReexport;
             string path = hero ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-PseudoVRM.glb");
             Assert.IsTrue(File.Exists(path), $"VRM-origin source missing at '{path}'.");
 
@@ -205,9 +206,10 @@ namespace KhrCharacterTestbed.Tests
         [Category("Hero")]
         public IEnumerator Showcase_LoadsAndDrivesCharacter()
         {
-            // Mirror the showcase's path logic: hero if a REAL GLB is present (LFS-smudged, not just a pointer),
-            // else the committed synthetic fallback (so a fresh public clone still passes).
-            bool hero = CharacterLoader.HeroIsRealGlb;
+            // Mirror the showcase's path logic: hero if a REAL GLB is present (LFS-smudged, not just a pointer) and its
+            // expression data imports, else the committed synthetic fallback (so a fresh public clone, and a checkout
+            // whose hero is pending re-export, still pass).
+            bool hero = CharacterLoader.HeroIsRealGlb && !CharacterLoader.HeroNeedsReexport;
             string path = hero ? CharacterLoader.HeroAbsolutePath : CharacterLoader.SyntheticPath("SC-FacePlus.glb");
             Assert.IsTrue(File.Exists(path), $"Showcase fallback asset missing at '{path}'. Run Generate Sample Characters first.");
 

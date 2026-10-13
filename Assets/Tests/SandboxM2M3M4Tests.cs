@@ -69,7 +69,7 @@ namespace KhrCharacterTestbed.Tests
             Quaternion restRotation = jaw.localRotation;
             Assert.AreEqual(0f, restShape, 1e-3f, "At rest the jawOpen blendshape weight should be 0.");
 
-            // Drive jawOpen fully. The morph delta saturates to 1.0, so the renderer weight is exactly
+            // Drive jawOpen fully. The morph delta reaches 1.0 at the final key, so the renderer weight is exactly
             // 1.0 * frameWeight; the jaw bone rotates by the authored ~18 deg delta, measured rebased to its rest
             // rotation (an angle is invariant under the glTF<->Unity handedness conversion, unlike raw coordinates).
             ec.SetWeight("jawOpen", 1f);

@@ -1,7 +1,7 @@
 // Smoke test for this community example: exports the KHR_character / avatar glTF extensions through UnityGLTF
 // over a tiny in-memory character and checks the result. It enables the KHR_character + AnimationPointer export
 // plugins on an isolated GLTFSettings, runs a real GLTFSceneExporter, and asserts the document carries the
-// KHR_character root and expression extensions while keeping this fixture on the project's KHR-only profile.
+// KHR_character marker and expression extensions while keeping this fixture on the project's KHR-only profile.
 //
 // The test lives in this project (instead of relying on the package's `testables`) so it compiles and runs
 // against UnityGLTF consumed as a git dependency; referencing the real schema/runtime types also means it will
@@ -60,7 +60,7 @@ namespace KhrCharacterTestbed.Tests
         [Test]
         public void Export_MinimalCharacter_EmitsKhrOnlyProfileWire()
         {
-            // Minimal in-memory character: a KhrCharacter hub (the discoverable character root) plus one joint
+            // Minimal in-memory character: a KhrCharacter hub (which exports the KHR_character marker) plus one joint
             // expression on a child.
             var root = new GameObject("char");
             _created.Add(root);
@@ -85,9 +85,9 @@ namespace KhrCharacterTestbed.Tests
 
             var gltf = ExportToGltfRoot(root);
 
-            // (1) The export plugin actually ran: the root KHR_character extension is present.
+            // (1) The export plugin actually ran: the KHR_character marker is present.
             Assert.IsTrue(gltf.Extensions != null && gltf.Extensions.ContainsKey(KHR_character.EXTENSION_NAME),
-                "root KHR_character extension should be present (proves the KHR_character export plugin ran)");
+                "the KHR_character marker should be present (proves the KHR_character export plugin ran)");
 
             Assert.IsTrue(
                 gltf.Extensions.TryGetValue(KHR_character_expression.EXTENSION_NAME, out var expressionObject));

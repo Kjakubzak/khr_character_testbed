@@ -97,7 +97,7 @@ namespace KhrCharacterTestbed.Tests
             var expr = GetExpression(root);
             Assert.IsNotNull(expr);
             var item = expr.Expressions.Find(i => i != null && i.TextureTransform != null);
-            Assert.IsNotNull(item, "SC-FacePlus has a texture expression; an item must carry KHR_character_expression_texture.");
+            Assert.IsNotNull(item, "SC-FacePlus has a texture expression; an item must carry KHR_character_expression_texture_transform.");
 
             var anim = root.Animations[item.Animation];
             bool uvTransform = false;

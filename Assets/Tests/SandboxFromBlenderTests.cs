@@ -61,7 +61,7 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(load.Current, $"{fixture} failed to import.");
             var hub = load.Current.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub, $"{fixture} imported without a KhrCharacter component — the addon's " +
-                                  "KHR_character root marker didn't reconstruct on UnityGLTF's import path.");
+                                  "KHR_character marker didn't reconstruct on UnityGLTF's import path.");
         }
 
         // ── Expression fixtures reconstruct the expected expression count ──

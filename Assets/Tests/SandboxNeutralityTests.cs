@@ -79,7 +79,7 @@ namespace KhrCharacterTestbed.Tests
                 // trivially on an empty wire.
                 Assert.IsNotNull(root.ExtensionsUsed, $"{fixture} should declare extensionsUsed.");
                 CollectionAssert.Contains(root.ExtensionsUsed, KHR_character.EXTENSION_NAME,
-                    $"{fixture} should declare the root KHR_character extension.");
+                    $"{fixture} should declare the KHR_character marker extension.");
                 Assert.IsTrue(root.ExtensionsUsed == null || !root.ExtensionsUsed.Contains(KhrCharacterExtensionNames.XmpJsonLd),
                     $"{fixture} has no XMP data and must not declare an unconditional XMP dependency.");
 

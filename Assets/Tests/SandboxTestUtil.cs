@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Samples.Shared;
 
@@ -131,6 +132,40 @@ namespace KhrCharacterTestbed.Tests
             }
         }
 
+        /// <summary>
+        /// Imports an in-memory GLB (see <see cref="PatchGlbJson"/>) and yields until ready; exposes the scene root via
+        /// .Current. Same wait, timeout and teardown behavior as <see cref="SceneLoad"/>.
+        /// </summary>
+        public sealed class BytesLoad : CustomYieldInstruction
+        {
+            private readonly Task<GameObject> _task;
+            private readonly float _deadline;
+            private readonly List<Object> _created;
+
+            public new GameObject Current { get; private set; }
+
+            public BytesLoad(byte[] glb, List<Object> created, CharacterExpressionHostPolicy expressionPolicy)
+            {
+                _created = created;
+                _task = CharacterLoader.LoadFromBytesAsync(glb, null, expressionPolicy);
+                _deadline = Time.realtimeSinceStartup + 30f;
+            }
+
+            public override bool keepWaiting
+            {
+                get
+                {
+                    if (!_task.IsCompleted && Time.realtimeSinceStartup < _deadline) return true;
+                    Assert.IsTrue(_task.IsCompleted, "in-memory glTF import did not complete within 30s.");
+                    if (_task.Exception != null) throw _task.Exception;
+                    Current = _task.Result;
+                    Assert.IsNotNull(Current, "Imported scene root is null.");
+                    _created.Add(Current);
+                    return false;
+                }
+            }
+        }
+
         // ── Testbed export policy: the ^KHR_ allow-list ──────────────────────
 
         // This is an intentionally narrow project profile, not a glTF namespace rule. KHR_ and EXT_ are both
@@ -148,6 +183,57 @@ namespace KhrCharacterTestbed.Tests
             foreach (var e in extensions)
                 Assert.IsTrue(IsAllowedByKhrOnlyProfile(e),
                     $"{surfaceLabel} must match this testbed's KHR-only export profile; found token '{e}'.");
+        }
+
+        // ── In-memory wire edits ─────────────────────────────────────────────
+
+        /// <summary>
+        /// Returns a copy of a binary glTF whose JSON chunk <paramref name="patch"/> has edited; every other chunk is
+        /// copied unchanged. Lets a test vary one wire detail of a committed fixture without committing a new asset.
+        /// </summary>
+        public static byte[] PatchGlbJson(byte[] glb, System.Action<JObject> patch)
+        {
+            Assert.IsNotNull(glb);
+            Assert.IsTrue(glb.Length >= 20 && System.BitConverter.ToUInt32(glb, 0) == 0x46546C67u, "not a binary glTF.");
+            var chunks = new List<(uint Type, byte[] Data)>();
+            int offset = 12;
+            while (offset + 8 <= glb.Length)
+            {
+                int length = (int)System.BitConverter.ToUInt32(glb, offset);
+                uint type = System.BitConverter.ToUInt32(glb, offset + 4);
+                var data = new byte[length];
+                System.Array.Copy(glb, offset + 8, data, 0, length);
+                chunks.Add((type, data));
+                offset += 8 + length;
+            }
+            int jsonChunk = chunks.FindIndex(c => c.Type == 0x4E4F534Au);
+            Assert.GreaterOrEqual(jsonChunk, 0, "the GLB has no JSON chunk.");
+
+            var json = JObject.Parse(System.Text.Encoding.UTF8.GetString(chunks[jsonChunk].Data));
+            patch(json);
+            var text = System.Text.Encoding.UTF8.GetBytes(json.ToString(Newtonsoft.Json.Formatting.None));
+            var padded = new byte[(text.Length + 3) & ~3];
+            System.Array.Copy(text, padded, text.Length);
+            for (int i = text.Length; i < padded.Length; i++) padded[i] = (byte)' ';
+            chunks[jsonChunk] = (chunks[jsonChunk].Type, padded);
+
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream))
+            {
+                int total = 12;
+                foreach (var chunk in chunks) total += 8 + chunk.Data.Length;
+                writer.Write(0x46546C67u);
+                writer.Write(2u);
+                writer.Write((uint)total);
+                foreach (var chunk in chunks)
+                {
+                    writer.Write((uint)chunk.Data.Length);
+                    writer.Write(chunk.Type);
+                    writer.Write(chunk.Data);
+                }
+                writer.Flush();
+                return stream.ToArray();
+            }
         }
 
         // ── Misc ─────────────────────────────────────────────────────────────
