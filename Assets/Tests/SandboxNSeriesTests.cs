@@ -10,7 +10,7 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Phase-4b functional proofs (bounded PlayMode) for the N-series demos: N1 (additive vs override), N2 (mask +
+    /// Phase-4b functional proofs (bounded PlayMode) for the N-series demos: N1 (additive composition), N2 (mask +
     /// vocabulary), N4 (view-mode visibility), N8 (eye-aim), N9 (extract/resolve round-trip). All reference real
     /// plugin types, so they also act as anti-hollow gates.
     /// </summary>
@@ -27,7 +27,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator N1_OverrideChangesComposedWeightVsAdditive()
+        public IEnumerator N1_OverlappingExpressionsAddWithoutClamp()
         {
             var scene = LoadScene("SC-FacePlus.glb");
             yield return scene;
@@ -36,19 +36,14 @@ namespace KhrCharacterTestbed.Tests
             var smr = go.GetComponentInChildren<SkinnedMeshRenderer>();
             Assert.IsNotNull(controller); Assert.IsNotNull(smr);
 
-            // "aa" + "jawOpen" both drive blendshape 0. Additive sums (and saturates); Override takes the winner.
-            SetPairBlendMode(controller, ExpressionBlendMode.Additive);
+            // "jawOpen" (1.0) and "aa" (0.6) both drive blendshape 0; their responses add without a clamp.
+            controller.ResetAll();
             controller.SetWeight("jawOpen", 1f);
             controller.SetWeight("aa", 1f);
             yield return null; yield return null;
-            float additive = smr.GetBlendShapeWeight(0);
-
-            SetPairBlendMode(controller, ExpressionBlendMode.Override);
-            yield return null; yield return null;
-            float overridden = smr.GetBlendShapeWeight(0);
-
-            Assert.Greater(additive, overridden,
-                $"Additive ({additive}) should exceed Override ({overridden}) when both drive blendshape 0.");
+            float frameWeight = smr.sharedMesh.GetBlendShapeFrameWeight(0, 0);
+            Assert.AreEqual(1.6f * frameWeight, smr.GetBlendShapeWeight(0), 1e-3f * frameWeight,
+                "'jawOpen' + 'aa' on blendshape 0 should be the unclamped sum 1.6 times the frame weight.");
             controller.ResetAll();
         }
 
@@ -246,15 +241,6 @@ namespace KhrCharacterTestbed.Tests
         }
 
         // ── helpers ──────────────────────────────────────────────────────────
-
-        private static void SetPairBlendMode(ExpressionController controller, ExpressionBlendMode mode)
-        {
-            var set = controller.Set;
-            if (set?.Expressions == null) return;
-            foreach (var track in set.Expressions)
-                if (track != null && (track.Name == "aa" || track.Name == "jawOpen"))
-                    track.BlendMode = mode;
-        }
 
         private static int SmileInputContributionCount(ExpressionController controller)
         {

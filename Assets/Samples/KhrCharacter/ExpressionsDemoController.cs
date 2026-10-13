@@ -77,15 +77,9 @@ namespace Samples.Characters
                 BuildNSeriesControls(panel.Ui, controller);
         }
 
-        // N1 (additive vs override) + N2 (mask + vocabulary) controls, appended below the auto-built expression rows.
+        // N2 (mask + vocabulary) controls, appended below the auto-built expression rows.
         private static void BuildNSeriesControls(DemoUiBuilder ui, ExpressionController controller)
         {
-            // N1: "aa" and "jawOpen" drive the SAME blendshape. Additive sums them; Override takes the winner.
-            // Override is RUNTIME-ONLY (see Caveats.BlendModeRuntimeOnly) — it is not written to the glTF wire.
-            ui.AddLabel("N1: 'aa' + 'jawOpen' drive one blendshape. Raise both sliders above, then toggle:");
-            ui.AddToggle($"Override (winner-takes) - runtime only [{Caveats.Id(Caveat.BlendModeRuntimeOnly)}]", on =>
-                SetPairBlendMode(controller, on ? ExpressionBlendMode.Override : ExpressionBlendMode.Additive), false);
-
             // N2: 'happy' blend-masks 'aa' (raise both 'happy' and 'aa' above to watch aa attenuate); plus a
             // input-vocabulary slider per command (SetWeightByVocabulary distributes to native expressions).
             ui.AddLabel("N2: 'happy' blend-masks 'aa'. Endpoint input commands distribute to native expressions:");
@@ -102,15 +96,6 @@ namespace Samples.Characters
                     }, 0f, 1f, 0f);
                 }
             }
-        }
-
-        private static void SetPairBlendMode(ExpressionController controller, ExpressionBlendMode mode)
-        {
-            var set = controller?.Set;
-            if (set?.Expressions == null) return;
-            foreach (var track in set.Expressions)
-                if (track != null && (track.Name == "aa" || track.Name == "jawOpen"))
-                    track.BlendMode = mode;
         }
 
         // The panel is otherwise only built by ExpressionControlPanel on success; on any failure path build a

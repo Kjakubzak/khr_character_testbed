@@ -304,13 +304,9 @@ namespace Samples.Editor
                 },
             };
 
-            // N1 (additive vs override): "aa" drives the SAME blendshape as "jawOpen" (index 0), so a demo can show
-            // their additive sum vs the override winner. A higher Priority makes "aa" win in Override mode.
             int jawOpenIndex = tracks.FindIndex(t => t.Name == "jawOpen");
             var aa = MorphTrack("aa", smr, jawOpenIndex >= 0 ? jawOpenIndex : 0);
-            aa.MorphDrivers[0].Priority = 1;
-            // Half-strength + LINEAR so the overlap with "jawOpen" is demonstrable: Additive sums (and saturates)
-            // while Override takes the winner (aa, higher Priority). With equal STEP drivers the two are identical.
+            // Half-strength + LINEAR, so its sum with "jawOpen" on the shared blendshape is distinguishable.
             aa.MorphDrivers[0].Sampler = new Sampler { Times = new[] { 0f, 1f }, Interp = Interp.Linear, SingleKey = false };
             aa.MorphDrivers[0].DeltaValues = new[] { 0f, 0.6f };
             int aaIndex = tracks.Count;
