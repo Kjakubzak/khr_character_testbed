@@ -13,7 +13,7 @@ namespace KhrCharacterTestbed.Tests
     /// auto-play suppression; the extension itself does not mutate clips or choose an animation host. SC-Face is
     /// all-suppressed under that selected policy.
     /// </summary>
-    public class SandboxSuppressionTests
+    public class SandboxAutoPlaySuppressionTests
     {
         private readonly List<Object> _created = new List<Object>();
 
@@ -31,7 +31,7 @@ namespace KhrCharacterTestbed.Tests
             var load = SandboxTestUtil.LoadSynthetic(
                 "SC-Face.glb",
                 _created,
-                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
+                CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             yield return load;
             var scene = load.Current;
             var hub = scene.GetComponent<KhrCharacter>();

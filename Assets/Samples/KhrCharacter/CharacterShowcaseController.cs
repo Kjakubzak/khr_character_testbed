@@ -64,11 +64,11 @@ namespace Samples.Characters
                     ? await CharacterLoader.LoadDemoCharacterAsync(
                         content.transform,
                         fallbackFile,
-                        CharacterExpressionHostPolicy.LegacyControllerWithSuppression)
+                        CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression)
                     : await CharacterLoader.LoadAsync(
                         HeroGlbPath,
                         content.transform,
-                        CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
+                        CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             }
             catch (System.Exception e) { Debug.LogException(e); _ui.AddLabel("Load failed: " + e.Message); AddBack(); return; }
             if (this == null) return; // scene changed / object destroyed mid-import

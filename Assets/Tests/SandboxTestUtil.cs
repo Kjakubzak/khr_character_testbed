@@ -42,7 +42,7 @@ namespace KhrCharacterTestbed.Tests
         public static SceneLoad LoadSynthetic(
             string fileName,
             List<Object> created,
-            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.LegacyControllerWithSuppression)
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression)
             => new SceneLoad(fileName, created, expressionPolicy);
 
         /// <summary>Load a FromBlender fixture by file name (see <c>Assets/SampleAssets/FromBlender</c>)
@@ -51,7 +51,7 @@ namespace KhrCharacterTestbed.Tests
         public static SceneLoad LoadFromBlender(
             string fileName,
             List<Object> created,
-            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.LegacyControllerWithSuppression)
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression)
             => new SceneLoad(CharacterLoader.FromBlenderPath(fileName), fileName, created, expressionPolicy);
 
         /// <summary>Load a fixture by absolute path. Used by the "iterate every catalog fixture"
@@ -59,7 +59,7 @@ namespace KhrCharacterTestbed.Tests
         public static SceneLoad LoadFromAbsolutePath(
             string absolutePath,
             List<Object> created,
-            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.LegacyControllerWithSuppression)
+            CharacterExpressionHostPolicy expressionPolicy = CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression)
             => new SceneLoad(
                 absolutePath,
                 System.IO.Path.GetFileName(absolutePath),

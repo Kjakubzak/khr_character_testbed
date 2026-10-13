@@ -214,7 +214,7 @@ namespace KhrCharacterTestbed.Tests
             var task = CharacterLoader.LoadAsync(
                 path,
                 null,
-                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
+                CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             float deadline = Time.realtimeSinceStartup + (hero ? 60f : 30f);
             while (!task.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.IsTrue(task.IsCompleted, "Showcase character import did not complete in time.");

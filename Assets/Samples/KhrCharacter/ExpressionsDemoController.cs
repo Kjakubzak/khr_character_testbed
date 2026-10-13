@@ -42,11 +42,11 @@ namespace Samples.Characters
                     ? await CharacterLoader.LoadDemoCharacterAsync(
                         _contentRoot,
                         fallbackFile,
-                        CharacterExpressionHostPolicy.LegacyControllerWithSuppression)
+                        CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression)
                     : await CharacterLoader.LoadAsync(
                         GlbPath,
                         _contentRoot,
-                        CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
+                        CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             }
             catch (System.Exception e)
             {

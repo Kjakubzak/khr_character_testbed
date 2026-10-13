@@ -38,7 +38,7 @@ namespace KhrCharacterTestbed.Tests
             var task = CharacterLoader.LoadAsync(
                 path,
                 null,
-                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
+                CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             yield return SandboxTestUtil.WaitFor(task, 30f);
             var scene = SandboxTestUtil.ResolveScene(task, _created);
 
@@ -99,7 +99,7 @@ namespace KhrCharacterTestbed.Tests
             var task = CharacterLoader.LoadAsync(
                 path,
                 null,
-                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
+                CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             yield return SandboxTestUtil.WaitFor(task, 30f);
             var scene = SandboxTestUtil.ResolveScene(task, _created);
 

@@ -32,7 +32,7 @@ namespace KhrCharacterTestbed.Tests
             var load = SandboxTestUtil.LoadSynthetic(
                 "SC-Partial.glb",
                 _created,
-                CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
+                CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             yield return load;
             var scene = load.Current;
 

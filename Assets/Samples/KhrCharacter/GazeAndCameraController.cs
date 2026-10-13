@@ -57,11 +57,11 @@ namespace Samples.Characters
                 ? CharacterLoader.LoadDemoCharacterAsync(
                     faceRoot.transform,
                     faceFallbackFile,
-                    CharacterExpressionHostPolicy.LegacyControllerWithSuppression)
+                    CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression)
                 : CharacterLoader.LoadAsync(
                     FaceGlbPath,
                     faceRoot.transform,
-                    CharacterExpressionHostPolicy.LegacyControllerWithSuppression);
+                    CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression);
             await WireLoaded(faceLoad, WireGaze);
             if (this == null) return; // scene changed / object destroyed mid-import
 

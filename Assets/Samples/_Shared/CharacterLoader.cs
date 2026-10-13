@@ -16,7 +16,7 @@ namespace Samples.Shared
     {
         Passive,
         LegacyController,
-        LegacyControllerWithSuppression,
+        LegacyControllerWithAutoPlaySuppression,
     }
 
     /// <summary>
@@ -447,7 +447,7 @@ namespace Samples.Shared
                     characterImport.CreateExpressionController =
                         expressionPolicy != CharacterExpressionHostPolicy.Passive;
                     characterImport.SuppressNonInteractiveAnimationAutoPlay =
-                        expressionPolicy == CharacterExpressionHostPolicy.LegacyControllerWithSuppression;
+                        expressionPolicy == CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression;
                 }
                 else if (plugin is VisibilityHintImportPlugin visibilityHint)
                 {
