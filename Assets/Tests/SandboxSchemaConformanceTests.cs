@@ -209,7 +209,19 @@ namespace KhrCharacterTestbed.Tests
             var root = JObject.Parse(CharacterLoader.ExtractGltfJson(System.IO.File.ReadAllBytes(path)));
             var errors = ExpressionObjectReferences(root);
             errors.AddRange(SkeletonObjectReferences(root));
-            Assert.IsEmpty(errors, $"{relativePath}: {string.Join(" | ", errors)}");
+            if (IsHeroFixture(relativePath) && HasUnnamedExpressionEntry(root))
+            {
+                // D7: until the hero is re-exported its entries carry only the legacy `expression` label, so no
+                // diagnostic mapping name can match an entry `name`. Assert that pending defect; never skip.
+                Assert.IsNotEmpty(errors, $"{relativePath}: unnamed hero entries must fail the mapping-name check.");
+                foreach (var error in errors)
+                    StringAssert.Contains("mapping name does not match", error,
+                        $"{relativePath}: {string.Join(" | ", errors)}");
+            }
+            else
+            {
+                Assert.IsEmpty(errors, $"{relativePath}: {string.Join(" | ", errors)}");
+            }
             if (expectedSkeletonVocabulary != null)
             {
                 var rigs = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
@@ -404,9 +416,7 @@ namespace KhrCharacterTestbed.Tests
                             var index = source?["source"];
                             if (index?.Type != JTokenType.Integer || (int)index < 0 || (int)index >= expressions.Count)
                                 errors.Add("mapping source does not resolve in KHR_character_expression.expressions.");
-                            else if (source?["name"] != null
-                                && (source["name"].Type != JTokenType.String
-                                    || (string)source["name"] != EntryName(expressions[(int)index])))
+                            else if (source?["name"] != null && !NameMatchesEntry(source["name"], expressions[(int)index]))
                                 errors.Add("mapping name does not match the source expression label.");
                         }
                     }
@@ -428,9 +438,7 @@ namespace KhrCharacterTestbed.Tests
                             var index = target?["target"];
                             if (index?.Type != JTokenType.Integer || (int)index < 0 || (int)index >= expressions.Count)
                                 errors.Add("input mapping target does not resolve in KHR_character_expression.expressions.");
-                            else if (target?["name"] != null
-                                && (target["name"].Type != JTokenType.String
-                                    || (string)target["name"] != EntryName(expressions[(int)index])))
+                            else if (target?["name"] != null && !NameMatchesEntry(target["name"], expressions[(int)index]))
                                 errors.Add("input mapping name does not match the target expression label.");
                         }
                     }
@@ -439,9 +447,27 @@ namespace KhrCharacterTestbed.Tests
             return errors;
         }
 
-        // The hero fixtures still carry the legacy `expression` label until they are re-exported.
+        // A legacy `expression` label is not an entry name, so it never satisfies a diagnostic name.
+        private static bool NameMatchesEntry(JToken name, JToken expression)
+            => name.Type == JTokenType.String
+               && EntryName(expression) is string entryName
+               && string.Equals((string)name, entryName, System.StringComparison.Ordinal);
+
         private static string EntryName(JToken expression)
-            => (string)(expression?["name"] ?? expression?["expression"]);
+            => expression is JObject entry && entry["name"]?.Type == JTokenType.String ? (string)entry["name"] : null;
+
+        private static bool HasUnnamedExpressionEntry(JObject root)
+        {
+            var expressions = root["extensions"]?["KHR_character_expression"]?["expressions"] as JArray;
+            if (expressions == null) return false;
+            foreach (var expression in expressions)
+                if (string.IsNullOrEmpty(EntryName(expression))) return true;
+            return false;
+        }
+
+        private static bool IsHeroFixture(string relativePath)
+            => relativePath == CharacterLoader.HeroRelativePath
+               || System.Array.IndexOf(CharacterLoader.HeroVariantRelativePaths, relativePath) >= 0;
 
         private static void CheckMappingSetIdentifiers(JObject mappingSets, List<string> errors)
         {
