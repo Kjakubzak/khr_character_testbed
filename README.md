@@ -103,7 +103,7 @@ Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consu
 This project is a **pure UPM consumer** — it vendors no plugin code. `Packages/manifest.json` pins UnityGLTF (a fork that adds the `KHR_character` plugin) by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
 
 ```jsonc
-"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#5f32eb17927696644e38c0867e39600e9b1bdc9b",
+"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#1574efecb61dc4b279a76262fa2835c0340e5b5f",
 "testables": ["org.khronos.unitygltf"]
 ```
 
