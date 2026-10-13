@@ -141,8 +141,8 @@ namespace KhrCharacterTestbed.Tests
                 if (item == null) continue;
                 anyMorph |= item.Morphtarget != null;
                 anyJoint |= item.Joint != null;
-                anyTexture |= item.Texture != null;
-                anyMask |= item.Mask != null;
+                anyTexture |= item.TextureTransform != null;
+                anyMask |= item.Suppression != null;
             }
 
             void Require(bool present, string token)
@@ -155,8 +155,8 @@ namespace KhrCharacterTestbed.Tests
             }
             Require(anyMorph, KHR_character_expression_morphtarget.EXTENSION_NAME);
             Require(anyJoint, KHR_character_expression_joint.EXTENSION_NAME);
-            Require(anyTexture, KHR_character_expression_texture.EXTENSION_NAME);
-            Require(anyMask, KHR_character_expression_mask.EXTENSION_NAME);
+            Require(anyTexture, KHR_character_expression_texture_transform.EXTENSION_NAME);
+            Require(anyMask, KHR_character_expression_suppression.EXTENSION_NAME);
 
             CollectionAssert.Contains(root.ExtensionsUsed, KHR_character.EXTENSION_NAME,
                 $"{fixture}: expression extensions require KHR_character.");

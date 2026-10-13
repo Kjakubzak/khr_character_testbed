@@ -69,12 +69,12 @@ namespace KhrCharacterTestbed.Tests
             var root = CharacterLoader.ReadGltfRoot(CharacterLoader.SyntheticPath("SC-FacePlus.glb"));
             var expr = GetExpression(root);
             Assert.IsNotNull(expr);
-            var item = expr.Expressions.Find(i => i != null && i.Texture != null);
+            var item = expr.Expressions.Find(i => i != null && i.TextureTransform != null);
             Assert.IsNotNull(item, "SC-FacePlus should carry a texture expression.");
 
             var anim = root.Animations[item.Animation];
             bool foundLinearUv = false;
-            foreach (int ci in item.Texture.Channels)
+            foreach (int ci in item.TextureTransform.Channels)
             {
                 var ch = anim.Channels[ci];
                 var path = PointerPath(ch);

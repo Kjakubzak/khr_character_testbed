@@ -196,8 +196,8 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(caps);
             foreach (var c in new[]
             {
-                CharacterCapability.Morphtarget, CharacterCapability.Joint, CharacterCapability.Texture,
-                CharacterCapability.Mask, CharacterCapability.Mapping,
+                CharacterCapability.Morphtarget, CharacterCapability.Joint, CharacterCapability.TextureTransform,
+                CharacterCapability.Suppression, CharacterCapability.Mapping,
             })
                 CollectionAssert.Contains(caps, c, $"SC-FacePlus should report the {c} expression sub-domain capability.");
         }

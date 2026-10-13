@@ -320,9 +320,9 @@ namespace Samples.Editor
             // KHR_character_expression_mask on the "happy" expression item.
             var happy = MorphTrack("happy", smr, SmileBlendShapeIndex);
             int happyIndex = tracks.Count;
-            happy.Masks = new[]
+            happy.Suppressions = new[]
             {
-                new MaskEntry { TargetIndex = aaIndex, SourceIndex = happyIndex, Type = MaskType.Blend, Amount = 1f },
+                new SuppressionEntry { TargetIndex = aaIndex, SourceIndex = happyIndex, Type = SuppressionType.Blend },
             };
             tracks.Add(happy);
 
@@ -627,9 +627,9 @@ namespace Samples.Editor
 
             var edgeA = MorphTrack("edgeA", smr, 0);   // drives shapeA
             var edgeB = MorphTrack("edgeB", smr, 1);   // drives shapeB AND block-masks edgeA
-            edgeB.Masks = new[]
+            edgeB.Suppressions = new[]
             {
-                new MaskEntry { TargetIndex = 0, SourceIndex = 1, Type = MaskType.Block, Amount = 1f, Threshold = 0f },
+                new SuppressionEntry { TargetIndex = 0, SourceIndex = 1, Type = SuppressionType.Block },
             };
             var set = new CharacterExpressionSet { Expressions = new[] { edgeA, edgeB } };
             root.AddComponent<ExpressionController>().Initialize(set);

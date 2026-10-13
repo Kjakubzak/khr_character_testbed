@@ -54,7 +54,7 @@ namespace KhrCharacterTestbed.Tests
             // Absent: every capability the fixture did NOT author must be reported absent.
             foreach (var absent in new[]
             {
-                CharacterCapability.Joint, CharacterCapability.Texture, CharacterCapability.Mask,
+                CharacterCapability.Joint, CharacterCapability.TextureTransform, CharacterCapability.Suppression,
                 CharacterCapability.Mapping, CharacterCapability.SkeletonMapping, CharacterCapability.ReferencePose,
                 CharacterCapability.CameraHint, CharacterCapability.LookAtTarget,
             })

@@ -79,7 +79,7 @@ namespace KhrCharacterTestbed.Tests
         private static int FindExpression(ExpressionResponseSet set, string label)
         {
             for (int index = 0; index < set.Entries.Count; index++)
-                if (set.Entries[index]?.Label == label) return index;
+                if (set.Entries[index]?.Name == label) return index;
             Assert.Fail($"Expression '{label}' was not imported.");
             return -1;
         }
