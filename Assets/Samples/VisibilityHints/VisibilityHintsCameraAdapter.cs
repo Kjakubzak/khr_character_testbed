@@ -6,9 +6,11 @@ using UnityGLTF.VisibilityHints;
 namespace Samples.VisibilityHints
 {
     /// <summary>
-    /// Optional sample host that realizes passive visibility predicates with a no-draw material for one camera's
-    /// render scope. It restores every material immediately after that camera renders; other cameras may select a
-    /// different context for the same character instance.
+    /// Optional sample host that realizes passive visibility predicates for one camera's render scope, using the view
+    /// tags of the <see cref="ViewContextController"/>. Hint-hidden content gets the no-draw material, so it adds no
+    /// color, depth or shadow to that view, and every material is restored immediately after the camera renders;
+    /// other cameras may use different tags for the same character instance. It does not turn off lights on hidden
+    /// nodes (<see cref="ScopedMaterialVisibilityAdapter.ApplyLightsForView"/> does that); the sample figure has none.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class VisibilityHintsCameraAdapter : MonoBehaviour

@@ -128,6 +128,7 @@ namespace Samples.Shared
             var expressions = _hub.Expressions;
             var responses = _hub.ExpressionResponses;
             _ui.AddLabel("[Expressions]");
+            AddDerivedExpressionTypes();
             if (responses != null) _ui.AddLabel($"Passive responses: {responses.Count} (array-indexed)");
             if (expressions == null)
             {
@@ -148,11 +149,38 @@ namespace Samples.Shared
                 }
 
             _ui.AddLabel($"Unity controller adapter: {expressions.Count}");
-            _ui.AddLabel($"  Morph {morph} \u00b7 Joint {joint} \u00b7 Tex {texture}");
+            _ui.AddLabel($"  Morph {morph} \u00b7 Joint {joint} \u00b7 TexTransform {texture}");
             _ui.AddLabel($"  Binary: {binary}");
             AddVocabularies("Output vocabulary sets", expressions.OutputVocabularySets);
             AddVocabularies("Input vocabulary sets", expressions.InputVocabularySets);
             AddExpressionNames(handles);
+        }
+
+        // The expression types the source declares in extensionsUsed, and whether this importer animates their channels.
+        private void AddDerivedExpressionTypes()
+        {
+            var used = CharacterLoader.ReadSourceExtensionsUsed(CharacterLoader.LastLoadedSourcePath);
+            var types = new List<string>();
+            foreach (var extension in used)
+            {
+                bool registered = ExpressionDerivedExtensionRegistry.Default.TryGet(extension, out var derived);
+                if (registered && !derived.ListsChannels) continue;
+                if (!registered && !extension.StartsWith("KHR_character_expression_", System.StringComparison.Ordinal)) continue;
+                if (extension == "KHR_character_expression_mapping") continue;
+                types.Add($"{ShortExpressionType(extension)} ({(registered && derived.IsSupported ? "supported" : "unsupported")})");
+            }
+            if (types.Count > 0) _ui.AddLabel($"Types: {string.Join(", ", types)}");
+        }
+
+        private static string ShortExpressionType(string extension)
+        {
+            switch (extension)
+            {
+                case "KHR_character_expression_morphtarget": return "Morph";
+                case "KHR_character_expression_joint": return "Joint";
+                case "KHR_character_expression_texture_transform": return "TexTransform";
+                default: return extension;
+            }
         }
 
         private void AddVocabularies(string label, IReadOnlyList<string> vocabularies)
@@ -183,6 +211,10 @@ namespace Samples.Shared
             _ui.AddLabel($"Humanoid: {skeleton.HumanoidAvailable}");
             if (skeleton.RigVocabularies != null && skeleton.RigVocabularies.Count > 0)
                 _ui.AddLabel($"Rig: {string.Join(", ", skeleton.RigVocabularies)}");
+            foreach (var pose in skeleton.ReferencePoses)
+                if (pose != null)
+                    _ui.AddLabel($"Reference pose (animation {pose.AnimationIndex}): {pose.PoseType}" +
+                                 (pose.IsValid ? string.Empty : " (invalid)"));
         }
 
         private void AddCameraHintSection()
@@ -191,13 +223,14 @@ namespace Samples.Shared
             _ui.AddLabel("[Camera hints]");
             if (hints == null || hints.Hints == null || hints.Hints.Count == 0) { _ui.AddLabel("(none)"); return; }
 
+            // A diagnostic view lists every hint, including unrecognized custom roles that menus leave out.
             _ui.AddLabel($"Count: {hints.Hints.Count}");
             foreach (var hint in hints.Hints)
             {
                 if (hint == null) continue;
                 string role = string.IsNullOrEmpty(hint.Role) ? "(role?)" : hint.Role;
-                string label = string.IsNullOrEmpty(hint.Label) ? string.Empty : $" \u2014 {hint.Label}";
-                _ui.AddLabel($"  {role}{label}");
+                string custom = hints.IsRecognizedRole(hint.Role) ? string.Empty : ", custom";
+                _ui.AddLabel($"  {hints.GetDisplayName(hint)} ({role}{custom})");
             }
         }
 

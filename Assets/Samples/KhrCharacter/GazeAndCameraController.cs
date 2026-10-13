@@ -9,8 +9,9 @@ namespace Samples.Characters
 {
     /// <summary>
     /// GazeAndCamera demo (M3). Loads SC-Face and explicitly installs the optional <see cref="GazeSolver"/> host
-    /// adapter so a movable world target can drive look expressions. SC-Body supplies passive camera hints whose
-    /// role buttons frame a preview camera via <see cref="CameraHintSet.Apply"/>.
+    /// adapter so a movable world target can drive look expressions. SC-Body supplies passive camera hints: a button per
+    /// recognized role places a preview camera at the hint's authored pose via <see cref="CameraHintSet.Apply"/>, and an
+    /// optional host policy then aims it at the hint's subject point.
     /// </summary>
     public class GazeAndCameraController : DemoControllerBase
     {
@@ -29,11 +30,12 @@ namespace Samples.Characters
         private RuntimeMoveWidget _targetWidget;
         private float _targetX;
         private float _targetY;
+        private bool _aimAtSubject;
 
         private async void Start()
         {
             if (string.IsNullOrEmpty(BodyGlbPath)) BodyGlbPath = CharacterLoader.SyntheticPath("SC-Body.glb");
-            bool usingHero = string.IsNullOrEmpty(FaceGlbPath) && CharacterLoader.WouldLoadHero;
+            bool usingHero = string.IsNullOrEmpty(FaceGlbPath) && CharacterLoader.WouldLoadHeroFor(expressionFeatures: true);
             string sceneName = SceneManager.GetActiveScene().name;
             string faceFallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-Face.glb");
             string faceFallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-Face");
@@ -44,7 +46,7 @@ namespace Samples.Characters
             targetGo.transform.position = _targetAnchor;
             _gazeTarget = targetGo.transform;
             _ui = CreatePanel("Gaze & Camera");
-            _ui.AddLabel("Gaze: move the target and the face follows. Camera: pick a hint role.");
+            _ui.AddLabel("Gaze: move the target and the face follows. Camera: pick a camera hint.");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, faceFallbackDisplay));
             BuildGazeControls();
             // The demo character drives gaze (the hero when it's a real GLB, else the catalog's face fallback) —
@@ -57,7 +59,8 @@ namespace Samples.Characters
                 ? CharacterLoader.LoadDemoCharacterAsync(
                     faceRoot.transform,
                     faceFallbackFile,
-                    CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression)
+                    CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression,
+                    expressionFeatures: true)
                 : CharacterLoader.LoadAsync(
                     FaceGlbPath,
                     faceRoot.transform,
@@ -72,7 +75,7 @@ namespace Samples.Characters
             await WireLoaded(CharacterLoader.LoadAsync(BodyGlbPath, bodyRoot.transform), WireCameraHints);
             if (this == null) return; // scene changed / object destroyed mid-import
 
-            Caveats.Render(_ui, Caveat.Draft, Caveat.CameraProjectionOffWire, Caveat.EyeAimNonSpec);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft, Caveat.CameraProjectionOffWire, Caveat.EyeAimNonSpec));
             // Back-to-Hub is guaranteed by DemoControllerBase (armed in CreatePanel).
         }
 
@@ -200,22 +203,26 @@ namespace Samples.Characters
             _hints = hub != null ? hub.CameraHints : null;
             if (_hints == null) { _ui.AddLabel("Body asset has no camera hints."); return; }
 
-            foreach (var hint in _hints.Hints)
+            // Default affordances surface only recognized roles; unrecognized custom roles stay imported.
+            foreach (var hint in _hints.GetPresentableHints())
             {
-                if (hint == null || string.IsNullOrEmpty(hint.Role)) continue;
-                string role = hint.Role;
-                _ui.AddButton($"Camera: {role}", () => ApplyHint(role));
+                var selected = hint;
+                _ui.AddButton($"Camera: {_hints.GetDisplayName(selected)}", () => ApplyHint(selected));
             }
+            // Host policy, not hint data: the hint pose comes from the node alone and the target only names a point.
+            _ui.AddToggle("Aim at subject point (host policy)", on => _aimAtSubject = on, false);
             _ui.AddButton("Free Look", () => { if (_rig != null) _rig.enabled = true; });
         }
 
-        private void ApplyHint(string role)
+        private void ApplyHint(CameraHint hint)
         {
-            if (_hints == null) return;
+            if (_hints == null || hint == null) return;
             var cam = Camera.main;
             if (cam == null) return;
             if (_rig != null) _rig.enabled = false; // stop orbiting so the hint framing holds
-            if (_hints.TryGetByRole(role, out var hint)) _hints.Apply(hint, cam, true);
+            _hints.Apply(hint, cam, true);
+            if (_aimAtSubject && CameraHintSet.TryGetSubjectPoint(hint, out var subject))
+                cam.transform.LookAt(subject);
         }
     }
 }

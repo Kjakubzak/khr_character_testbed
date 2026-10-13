@@ -9,10 +9,11 @@ namespace Samples.Characters
 {
     /// <summary>
     /// RigAndPose demo (M4). Loads SC-Body and lets the user switch the rig between Generic and Humanoid
-    /// (<see cref="SkeletonMap.SwitchRigMode"/>) and apply the reference pose. The humanoid build is best-effort:
-    /// if Unity rejects the bone layout, <c>SwitchRigMode(Humanoid)</c> returns false and the character gracefully
-    /// stays Generic (see the shared <see cref="Caveats"/> registry) — never throws. Any Animation component state
-    /// shown here is ordinary Unity host behavior, not a KHR_character runtime requirement.
+    /// (<see cref="SkeletonMap.SwitchRigMode"/>) and apply the reference pose, which sets every node to its resolved
+    /// value (the sampled value where the tagged animation targets it, else the authored local transform). The
+    /// humanoid build is best-effort: if Unity rejects the bone layout, <c>SwitchRigMode(Humanoid)</c> returns false
+    /// and the character gracefully stays Generic (see the shared <see cref="Caveats"/> registry) — never throws. Any
+    /// Animation component state shown here is ordinary Unity host behavior, not a KHR_character runtime requirement.
     /// </summary>
     public class RigAndPoseController : DemoControllerBase
     {
@@ -34,7 +35,7 @@ namespace Samples.Characters
             _ui.AddLabel("Switch Generic/Humanoid and apply the reference pose. Humanoid is best-effort.");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             _status = _ui.AddLabel("Loading ...");
-            Caveats.Render(_ui, Caveat.Draft, Caveat.SkeletonGracefulDegrade);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft, Caveat.SkeletonGracefulDegrade));
 
             var bodyRoot = new GameObject("BodyRoot");
             bodyRoot.transform.SetParent(transform, false);
@@ -63,6 +64,11 @@ namespace Samples.Characters
                 _ui.AddButton("Rig: Humanoid", () => SwitchRig(RigImportMode.Humanoid));
                 _ui.AddButton("Rig: Generic", () => SwitchRig(RigImportMode.Generic));
                 _ui.AddButton("Apply Reference Pose", () => { if (_skeleton != null) _skeleton.ApplyReferencePose(); });
+                foreach (var pose in _skeleton.ReferencePoses)
+                    if (pose != null)
+                        _ui.AddLabel($"Reference pose: animation {pose.AnimationIndex}, poseType '{pose.PoseType}'" +
+                                     (pose.IsValid ? string.Empty : " (invalid)"));
+                if (_skeleton.ReferencePoses.Count == 0) _ui.AddLabel("Reference pose: none tagged.");
                 Refresh();
             }
 
@@ -70,8 +76,10 @@ namespace Samples.Characters
             _ui.AddLabel(_animation == null
                 ? "Unity animation host on load: none."
                 : $"Unity animation host is playing on load: {_animation.isPlaying} (host behavior).");
+            // Core clip playback moves only the channels the clip targets, so every other node keeps its live value; it
+            // previews the clip rather than applying the reference pose.
             if (_animation != null)
-                _ui.AddButton("Play ReferencePose clip", PlayReferencePose);
+                _ui.AddButton("Preview ReferencePose clip (core playback)", PlayReferencePose);
 
             if (hub != null)
             {

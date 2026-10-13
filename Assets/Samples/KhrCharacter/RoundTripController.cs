@@ -122,9 +122,11 @@ namespace Samples.Characters
             Application.OpenURL("https://github.khronos.org/glTF-Sample-Viewer-Release/");
         }
 
+        // The hero demonstrates the boundary only once its expression data imports (caveat C10); until then the
+        // synthetic pseudo-VRM carries the same VRMC_* tokens and passive expressions.
         private static string ResolveExternalDefault()
         {
-            return CharacterLoader.HeroIsRealGlb
+            return CharacterLoader.HeroIsRealGlb && !CharacterLoader.HeroNeedsReexport
                 ? CharacterLoader.HeroAbsolutePath
                 : CharacterLoader.SyntheticPath("SC-PseudoVRM.glb");
         }

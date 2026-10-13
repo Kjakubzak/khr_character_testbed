@@ -8,8 +8,8 @@ namespace Samples.Characters
 {
     /// <summary>
     /// Expressions demo (M1 + M2). Loads SC-FacePlus via the shared loader and, once the character is ready, wires
-    /// the <see cref="ExpressionControlPanel"/> so its auto-generated sliders drive <see cref="ExpressionController.SetWeight"/>.
-    /// Because SC-FacePlus carries morph, a jaw JOINT, and a TEXTURE UV-transform expression, the
+    /// the <see cref="ExpressionControlPanel"/> so its auto-generated sliders drive <see cref="ExpressionController.SetWeight(int, float)"/>.
+    /// Because SC-FacePlus carries morph, a jaw JOINT, and a texture-transform expression, the
     /// auto-built rows surface all three domains (M2) alongside the morph sliders (M1).
     ///
     /// Note: the C# namespace is intentionally <c>Samples.Characters</c> (not <c>Samples.KhrCharacter</c>) so the
@@ -24,7 +24,7 @@ namespace Samples.Characters
 
         private async void Start()
         {
-            bool usingHero = string.IsNullOrEmpty(GlbPath) && CharacterLoader.WouldLoadHero;
+            bool usingHero = string.IsNullOrEmpty(GlbPath) && CharacterLoader.WouldLoadHeroFor(expressionFeatures: true);
             string sceneName = SceneManager.GetActiveScene().name;
             string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-FacePlus.glb");
             string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-FacePlus");
@@ -42,7 +42,8 @@ namespace Samples.Characters
                     ? await CharacterLoader.LoadDemoCharacterAsync(
                         _contentRoot,
                         fallbackFile,
-                        CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression)
+                        CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression,
+                        expressionFeatures: true)
                     : await CharacterLoader.LoadAsync(
                         GlbPath,
                         _contentRoot,
@@ -63,11 +64,11 @@ namespace Samples.Characters
             if (hub == null) { ShowFailure("Loaded, but no KHR Character data.", back); return; }
 
             // ExpressionControlPanel.Bind builds rows on WhenReady; the character is already ready post-load, so
-            // Ui exists synchronously afterwards and we can append the N1/N2 controls + a Back-to-Hub button.
+            // Ui exists synchronously afterwards and we can append the N2 controls + a Back-to-Hub button.
             var panel = gameObject.AddComponent<ExpressionControlPanel>();
             panel.Bind(hub);
             if (panel.Ui != null) panel.Ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
-            Caveats.Render(panel.Ui, Caveat.Draft, Caveat.BlendModeRuntimeOnly);
+            Caveats.Render(panel.Ui, Caveats.WithHeroStatus(Caveat.Draft, Caveat.HostDefinedWriterMix));
 
             // Guarantee a way back even when the character has no expression controller (A18):
             if (panel.Ui != null) panel.Ui.AddButton("Back to Hub", back.GoToHub);
@@ -77,12 +78,12 @@ namespace Samples.Characters
                 BuildNSeriesControls(panel.Ui, controller);
         }
 
-        // N2 (mask + vocabulary) controls, appended below the auto-built expression rows.
+        // N2 (suppression + vocabulary) controls, appended below the auto-built expression rows.
         private static void BuildNSeriesControls(DemoUiBuilder ui, ExpressionController controller)
         {
-            // N2: 'happy' blend-masks 'aa' (raise both 'happy' and 'aa' above to watch aa attenuate); plus a
+            // N2: 'happy' blend-suppresses 'aa' (raise both 'happy' and 'aa' above to watch aa attenuate); plus an
             // input-vocabulary slider per command (SetWeightByVocabulary distributes to native expressions).
-            ui.AddLabel("N2: 'happy' blend-masks 'aa'. Endpoint input commands distribute to native expressions:");
+            ui.AddLabel("N2: 'happy' blend-suppresses 'aa'. Endpoint input commands distribute to native expressions:");
             foreach (var setName in controller.InputVocabularySets)
             {
                 string vocab = setName;

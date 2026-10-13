@@ -41,7 +41,7 @@ namespace Samples.Characters
             _ui.AddLabel("Layer a MultiAimConstraint (head look-at) on top of a base humanoid clip.");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             _status = _ui.AddLabel("Loading ...");
-            Caveats.Render(_ui, Caveat.Draft);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft));
 
             var root = new GameObject("CharacterRoot");
             root.transform.SetParent(transform, false);

@@ -46,7 +46,7 @@ namespace Samples.Characters
             _ui.AddDropdown("Character", options, i => { _ = LoadChoice(i); }, 0);
             _healthText = _ui.AddLabel("Loading ...");
 
-            Caveats.Render(_ui, Caveat.Draft, Caveat.SkeletonGracefulDegrade, Caveat.HeroNonCommercial);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft, Caveat.SkeletonGracefulDegrade, Caveat.HeroNonCommercial));
 
             await LoadChoice(0);
         }
@@ -73,8 +73,10 @@ namespace Samples.Characters
                 {
                     if (index == 0)
                     {
+                        // Health reports expression capabilities, so a hero pending re-export is not the default.
                         scene = string.IsNullOrEmpty(GlbPath)
-                            ? await CharacterLoader.LoadDemoCharacterAsync(_root, fallbackFile)
+                            ? await CharacterLoader.LoadDemoCharacterAsync(
+                                _root, fallbackFile, expressionFeatures: true)
                             : await CharacterLoader.LoadAsync(GlbPath, _root);
                     }
                     else

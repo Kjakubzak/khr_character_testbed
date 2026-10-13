@@ -10,7 +10,8 @@ namespace Samples.Characters
     /// <summary>
     /// Character Showcase — drives a single character through every KHR_character capability in ONE combined,
     /// capability-gated panel. Loads the hero (the LFS-committed VRoid <c>khr-character-example.glb</c>) when
-    /// present, else falls back to the committed synthetic <c>SC-FacePlus.glb</c> (so a fresh public clone works).
+    /// present and its expression data imports, else falls back to the committed synthetic <c>SC-FacePlus.glb</c> (so a
+    /// fresh public clone works, and so does a checkout whose hero is pending re-export; see caveat C10).
     /// Each section is null-checked against the hub's sub-controllers, so a character missing a capability simply
     /// omits that section. A VRM-origin hero is consumed purely via KHR_character; its VRMC_* extensions are ignored.
     ///
@@ -20,7 +21,7 @@ namespace Samples.Characters
     /// </summary>
     public class CharacterShowcaseController : DemoControllerBase
     {
-        [Tooltip("Optional explicit character path. If empty, uses the hero VRoid when present, else SC-FacePlus.")]
+        [Tooltip("Optional explicit character path. If empty, uses the hero VRoid when it can drive expressions, else SC-FacePlus.")]
         public string HeroGlbPath;
 
         private Vector3 _targetAnchor = new Vector3(0f, 1.4f, GazeTargetUtil.DefaultDistance);
@@ -37,7 +38,7 @@ namespace Samples.Characters
 
         private async void Start()
         {
-            bool usingHero = string.IsNullOrEmpty(HeroGlbPath) && CharacterLoader.WouldLoadHero;
+            bool usingHero = string.IsNullOrEmpty(HeroGlbPath) && CharacterLoader.WouldLoadHeroFor(expressionFeatures: true);
 
             _rig = Object.FindFirstObjectByType<OrbitCameraRig>();
 
@@ -51,8 +52,8 @@ namespace Samples.Characters
             string fallbackFile = DemoCatalog.FallbackFor(sceneName, "SC-FacePlus.glb");
             string fallbackDisplay = DemoCatalog.FallbackDisplayFor(sceneName, "SC-FacePlus");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
-            Caveats.Render(_ui, Caveat.Draft, Caveat.BlendModeRuntimeOnly, Caveat.CameraProjectionOffWire,
-                Caveat.SkeletonGracefulDegrade, Caveat.HeroNonCommercial);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft, Caveat.HostDefinedWriterMix,
+                Caveat.CameraProjectionOffWire, Caveat.SkeletonGracefulDegrade, Caveat.HeroNonCommercial));
 
             var content = new GameObject("LoadedContent");
             content.transform.SetParent(transform, false);
@@ -64,7 +65,8 @@ namespace Samples.Characters
                     ? await CharacterLoader.LoadDemoCharacterAsync(
                         content.transform,
                         fallbackFile,
-                        CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression)
+                        CharacterExpressionHostPolicy.LegacyControllerWithAutoPlaySuppression,
+                        expressionFeatures: true)
                     : await CharacterLoader.LoadAsync(
                         HeroGlbPath,
                         content.transform,
@@ -112,13 +114,14 @@ namespace Samples.Characters
             var handles = controller.Expressions;
             for (int i = 0; i < handles.Count; i++)
             {
-                string name = handles[i].Name;
-                if (string.IsNullOrEmpty(name)) continue;
-                var slider = _ui.AddSlider(name, v =>
+                // Bind the array index: expression names need not be unique.
+                int index = i;
+                string label = string.IsNullOrEmpty(handles[i].Name) ? $"Expression {index}" : handles[i].Name;
+                var slider = _ui.AddSlider(label, v =>
                 {
                     controller.UseDirectNativeInputs();
-                    controller.SetWeight(name, v);
-                }, 0f, 1f, controller.GetWeight(name));
+                    controller.SetWeight(index, v);
+                }, 0f, 1f, controller.GetWeight(index));
                 // Host-authored binary metadata, not STEP interpolation, snaps this control to 0/1.
                 if (handles[i].IsBinary) slider.wholeNumbers = true;
             }
@@ -139,6 +142,10 @@ namespace Samples.Characters
             _ui.AddButton("Rig: Humanoid", () => SwitchRig(RigImportMode.Humanoid));
             _ui.AddButton("Rig: Generic", () => SwitchRig(RigImportMode.Generic));
             _ui.AddButton("Apply Reference Pose", () => { if (_skeleton != null) _skeleton.ApplyReferencePose(); });
+            foreach (var pose in _skeleton.ReferencePoses)
+                if (pose != null)
+                    _ui.AddLabel($"  Reference pose: animation {pose.AnimationIndex}, poseType '{pose.PoseType}'" +
+                                 (pose.IsValid ? string.Empty : " (invalid)"));
             RefreshRig();
         }
 
@@ -147,12 +154,12 @@ namespace Samples.Characters
             _hints = hints;
             if (_hints == null || _hints.Hints == null || _hints.Hints.Count == 0) return;
 
+            // Default affordances surface only recognized roles; unrecognized custom roles stay imported.
             _ui.AddLabel("Camera hints:");
-            foreach (var hint in _hints.Hints)
+            foreach (var hint in _hints.GetPresentableHints())
             {
-                if (hint == null || string.IsNullOrEmpty(hint.Role)) continue;
-                string role = hint.Role;
-                _ui.AddButton($"Camera: {role}", () => ApplyHint(role));
+                var selected = hint;
+                _ui.AddButton($"Camera: {_hints.GetDisplayName(selected)}", () => ApplyHint(selected));
             }
             _ui.AddButton("Free Look", () => { if (_rig != null) _rig.enabled = true; });
         }
@@ -197,13 +204,13 @@ namespace Samples.Characters
             _rigStatus.text = $"HumanoidAvailable: {_skeleton.HumanoidAvailable}";
         }
 
-        private void ApplyHint(string role)
+        private void ApplyHint(CameraHint hint)
         {
-            if (_hints == null) return;
+            if (_hints == null || hint == null) return;
             var cam = Camera.main;
             if (cam == null) return;
             if (_rig != null) _rig.enabled = false; // stop orbiting so the hint framing holds
-            if (_hints.TryGetByRole(role, out var hint)) _hints.Apply(hint, cam, true);
+            _hints.Apply(hint, cam, true);
         }
 
         private void UpdateTarget()

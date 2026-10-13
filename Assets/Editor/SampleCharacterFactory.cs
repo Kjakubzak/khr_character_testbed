@@ -19,10 +19,10 @@ namespace Samples.Editor
     /// editor assembly.
     ///
     /// - SC-Face       : head mesh + 6 morph expressions (incl. lookL/R/U/D) + a jaw joint.
-    /// - SC-FacePlus   : SC-Face + a texture expression (UV transform) on a distinct material.
+    /// - SC-FacePlus   : SC-Face + a texture-transform expression (UV offset) on a distinct material.
     /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + t_pose reference pose + a camera hint.
-    /// - SC-LookAt     : a KHR_character root + passive LookAtTargetSet metadata on ordinary target nodes.
-    /// - SC-Partial    : a KHR_character root with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
+    /// - SC-LookAt     : a KHR_character marker + passive LookAtTargetSet metadata on ordinary target nodes.
+    /// - SC-Partial    : a KHR_character marker with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
     /// - SC-PseudoVRM  : SC-Partial post-processed with synthetic VRMC_* tokens for import/export-safety coverage.
     /// - SC-ExprEdge   : two morph expressions where one BLOCK-suppresses the other (suppression edge: block vs blend).
     /// - VH-Node       : a Head node carrying KHR_node_visibility_hint (third_person) - a node-scoped hint only.
@@ -541,8 +541,8 @@ namespace Samples.Editor
 
         // ── Look-at assembly (SC-LookAt) ─────────────────────────────────────
 
-        // The minimal carrier for KHR_node_lookat_target (bug B7 had zero coverage): a KHR_character root whose
-        // LookAtTargetSet marks two ordinary nodes as passive look-at targets. One target carries a "hint" string;
+        // The minimal carrier for KHR_node_lookat_target (bug B7 had zero coverage): a character (KHR_character marker)
+        // whose LookAtTargetSet marks two ordinary nodes as passive look-at targets. One target carries a "hint" string;
         // the other is hint-less (an empty {} target - presence alone marks the node). No expressions or skeleton are
         // needed: the exporter emits the node markers from passive metadata, and the importer rehydrates that metadata
         // without selecting a gaze, camera, IK, or animation consumer.
@@ -571,7 +571,7 @@ namespace Samples.Editor
 
         // ── Partial assembly (SC-Partial / SC-PseudoVRM) ────────────────────────
 
-        // The minimal graceful-degradation carrier: a KHR_character root with ONLY a single morph expression - no
+        // The minimal graceful-degradation carrier: a character (KHR_character marker) with ONLY one morph expression - no
         // joint, texture, suppression, mapping, skeleton, reference pose, camera hint, or look-at target. Proves the importer
         // surfaces just the present capabilities and leaves the rest cleanly absent. Also the body of SC-PseudoVRM
         // (which then gets VRMC_* injected post-export).
@@ -654,8 +654,8 @@ namespace Samples.Editor
         // ── Visibility-hint assembly (VH-Node / VH-Primitive / VH-ViewContext) ─
 
         // VH-Node: a single-mesh "Head" node carrying KHR_node_visibility_hint (third_person), authored on a
-        // NodeVisibilityHintSet. In the default third-person view a third_person node stays visible, so nothing
-        // is toggled; the exporter emits the hint from the serialized entry and no other extension appears.
+        // NodeVisibilityHintSet. The passive hint set changes no renderer; the exporter emits the hint from the
+        // serialized entry and no other extension appears.
         private static GameObject AssembleVHNode(List<Object> temps)
         {
             var root = new GameObject("VH-Node") { hideFlags = HideFlags.HideAndDontSave };
@@ -679,9 +679,9 @@ namespace Samples.Editor
         }
 
         // VH-Primitive: a two-sub-mesh "Body" whose sub-mesh 1 carries KHR_mesh_primitive_visibility_hint
-        // (first_person). Bind resolves the hint and, in the default third-person view, swaps sub-mesh 1 to the
-        // shared invisible material; we restore the authored materials before export so the wire carries the real
-        // materials (the exporter reads the role from the serialized entry, not from live material state).
+        // (first_person). The passive hint set changes no material, and the authored materials are assigned
+        // explicitly so the wire carries them (the exporter reads the role from the serialized entry, not from live
+        // material state).
         private static GameObject AssembleVHPrimitive(List<Object> temps)
         {
             var root = new GameObject("VH-Primitive") { hideFlags = HideFlags.HideAndDontSave };
@@ -710,7 +710,7 @@ namespace Samples.Editor
 
         // VH-ViewContext: the combined fixture - a Head node hint (third_person) AND a Body sub-mesh-1 primitive
         // hint (first_person), so both extensions appear in one wire. As in AssembleVHPrimitive, the Body's
-        // authored materials are restored after Bind (the third-person view would otherwise swap sub-mesh 1).
+        // authored materials are assigned explicitly after Bind.
         private static GameObject AssembleVHViewContext(List<Object> temps)
         {
             var root = new GameObject("VH-ViewContext") { hideFlags = HideFlags.HideAndDontSave };

@@ -78,7 +78,7 @@ namespace Samples.Characters
 
             _status = _ui.AddLabel(string.Empty);
 
-            Caveats.Render(_ui, Caveat.Draft, Caveat.CubicSplineToLinear);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft, Caveat.CubicSplineToLinear));
         }
 
         // ── Dropdown builders ────────────────────────────────────────────
@@ -246,10 +246,12 @@ namespace Samples.Characters
                 _status.text = "Character loaded. Rig mode defaults to Generic (right for the shipped clips). Bind + Play.";
 
                 // Register a per-character clip source so its embedded animations flow into the clip
-                // dropdown. Removed on the next character load (see above).
+                // dropdown. Removed on the next character load (see above). Expression and reference-pose clips
+                // are response curves and poses, not playback content, so they stay out of the list.
                 var captured = _currentCharacter;
+                var nonPlayback = CharacterLoader.ReadNonPlaybackClipNames(path);
                 AnimationClipCatalog.TryRegister("Character",
-                    () => AnimationBinder.EnumerateCharacterClips(captured), autoDetected: false);
+                    () => AnimationBinder.EnumerateCharacterClips(captured, nonPlayback), autoDetected: false);
 
                 // Register a per-character PROCEDURAL source that resolves paths from the KHR
                 // skeleton_mapping — so procedural clips actually drive the loaded character's bones
