@@ -183,21 +183,19 @@
     {}
   ],
   "extensions": {
-    "KHR_character": {
-      "rootNode": 0
-    },
+    "KHR_character": {},
     "KHR_character_expression": {
       "expressions": [
         {
           "animation": 0,
-          "expression": "blink",
           "extensions": {
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
             }
-          }
+          },
+          "name": "blink"
         }
       ]
     },

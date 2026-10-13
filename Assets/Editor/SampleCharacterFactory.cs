@@ -20,11 +20,11 @@ namespace Samples.Editor
     ///
     /// - SC-Face       : head mesh + 6 morph expressions (incl. lookL/R/U/D) + a jaw joint.
     /// - SC-FacePlus   : SC-Face + a texture expression (UV transform) on a distinct material.
-    /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + TPose reference pose + a camera hint.
+    /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + t_pose reference pose + a camera hint.
     /// - SC-LookAt     : a KHR_character root + passive LookAtTargetSet metadata on ordinary target nodes.
     /// - SC-Partial    : a KHR_character root with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
     /// - SC-PseudoVRM  : SC-Partial post-processed with synthetic VRMC_* tokens for import/export-safety coverage.
-    /// - SC-ExprEdge   : two morph expressions where one BLOCK-masks the other (mask-domain edge: block vs blend).
+    /// - SC-ExprEdge   : two morph expressions where one BLOCK-suppresses the other (suppression edge: block vs blend).
     /// - VH-Node       : a Head node carrying KHR_node_visibility_hint (third_person) - a node-scoped hint only.
     /// - VH-Primitive  : a two-sub-mesh Body whose sub-mesh 1 carries KHR_mesh_primitive_visibility_hint (first_person).
     /// - VH-ViewContext: both visibility-hint extensions on one hierarchy (Head node hint + Body sub-mesh hint).
@@ -184,7 +184,7 @@ namespace Samples.Editor
             finally { Cleanup(temps); }
         }
 
-        /// <summary>Build SC-ExprEdge (two morph expressions where one BLOCK-masks the other) and export to SC-ExprEdge.glb.</summary>
+        /// <summary>Build SC-ExprEdge (two morph expressions where one BLOCK-suppresses the other) and export to SC-ExprEdge.glb.</summary>
         [SampleCharacter("SC-ExprEdge")]
         public static string GenerateSCExprEdge(string outputDirectory)
         {
@@ -312,8 +312,8 @@ namespace Samples.Editor
             int aaIndex = tracks.Count;
             tracks.Add(aa);
 
-            // N2 (mask): "happy" drives the "smile" blendshape (index 6) AND blend-masks "aa" -> emits
-            // KHR_character_expression_mask on the "happy" expression item.
+            // N2 (suppression): "happy" drives the "smile" blendshape (index 6) AND blend-suppresses "aa" -> emits
+            // KHR_character_expression_suppression on the "happy" expression item.
             var happy = MorphTrack("happy", smr, SmileBlendShapeIndex);
             int happyIndex = tracks.Count;
             happy.Suppressions = new[]
@@ -445,6 +445,7 @@ namespace Samples.Editor
                 PropertyId = Shader.PropertyToID(baseProperty + "_ST"),
                 PropertyName = baseProperty,
                 GltfTextureSlot = "pbrMetallicRoughness/baseColorTexture",
+                TransformTarget = TextureTransformTarget.Offset,
                 Sampler = new Sampler { Times = new[] { 0f, 1f }, Interp = Interp.Linear, SingleKey = false },
                 StValues = new[] { Vector4.zero, new Vector4(0f, 0f, 1f, 0f) },
                 BaseSt = new Vector4(1f, 1f, 0f, 0f),
@@ -462,7 +463,7 @@ namespace Samples.Editor
 
         // Builds a minimal but complete humanoid T-pose skeleton (all Unity-required bones plus chest/neck/
         // shoulders), authors KHR_character_skeleton_mapping under a versioned Unity Humanoid vocabulary URI with
-        // a TPose reference pose, and adds a "portrait" camera hint. Bone node names are unique and generic.
+        // a t_pose reference pose, and adds a "portrait" camera hint. Bone node names are unique and generic.
         // No skinned mesh is attached (bones only); the wire still carries the extensions.
         private static GameObject AssembleBodyCharacter(List<Object> temps)
         {
@@ -507,11 +508,11 @@ namespace Samples.Editor
             var rightLowerLeg = Bone("rightLowerLeg", "RightLowerLeg", rightUpperLeg, new Vector3(0f, -0.42f, 0f));
             Bone("rightFoot", "RightFoot", rightLowerLeg, new Vector3(0f, -0.42f, 0.08f));
 
-            // Reference pose (TPose) captured from the authored local transforms.
+            // Reference pose (t_pose) captured from the authored local transforms.
             var ordered = new List<Transform>(bones.Values);
             var referencePose = new ReferencePose
             {
-                PoseType = "TPose",
+                PoseType = ReferencePoseLabels.TPose,
                 Bones = ordered.ToArray(),
                 LocalPositions = ordered.ConvertAll(t => t.localPosition).ToArray(),
                 LocalRotations = ordered.ConvertAll(t => t.localRotation).ToArray(),
@@ -561,7 +562,7 @@ namespace Samples.Editor
             var targets = root.AddComponent<LookAtTargetSet>();
             targets.Bind(new List<LookAtTarget>
             {
-                new LookAtTarget { Node = focus.transform, Hint = "primary" },
+                new LookAtTarget { Node = focus.transform, Hint = "ACME_eye_target" },
                 new LookAtTarget { Node = aux.transform, Hint = null },
             });
 
@@ -571,7 +572,7 @@ namespace Samples.Editor
         // ── Partial assembly (SC-Partial / SC-PseudoVRM) ────────────────────────
 
         // The minimal graceful-degradation carrier: a KHR_character root with ONLY a single morph expression - no
-        // joint, texture, mask, mapping, skeleton, reference pose, camera hint, or look-at target. Proves the importer
+        // joint, texture, suppression, mapping, skeleton, reference pose, camera hint, or look-at target. Proves the importer
         // surfaces just the present capabilities and leaves the rest cleanly absent. Also the body of SC-PseudoVRM
         // (which then gets VRMC_* injected post-export).
         private static GameObject AssemblePartialCharacter(List<Object> temps)
@@ -601,9 +602,9 @@ namespace Samples.Editor
 
         // ── Expression-edge assembly (SC-ExprEdge) ────────────────────────
 
-        // Two morph expressions on a two-blendshape mesh: 'edgeA' drives shapeA; 'edgeB' drives shapeB AND BLOCK-masks
+        // Two morph expressions on a two-blendshape mesh: 'edgeA' drives shapeA; 'edgeB' drives shapeB AND BLOCK-suppresses
         // edgeA (amount 1, threshold 0) - so driving edgeB above the threshold fully zeroes edgeA's output while edgeB
-        // still drives its own shape. The block-mask counterpart to SC-Face's blend mask.
+        // still drives its own shape. The block counterpart to SC-Face's blend suppression.
         private static GameObject AssembleExprEdgeCharacter(List<Object> temps)
         {
             var root = new GameObject("SC-ExprEdge") { hideFlags = HideFlags.HideAndDontSave };
@@ -622,7 +623,7 @@ namespace Samples.Editor
             smr.localBounds = mesh.bounds;
 
             var edgeA = MorphTrack("edgeA", smr, 0);   // drives shapeA
-            var edgeB = MorphTrack("edgeB", smr, 1);   // drives shapeB AND block-masks edgeA
+            var edgeB = MorphTrack("edgeB", smr, 1);   // drives shapeB AND block-suppresses edgeA
             edgeB.Suppressions = new[]
             {
                 new SuppressionEntry { TargetIndex = 0, SourceIndex = 1, Type = SuppressionType.Block },
@@ -632,7 +633,7 @@ namespace Samples.Editor
             return root;
         }
 
-        // A tiny triangle with two blendshapes (shapeA, shapeB) for the block-mask edge fixture.
+        // A tiny triangle with two blendshapes (shapeA, shapeB) for the block-suppression edge fixture.
         private static Mesh BuildTwoShapeMesh()
         {
             var mesh = new Mesh { name = "SC-ExprEdge-Mesh", hideFlags = HideFlags.HideAndDontSave };

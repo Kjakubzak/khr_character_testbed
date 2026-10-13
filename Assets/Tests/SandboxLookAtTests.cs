@@ -44,7 +44,7 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(targets);
             Assert.AreEqual(2, targets.Count, "SC-LookAt authored exactly two look-at target nodes.");
 
-            // Node identity round-trips by name; the optional hint round-trips (one "primary", one hint-less {}).
+            // Node identity round-trips by name; the optional hint round-trips (one "ACME_eye_target", one hint-less {}).
             var byName = new Dictionary<string, LookAtTarget>();
             foreach (var t in targets)
             {
@@ -53,7 +53,8 @@ namespace KhrCharacterTestbed.Tests
             }
             Assert.IsTrue(byName.ContainsKey("FocusTarget"), "The 'FocusTarget' look-at node should round-trip by name.");
             Assert.IsTrue(byName.ContainsKey("AuxTarget"), "The 'AuxTarget' look-at node should round-trip by name.");
-            Assert.AreEqual("primary", byName["FocusTarget"].Hint, "FocusTarget's authored hint should round-trip.");
+            Assert.AreEqual("ACME_eye_target", byName["FocusTarget"].Hint,
+                "FocusTarget's authored hint should round-trip exactly.");
             Assert.IsTrue(string.IsNullOrEmpty(byName["AuxTarget"].Hint),
                 "AuxTarget was authored hint-less (empty {} target): its hint must round-trip as null/empty.");
         }

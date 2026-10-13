@@ -1565,10 +1565,10 @@
       ],
       "extensions": {
         "KHR_character_reference_pose": {
-          "poseType": "TPose"
+          "poseType": "t_pose"
         }
       },
-      "name": "ReferencePose_TPose",
+      "name": "ReferencePose_t_pose",
       "samplers": [
         {
           "input": 0,
@@ -2209,9 +2209,7 @@
     {}
   ],
   "extensions": {
-    "KHR_character": {
-      "rootNode": 0
-    },
+    "KHR_character": {},
     "KHR_character_skeleton_mapping": {
       "skeletalRigMappings": {
         "https://example.com/skeleton-vocabularies/unity-humanoid/v1": {

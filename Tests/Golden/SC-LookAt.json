@@ -3,9 +3,7 @@
     "version": "2.0"
   },
   "extensions": {
-    "KHR_character": {
-      "rootNode": 0
-    }
+    "KHR_character": {}
   },
   "extensionsUsed": [
     "KHR_node_lookat_target",
@@ -22,7 +20,7 @@
     {
       "extensions": {
         "KHR_node_lookat_target": {
-          "hint": "primary"
+          "hint": "ACME_eye_target"
         }
       },
       "name": "FocusTarget",

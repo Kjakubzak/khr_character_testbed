@@ -4046,28 +4046,6 @@
       "count": 2,
       "type": "VEC2",
       "values": [
-        1.0,
-        1.0,
-        1.0,
-        1.0
-      ]
-    },
-    {
-      "bufferView": 56,
-      "componentType": 5126,
-      "count": 2,
-      "type": "SCALAR",
-      "values": [
-        0.0,
-        1.0
-      ]
-    },
-    {
-      "bufferView": 57,
-      "componentType": 5126,
-      "count": 2,
-      "type": "VEC2",
-      "values": [
         0.0,
         0.0,
         1.0,
@@ -4075,7 +4053,7 @@
       ]
     },
     {
-      "bufferView": 58,
+      "bufferView": 56,
       "componentType": 5126,
       "count": 2,
       "type": "SCALAR",
@@ -4289,17 +4267,6 @@
           "target": {
             "extensions": {
               "KHR_animation_pointer": {
-                "pointer": "/materials/1/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/scale"
-              }
-            },
-            "path": "pointer"
-          }
-        },
-        {
-          "sampler": 1,
-          "target": {
-            "extensions": {
-              "KHR_animation_pointer": {
                 "pointer": "/materials/1/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset"
               }
             },
@@ -4313,11 +4280,6 @@
           "input": 41,
           "interpolation": "LINEAR",
           "output": 40
-        },
-        {
-          "input": 43,
-          "interpolation": "LINEAR",
-          "output": 42
         }
       ]
     }
@@ -4508,26 +4470,17 @@
     },
     {
       "buffer": 0
-    },
-    {
-      "buffer": 0
-    },
-    {
-      "buffer": 0
     }
   ],
   "buffers": [
     {}
   ],
   "extensions": {
-    "KHR_character": {
-      "rootNode": 0
-    },
+    "KHR_character": {},
     "KHR_character_expression": {
       "expressions": [
         {
           "animation": 0,
-          "expression": "jawOpen",
           "extensions": {
             "KHR_character_expression_joint": {
               "channels": [
@@ -4539,106 +4492,104 @@
                 0
               ]
             }
-          }
+          },
+          "name": "jawOpen"
         },
         {
           "animation": 1,
-          "expression": "blink",
           "extensions": {
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
             }
-          }
+          },
+          "name": "blink"
         },
         {
           "animation": 2,
-          "expression": "lookLeft",
           "extensions": {
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
             }
-          }
+          },
+          "name": "lookLeft"
         },
         {
           "animation": 3,
-          "expression": "lookRight",
           "extensions": {
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
             }
-          }
+          },
+          "name": "lookRight"
         },
         {
           "animation": 4,
-          "expression": "lookUp",
           "extensions": {
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
             }
-          }
+          },
+          "name": "lookUp"
         },
         {
           "animation": 5,
-          "expression": "lookDown",
           "extensions": {
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
             }
-          }
+          },
+          "name": "lookDown"
         },
         {
           "animation": 6,
-          "expression": "aa",
           "extensions": {
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
             }
-          }
+          },
+          "name": "aa"
         },
         {
           "animation": 7,
-          "expression": "happy",
           "extensions": {
-            "KHR_character_expression_mask": {
-              "masks": [
-                {
-                  "amount": 1.0,
-                  "target": 6,
-                  "threshold": 0.0,
-                  "type": "blend"
-                }
-              ]
-            },
             "KHR_character_expression_morphtarget": {
               "channels": [
                 0
               ]
+            },
+            "KHR_character_expression_suppression": {
+              "suppressions": [
+                {
+                  "target": 6,
+                  "type": "blend"
+                }
+              ]
             }
-          }
+          },
+          "name": "happy"
         },
         {
           "animation": 8,
-          "expression": "texFx",
           "extensions": {
-            "KHR_character_expression_texture": {
+            "KHR_character_expression_texture_transform": {
               "channels": [
-                0,
-                1
+                0
               ]
             }
-          }
+          },
+          "name": "texFx"
         }
       ]
     },
@@ -4680,8 +4631,8 @@
     "KHR_character_expression",
     "KHR_character_expression_morphtarget",
     "KHR_character_expression_joint",
-    "KHR_character_expression_texture",
-    "KHR_character_expression_mask",
+    "KHR_character_expression_texture_transform",
+    "KHR_character_expression_suppression",
     "KHR_character_expression_mapping"
   ],
   "images": [
