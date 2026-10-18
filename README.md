@@ -1,5 +1,7 @@
 # khr_character_testbed
 
+Optional [isolated Unity 6 setup](Tools/unity6/README.md) is available alongside this Unity 2022 project.
+
 A public, open-source example project that demonstrates the Khronos **`KHR_character` / avatar glTF extensions** (glTF PR #2512) in Unity, via a [UnityGLTF](https://github.com/Kjakubzak/UnityGLTF) fork that adds the `KHR_character` import/export plugin (pending upstream into [KhronosGroup/UnityGLTF](https://github.com/KhronosGroup/UnityGLTF)).
 
 Clone it, press Play, and watch a character import, emote, gaze, animate, switch rigs, toggle first/third-person visibility, and round-trip through this testbed's deliberately strict **KHR-only export profile** — all on license-clean sample assets.

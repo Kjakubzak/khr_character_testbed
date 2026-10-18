@@ -1,0 +1,542 @@
+diff --git a/.github/workflows/ci-nightly.yml b/.github/workflows/ci-nightly.yml
+index bf31505..e2078d8 100644
+--- a/.github/workflows/ci-nightly.yml
++++ b/.github/workflows/ci-nightly.yml
+@@ -17,7 +17,7 @@ on:
+   workflow_dispatch:
+ 
+ env:
+-  UNITY_VERSION: "2022.2.23f1"
++  UNITY_VERSION: "6000.5.4f1"
+   MIN_TESTS: "120"
+   MIN_SANDBOX_TESTS: "120"
+ 
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 7aeed35..d9e6e37 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -27,7 +27,7 @@ concurrency:
+   cancel-in-progress: true
+ 
+ env:
+-  UNITY_VERSION: "2022.2.23f1"
++  UNITY_VERSION: "6000.5.4f1"
+   # Only the testbed's own tests run in this consumer (Unity 'testables' does not surface a git-package's
+   # tests); the floor tracks the sandbox suite. The plugin's ~165 tests gate in the plugin repo / khr-test-proj.
+   MIN_TESTS: "120"
+@@ -68,7 +68,7 @@ jobs:
+ 
+   # GATE 1 (compile) + GATE 2 (tests + min-test-count floor). Built-in RP, required.
+   tests:
+-    name: Tests (Unity 2022.2.23f1, Built-in)
++    name: Tests (Unity 6000.5.4f1, Built-in)
+     needs: package-pin-preflight
+     runs-on: ubuntu-latest
+     steps:
+diff --git a/Assets/Samples/_Shared/HumanoidClipCacheCleaner.cs b/Assets/Samples/_Shared/HumanoidClipCacheCleaner.cs
+index 9e57cbf..e4dfd6c 100644
+--- a/Assets/Samples/_Shared/HumanoidClipCacheCleaner.cs
++++ b/Assets/Samples/_Shared/HumanoidClipCacheCleaner.cs
+@@ -20,7 +20,11 @@ namespace Samples.Shared
+ 
+         private void OnDestroy()
+         {
++#if UNITY_6000_5_OR_NEWER
++            HumanoidClipFactory.ReleaseForCharacter(gameObject.GetEntityId());
++#else
+             HumanoidClipFactory.ReleaseForCharacter(gameObject.GetInstanceID());
++#endif
+         }
+     }
+ }
+diff --git a/Assets/Samples/_Shared/HumanoidClipFactory.cs b/Assets/Samples/_Shared/HumanoidClipFactory.cs
+index 364dc64..5e7ffe3 100644
+--- a/Assets/Samples/_Shared/HumanoidClipFactory.cs
++++ b/Assets/Samples/_Shared/HumanoidClipFactory.cs
+@@ -1,6 +1,11 @@
+ using System.Collections.Generic;
+ using UnityEngine;
+ using UnityGLTF.KhrCharacter;
++#if UNITY_6000_5_OR_NEWER
++using CharacterKey = UnityEngine.EntityId;
++#else
++using CharacterKey = System.Int32;
++#endif
+ 
+ namespace Samples.Shared
+ {
+@@ -123,8 +128,8 @@ namespace Samples.Shared
+         // 8 per dropdown refresh. Cache per (character instanceID, clipName) so repeated calls reuse one clip; a
+         // HumanoidClipCacheCleaner on the character root destroys them on teardown. Keying on the instanceID (not
+         // the GameObject) avoids pinning a destroyed character alive via the dictionary.
+-        private static readonly Dictionary<(int CharacterId, string ClipName), AnimationClip> _adaptiveCache =
+-            new Dictionary<(int CharacterId, string ClipName), AnimationClip>();
++        private static readonly Dictionary<(CharacterKey CharacterId, string ClipName), AnimationClip> _adaptiveCache =
++            new Dictionary<(CharacterKey CharacterId, string ClipName), AnimationClip>();
+ 
+         public static IEnumerable<AnimationClip> All()
+         {
+@@ -192,7 +197,11 @@ namespace Samples.Shared
+             var skeleton = hub != null ? hub.Skeleton : null;
+             if (skeleton == null) return GetOrBuildStatic(data); // no map, use fallback clip (already cached)
+ 
++#if UNITY_6000_5_OR_NEWER
++            var key = (character.GetEntityId(), data.Name);
++#else
+             var key = (character.GetInstanceID(), data.Name);
++#endif
+             if (_adaptiveCache.TryGetValue(key, out var cachedAdaptive) && cachedAdaptive != null)
+                 return cachedAdaptive;
+ 
+@@ -210,9 +219,9 @@ namespace Samples.Shared
+         /// <summary>Destroy and forget every character-adaptive clip cached for <paramref name="instanceId"/>.
+         /// Called by <see cref="HumanoidClipCacheCleaner"/> when the character GameObject is destroyed, so the
+         /// HideAndDontSave clips (which survive scene unload) don't leak for the play session.</summary>
+-        internal static void ReleaseForCharacter(int instanceId)
++        internal static void ReleaseForCharacter(CharacterKey instanceId)
+         {
+-            var stale = new List<(int CharacterId, string ClipName)>();
++            var stale = new List<(CharacterKey CharacterId, string ClipName)>();
+             foreach (var kv in _adaptiveCache)
+                 if (kv.Key.CharacterId == instanceId) stale.Add(kv.Key);
+             foreach (var key in stale)
+diff --git a/Packages/manifest.json b/Packages/manifest.json
+index 7295b24..c4a705d 100644
+--- a/Packages/manifest.json
++++ b/Packages/manifest.json
+@@ -1,9 +1,9 @@
+ {
+   "dependencies": {
+-    "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#1574efecb61dc4b279a76262fa2835c0340e5b5f",
+-    "com.unity.animation.rigging": "1.3.0",
+-    "com.unity.test-framework": "1.1.33",
+-    "com.unity.render-pipelines.universal": "14.0.7",
++    "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#a17e0a994364ba71740b270455c53d1a4713af66",
++    "com.unity.animation.rigging": "1.4.1",
++    "com.unity.test-framework": "1.7.0",
++    "com.unity.render-pipelines.universal": "17.5.0",
+     "com.unity.modules.ai": "1.0.0",
+     "com.unity.modules.androidjni": "1.0.0",
+     "com.unity.modules.animation": "1.0.0",
+@@ -32,9 +32,9 @@
+     "com.unity.modules.unitywebrequestwww": "1.0.0",
+     "com.unity.modules.vehicles": "1.0.0",
+     "com.unity.modules.video": "1.0.0",
+-    "com.unity.modules.vr": "1.0.0",
+     "com.unity.modules.wind": "1.0.0",
+-    "com.unity.modules.xr": "1.0.0"
++    "com.unity.modules.xr": "1.0.0",
++    "com.unity.ugui": "2.5.0"
+   },
+   "testables": [
+     "org.khronos.unitygltf"
+diff --git a/Packages/packages-lock.json b/Packages/packages-lock.json
+index 3851e1a..76c0c92 100644
+--- a/Packages/packages-lock.json
++++ b/Packages/packages-lock.json
+@@ -1,115 +1,142 @@
+ {
+   "dependencies": {
+     "com.unity.animation.rigging": {
+-      "version": "1.3.0",
++      "version": "1.4.1",
+       "depth": 0,
+       "source": "registry",
+       "dependencies": {
+         "com.unity.burst": "1.4.1",
+-        "com.unity.test-framework": "1.1.24"
++        "com.unity.test-framework": "1.1.24",
++        "com.unity.modules.animation": "1.0.0"
+       },
+       "url": "https://packages.unity.com"
+     },
+     "com.unity.burst": {
+-      "version": "1.8.4",
++      "version": "1.8.29",
+       "depth": 1,
+       "source": "registry",
+       "dependencies": {
+-        "com.unity.mathematics": "1.2.1"
++        "com.unity.mathematics": "1.2.1",
++        "com.unity.modules.jsonserialize": "1.0.0"
+       },
+       "url": "https://packages.unity.com"
+     },
+     "com.unity.collections": {
+-      "version": "1.2.4",
++      "version": "6.5.0",
+       "depth": 1,
+-      "source": "registry",
++      "source": "builtin",
+       "dependencies": {
+-        "com.unity.burst": "1.6.6",
+-        "com.unity.test-framework": "1.1.31"
+-      },
+-      "url": "https://packages.unity.com"
++        "com.unity.burst": "1.8.25",
++        "com.unity.nuget.mono-cecil": "1.11.6",
++        "com.unity.test-framework": "1.4.6",
++        "com.unity.test-framework.performance": "3.2.0"
++      }
+     },
+     "com.unity.ext.nunit": {
+-      "version": "1.0.6",
++      "version": "2.1.0",
+       "depth": 1,
+-      "source": "registry",
+-      "dependencies": {},
+-      "url": "https://packages.unity.com"
++      "source": "builtin",
++      "dependencies": {}
+     },
+     "com.unity.mathematics": {
+-      "version": "1.2.6",
++      "version": "1.4.0",
+       "depth": 1,
++      "source": "builtin",
++      "dependencies": {}
++    },
++    "com.unity.nuget.mono-cecil": {
++      "version": "1.11.6",
++      "depth": 2,
+       "source": "registry",
+       "dependencies": {},
+       "url": "https://packages.unity.com"
+     },
+     "com.unity.nuget.newtonsoft-json": {
+-      "version": "3.2.1",
++      "version": "3.2.2",
+       "depth": 1,
+       "source": "registry",
+       "dependencies": {},
+       "url": "https://packages.unity.com"
+     },
+     "com.unity.render-pipelines.core": {
+-      "version": "14.0.7",
++      "version": "17.5.0",
+       "depth": 1,
+       "source": "builtin",
+       "dependencies": {
+-        "com.unity.ugui": "1.0.0",
+-        "com.unity.modules.physics": "1.0.0",
++        "com.unity.burst": "1.8.14",
++        "com.unity.collections": "2.4.3",
+         "com.unity.modules.terrain": "1.0.0",
+         "com.unity.modules.jsonserialize": "1.0.0"
+       }
+     },
+     "com.unity.render-pipelines.universal": {
+-      "version": "14.0.7",
++      "version": "17.5.0",
+       "depth": 0,
+       "source": "builtin",
+       "dependencies": {
+-        "com.unity.mathematics": "1.2.1",
+-        "com.unity.burst": "1.8.4",
+-        "com.unity.render-pipelines.core": "14.0.7",
+-        "com.unity.shadergraph": "14.0.7"
++        "com.unity.render-pipelines.core": "17.5.0",
++        "com.unity.shadergraph": "17.5.0",
++        "com.unity.render-pipelines.universal-config": "17.5.0"
++      }
++    },
++    "com.unity.render-pipelines.universal-config": {
++      "version": "17.5.0",
++      "depth": 1,
++      "source": "builtin",
++      "dependencies": {
++        "com.unity.render-pipelines.core": "17.5.0"
+       }
+     },
+     "com.unity.searcher": {
+-      "version": "4.9.2",
++      "version": "4.9.4",
+       "depth": 2,
+       "source": "registry",
+       "dependencies": {},
+       "url": "https://packages.unity.com"
+     },
+     "com.unity.shadergraph": {
+-      "version": "14.0.7",
++      "version": "17.5.0",
+       "depth": 1,
+       "source": "builtin",
+       "dependencies": {
+-        "com.unity.render-pipelines.core": "14.0.7",
+-        "com.unity.searcher": "4.9.2"
++        "com.unity.render-pipelines.core": "17.5.0",
++        "com.unity.searcher": "4.9.3"
+       }
+     },
+     "com.unity.test-framework": {
+-      "version": "1.1.33",
++      "version": "1.7.0",
+       "depth": 0,
+-      "source": "registry",
++      "source": "builtin",
+       "dependencies": {
+-        "com.unity.ext.nunit": "1.0.6",
++        "com.unity.ext.nunit": "2.1.0",
+         "com.unity.modules.imgui": "1.0.0",
+         "com.unity.modules.jsonserialize": "1.0.0"
++      }
++    },
++    "com.unity.test-framework.performance": {
++      "version": "3.5.0",
++      "depth": 2,
++      "source": "registry",
++      "dependencies": {
++        "com.unity.test-framework": "1.1.33",
++        "com.unity.modules.jsonserialize": "1.0.0"
+       },
+       "url": "https://packages.unity.com"
+     },
+     "com.unity.ugui": {
+-      "version": "1.0.0",
+-      "depth": 2,
++      "version": "2.5.0",
++      "depth": 0,
+       "source": "builtin",
+       "dependencies": {
+         "com.unity.modules.ui": "1.0.0",
+-        "com.unity.modules.imgui": "1.0.0"
++        "com.unity.modules.imgui": "1.0.0",
++        "com.unity.modules.audio": "1.0.0",
++        "com.unity.modules.physics2d": "1.0.0",
++        "com.unity.modules.physics": "1.0.0"
+       }
+     },
+     "org.khronos.unitygltf": {
+-      "version": "https://github.com/Kjakubzak/UnityGLTF.git#1574efecb61dc4b279a76262fa2835c0340e5b5f",
++      "version": "https://github.com/Kjakubzak/UnityGLTF.git#a17e0a994364ba71740b270455c53d1a4713af66",
+       "depth": 0,
+       "source": "git",
+       "dependencies": {
+@@ -121,7 +148,7 @@
+         "com.unity.mathematics": "1.0.0",
+         "com.unity.collections": "1.0.0"
+       },
+-      "hash": "1574efecb61dc4b279a76262fa2835c0340e5b5f"
++      "hash": "a17e0a994364ba71740b270455c53d1a4713af66"
+     },
+     "com.unity.modules.ai": {
+       "version": "1.0.0",
+@@ -133,7 +160,9 @@
+       "version": "1.0.0",
+       "depth": 0,
+       "source": "builtin",
+-      "dependencies": {}
++      "dependencies": {
++        "com.unity.modules.jsonserialize": "1.0.0"
++      }
+     },
+     "com.unity.modules.animation": {
+       "version": "1.0.0",
+@@ -170,6 +199,12 @@
+         "com.unity.modules.animation": "1.0.0"
+       }
+     },
++    "com.unity.modules.hierarchycore": {
++      "version": "1.0.0",
++      "depth": 1,
++      "source": "builtin",
++      "dependencies": {}
++    },
+     "com.unity.modules.imageconversion": {
+       "version": "1.0.0",
+       "depth": 0,
+@@ -204,6 +239,14 @@
+       "version": "1.0.0",
+       "depth": 0,
+       "source": "builtin",
++      "dependencies": {
++        "com.unity.modules.physicscore2d": "1.0.0"
++      }
++    },
++    "com.unity.modules.physicscore2d": {
++      "version": "1.0.0",
++      "depth": 1,
++      "source": "builtin",
+       "dependencies": {}
+     },
+     "com.unity.modules.screencapture": {
+@@ -258,7 +301,10 @@
+       "dependencies": {
+         "com.unity.modules.ui": "1.0.0",
+         "com.unity.modules.imgui": "1.0.0",
+-        "com.unity.modules.jsonserialize": "1.0.0"
++        "com.unity.modules.jsonserialize": "1.0.0",
++        "com.unity.modules.hierarchycore": "1.0.0",
++        "com.unity.modules.physics": "1.0.0",
++        "com.unity.modules.animation": "1.0.0"
+       }
+     },
+     "com.unity.modules.umbra": {
+@@ -340,16 +386,6 @@
+         "com.unity.modules.unitywebrequest": "1.0.0"
+       }
+     },
+-    "com.unity.modules.vr": {
+-      "version": "1.0.0",
+-      "depth": 0,
+-      "source": "builtin",
+-      "dependencies": {
+-        "com.unity.modules.jsonserialize": "1.0.0",
+-        "com.unity.modules.physics": "1.0.0",
+-        "com.unity.modules.xr": "1.0.0"
+-      }
+-    },
+     "com.unity.modules.wind": {
+       "version": "1.0.0",
+       "depth": 0,
+diff --git a/ProjectSettings/GraphicsSettings.asset b/ProjectSettings/GraphicsSettings.asset
+index f1e495d..b2a35ce 100644
+--- a/ProjectSettings/GraphicsSettings.asset
++++ b/ProjectSettings/GraphicsSettings.asset
+@@ -3,7 +3,7 @@
+ --- !u!30 &1
+ GraphicsSettings:
+   m_ObjectHideFlags: 0
+-  serializedVersion: 15
++  serializedVersion: 16
+   m_Deferred:
+     m_Mode: 1
+     m_Shader: {fileID: 69, guid: 0000000000000000f000000000000000, type: 0}
+@@ -36,6 +36,15 @@ GraphicsSettings:
+   - {fileID: 10783, guid: 0000000000000000f000000000000000, type: 0}
+   m_PreloadedShaders: []
+   m_PreloadShadersBatchTimeLimit: -1
++  m_GraphicsStateCollection: {fileID: 0}
++  m_CollectionStartupAction: 0
++  m_TraceSavePath: TracedCollection
++  m_TraceSendToEditor: 1
++  m_AdditionalWarmupCollections: []
++  m_WarmupAsync: 1
++  m_EnableCacheMissTracing: 0
++  m_WarmupProgressivelyLimit: -1
++  m_CacheMissCollectionPath: CacheMissCollection
+   m_SpritesDefaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+   m_CustomRenderPipeline: {fileID: 0}
+   m_TransparencySortMode: 0
+@@ -57,12 +66,15 @@ GraphicsSettings:
+   m_FogKeepExp: 1
+   m_FogKeepExp2: 1
+   m_AlbedoSwatchInfos: []
++  m_RenderPipelineGlobalSettingsMap:
++    UnityEngine.Rendering.Universal.UniversalRenderPipeline: {fileID: 11400000, guid: 8eced09e7bac5a44ca9c20a570e7bcb6, type: 2}
++  m_ShaderBuildSettings:
++    keywordDeclarationOverrides: []
++    numInternalDefines: 0
++    defines: []
+   m_LightsUseLinearIntensity: 0
+   m_LightsUseColorTemperature: 0
+-  m_DefaultRenderingLayerMask: 1
+   m_LogWhenShaderIsCompiled: 0
+-  m_SRPDefaultSettings:
+-    UnityEngine.Rendering.Universal.UniversalRenderPipeline: {fileID: 11400000, guid: 8eced09e7bac5a44ca9c20a570e7bcb6, type: 2}
+   m_LightProbeOutsideHullStrategy: 1
+   m_CameraRelativeLightCulling: 0
+   m_CameraRelativeShadowCulling: 0
+diff --git a/ProjectSettings/PackageManagerSettings.asset b/ProjectSettings/PackageManagerSettings.asset
+index ce88bd8..4ead298 100644
+--- a/ProjectSettings/PackageManagerSettings.asset
++++ b/ProjectSettings/PackageManagerSettings.asset
+@@ -18,23 +18,27 @@ MonoBehaviour:
+   m_SeeAllPackageVersions: 0
+   m_DismissPreviewPackagesInUse: 0
+   oneTimeWarningShown: 0
+-  oneTimeDeprecatedPopUpShown: 0
+-  m_Registries:
+-  - m_Id: main
++  oneTimePackageErrorsPopUpShown: 0
++  m_MainRegistry:
++    m_Id: main
+     m_Name: 
+     m_Url: https://packages.unity.com
+     m_Scopes: []
+     m_IsDefault: 1
++    m_IsUnityRegistry: 1
+     m_Capabilities: 7
+     m_ConfigSource: 0
+     m_Compliance:
+       m_Status: 0
+       m_Violations: []
++  m_ScopedRegistries: []
+   m_UserSelectedRegistryName: 
+   m_UserAddingNewScopedRegistry: 0
+   m_RegistryInfoDraft:
+     m_Modified: 0
+     m_ErrorMessage: 
+-    m_UserModificationsInstanceId: -866
+-    m_OriginalInstanceId: -868
++    m_UserModificationsEntityId:
++      m_rawData: 568105589213756514
++    m_OriginalEntityId:
++      m_rawData: 568105589213756512
+   m_LoadAssets: 0
+diff --git a/ProjectSettings/ProjectVersion.txt b/ProjectSettings/ProjectVersion.txt
+index 7cbead1..2bef8d4 100644
+--- a/ProjectSettings/ProjectVersion.txt
++++ b/ProjectSettings/ProjectVersion.txt
+@@ -1,2 +1,2 @@
+-m_EditorVersion: 2022.2.23f1
+-m_EditorVersionWithRevision: 2022.2.23f1 (16a49e77427a)
++m_EditorVersion: 6000.5.4f1
++m_EditorVersionWithRevision: 6000.5.4f1 (d550df8bd089)
+diff --git a/ProjectSettings/ShaderGraphSettings.asset b/ProjectSettings/ShaderGraphSettings.asset
+index a11ed58..3702357 100644
+--- a/ProjectSettings/ShaderGraphSettings.asset
++++ b/ProjectSettings/ShaderGraphSettings.asset
+@@ -12,5 +12,8 @@ MonoBehaviour:
+   m_Script: {fileID: 11500000, guid: de02f9e1d18f588468e474319d09a723, type: 3}
+   m_Name: 
+   m_EditorClassIdentifier: 
++  shaderVariantLimit: 2048
++  overrideShaderVariantLimit: 0
+   customInterpolatorErrorThreshold: 32
+   customInterpolatorWarningThreshold: 16
++  customHeatmapValues: {fileID: 0}
+diff --git a/README.md b/README.md
+index 5c6d5ec..83920d8 100644
+--- a/README.md
++++ b/README.md
+@@ -10,7 +10,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
+ 
+ ## Requirements
+ 
+-- **Unity 2022.2.23f1** (Built-in Render Pipeline; URP works as an upgrade)
++- **Unity 6000.5.4f1** (Built-in Render Pipeline; URP works as an upgrade)
+ - **Git** + **Git LFS** (`git lfs install`) — sample binaries are stored via LFS
+ - Internet on first open (resolves the UnityGLTF package from a pinned Git URL)
+ 
+@@ -23,7 +23,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
+    git lfs install
+    git clone <this-repo-url>
+    ```
+-2. **Open** the folder in **Unity 2022.2.23f1**. First open resolves the UnityGLTF + `KHR_character` plugin from `Packages/manifest.json` (pinned by commit SHA) — give it a moment.
++2. **Open** the folder in **Unity 6000.5.4f1**. First open resolves the UnityGLTF + `KHR_character` plugin from `Packages/manifest.json` (pinned by commit SHA) — give it a moment.
+ 3. **First time only** — if `Assets/SampleAssets/Synthetic/*.glb` or the demo scenes are missing, generate them from the menu:
+    - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Generate Sample Characters**
+    - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Build Sample Scenes**
+@@ -103,7 +103,7 @@ Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consu
+ This project is a **pure UPM consumer** — it vendors no plugin code. `Packages/manifest.json` pins UnityGLTF (a fork that adds the `KHR_character` plugin) by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
+ 
+ ```jsonc
+-"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#1574efecb61dc4b279a76262fa2835c0340e5b5f",
++"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#a17e0a994364ba71740b270455c53d1a4713af66",
+ "testables": ["org.khronos.unitygltf"]
+ ```
+ 
+diff --git a/docs/ci.md b/docs/ci.md
+index 9c921b6..a8af9b8 100644
+--- a/docs/ci.md
++++ b/docs/ci.md
+@@ -154,7 +154,7 @@ Commit the changed goldens — **the golden diff is the change record** reviewer
+ ## GitHub Actions (`.github/workflows/ci.yml`)
+ 
+ - **Provider:** GitHub Actions + [game-ci](https://game.ci) `unity-test-runner` (pinned editor image + license).
+-- **Unity:** `2022.2.23f1` (exact patch, matches `ProjectSettings/ProjectVersion.txt`).
++- **Unity:** `6000.5.4f1` (exact patch, matches `ProjectSettings/ProjectVersion.txt`).
+ - **Render pipeline:** **Built-in = required gate**; **URP = nightly / non-blocking** (see `.github/workflows/ci-nightly.yml`;
+   the URP cell is WIRED - it activates a committed URP pipeline asset and runs the suite under URP via xvfb);
+   HDRP deferred. The KHR test / glTF-validation / golden gates are RP-agnostic.

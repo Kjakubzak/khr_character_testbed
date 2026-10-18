@@ -1,0 +1,2 @@
+# Unified diff context uses a space marker even for an empty source line.
+testbed.patch -whitespace
