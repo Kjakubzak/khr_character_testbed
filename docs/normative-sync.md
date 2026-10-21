@@ -7,7 +7,7 @@ The draft remains subject to change. Runtime composition choices are documented 
 ## Wire and sample migration
 
 `expressionSetMappings` maps external inputs to native expression drivers. An entry's `source` is the authoritative
-native expression index; its optional `name` is independent metadata and may be empty. Each supplied input is
+native expression index; its optional `name` is independent metadata and may be empty. Each supplied input must be finite, including unknown keys, and is
 clamped to `[0,1]`, contributions are summed, and the final native driver is clamped before binary conversion and
 suppression. Missing inputs contribute zero. Mapping identifiers are nonempty aliases, including `vrm1_expressions`;
 skeleton identifiers include `vrm1_humanoid`. Custom identifiers need no URI form. Skeleton association names are
@@ -29,7 +29,7 @@ chunks are preserved. The committed Blender and VRM-origin examples have undergo
 | `VH-Ancestors` | An `always` mesh and primitive below a `third_person` ancestor remain hidden in a first-person-only view. A nested first-person node needs both tags. Unannotated nodes retain visibility. |
 | Custom roles | Unsupported roles use the application fallback locally. A fallback or supported custom role cannot reopen another supported false ancestor or core visibility. `ACME_mirror_only` is interpreted by an explicit host resolver. |
 | Views and instances | Repeated calls with different tags and two imported instances cannot leak visibility state. Primitive predicates AND the cumulative node result. |
-| Core visibility | A false parent and true child preserve their own Boolean states. Imported renderer output is hidden while GameObjects and cameras remain active. STEP unsigned-byte pointer animation changes the Boolean, and the renderer follows it. The test verifies the actual imported curve binding and selects clamped host playback when sampling its final key; the importer's ordinary clips loop by default. |
+| Core visibility | A false parent and true child preserve their own Boolean states. Imported renderer output is hidden while GameObjects and cameras remain active. STEP unsigned-byte pointer animation changes the Boolean, and the renderer follows it. The test verifies the actual imported curve binding and selects clamped host playback when sampling its final key; the importer's ordinary clips loop by default. Both scene import and standalone `LoadNodeAsync` attach the default core rendering adapter at the imported instance root. |
 | Camera and animation | Hint-hidden ancestors still animate; nested cameras and transform paths remain active. Camera hints follow the complete core camera frame, including reflected/nonuniform transforms. Zero scale defines no initial pose and leaves the host camera unchanged. |
 | Graphics | Red nested geometry appears in the matching view and disappears under an ancestor veto. A green backdrop behind it proves hidden geometry does not occlude color through a depth write. Both tags reveal the additional primitive. A repeated original view restores the original pixel count and material/state snapshots. |
 
