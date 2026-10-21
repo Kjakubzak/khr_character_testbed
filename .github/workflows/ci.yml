@@ -126,22 +126,12 @@ jobs:
           name: test-results
           path: artifacts/test-results
 
-  # GATE 3 (glTF-Validator) — no Unity; validates every committed character corpus with the proposal-aware fork.
-  #
-  # REPORT-ONLY (non-blocking) until a validator that implements the current KHR_character drafts is pinned. The
-  # pinned commit predates them: it still requires KHR_character.rootNode and reads the old expression/_mask/_texture
-  # vocabulary, so it reports errors on the conformant fixtures. The job runs, uploads every report, and never fails
-  # the workflow; the PlayMode wire checker (SandboxSchemaConformanceTests, gate 2) enforces the current rules
-  # meanwhile. Keep the job name `glTF-Validator`: branch protection matches required status checks by name, so a
-  # renamed job would leave a required check pending forever, and the step-level continue-on-error already keeps
-  # this check green whatever the validator finds. To restore the gate: bump `ref:` below (and docs/ci.md), then drop
-  # continue-on-error from the job and from the Synthetic and FromBlender steps. Keep the VRM_KHR_Examples step
-  # non-blocking until the hero is re-exported (its expression entries lack `name` and its look expressions share the
-  # eye rotations).
+  # GATE 3 (glTF-Validator) — validates all committed character corpora with the pinned proposal-aware fork.
+  # Errors fail the gate. Informative warnings (including vendor material/extensions on the VRM examples) remain
+  # in the uploaded reports. Keep the status name stable because branch protection matches it.
   gltf-validator:
     name: glTF-Validator
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -152,7 +142,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Kjakubzak/glTF-Validator
-          ref: 8cdb53a43e43a41a169fe1c70a52e0d147b3e4f8
+          ref: 99e8523cf548fe7780870270b1bd2fa60bab6ba2
           path: .gltf-validator
       - name: Build pinned proposal-aware glTF-Validator
         run: |
@@ -160,19 +150,15 @@ jobs:
           dart pub get
           dart run grinder exe
           sudo apt-get update && sudo apt-get install -y jq
-      - name: Validate Synthetic (numErrors == 0; report-only until the validator is updated)
-        continue-on-error: true
+      - name: Validate Synthetic (numErrors == 0)
         env:
           GLTF_VALIDATOR: ${{ github.workspace }}/.gltf-validator/build/bin/gltf_validator
         run: bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/Synthetic --report-dir Artifacts/reports/Synthetic --required
-      - name: Validate FromBlender (numErrors == 0; report-only until the validator is updated)
-        continue-on-error: true
+      - name: Validate FromBlender (numErrors == 0)
         env:
           GLTF_VALIDATOR: ${{ github.workspace }}/.gltf-validator/build/bin/gltf_validator
         run: bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/FromBlender --report-dir Artifacts/reports/FromBlender --required
-      # Non-blocking until 0b5vr re-exports the hero: its expression data is pending re-export (caveat C10).
-      - name: Validate VRM_KHR_Examples (pending hero re-export)
-        continue-on-error: true
+      - name: Validate VRM_KHR_Examples (numErrors == 0)
         env:
           GLTF_VALIDATOR: ${{ github.workspace }}/.gltf-validator/build/bin/gltf_validator
         run: bash ./Tools/ci/validate-glb.sh --input-dir Assets/SampleAssets/VRM_KHR_Examples --report-dir Artifacts/reports/VRM_KHR_Examples --required

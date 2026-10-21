@@ -10,7 +10,7 @@ for Linux CI). Contributors run the **same** scripts CI runs, so there is no dri
 |---|------|--------|---------------|
 | 1 | **Compile clean** | `Run-Tests` (Phase A) / `Warm-Library` | Unity exits 0 **and** no `error CS` in the compile log. Runs *before* any test pass — a `-runTests` against uncompilable code hangs forever, so we fail fast instead. |
 | 2 | **Tests green + floor** | `Run-Tests` | Every NUnit run has `failed == 0`, `inconclusive == 0`, `skipped == 0`, the results XML is present, `total >= floor` (default **120**), **and** `sandbox >= sub-floor` (default **120**, the testbed's own `KhrCharacterTestbed.*` cases). Only the testbed's own tests run here (Unity `testables` does **not** surface a git-package's tests into a consumer), so a hollow package resolve fails **GATE 1 compile** (the `Sandbox.Tests` assembly links real plugin types); the floor kills the "0 tests ran = false green" trap. |
-| 3 | **glTF-Validator** (report-only for now) | `Validate-Glb` | The pinned proposal-aware `gltf_validator` fork reports `numErrors == 0` across Synthetic, FromBlender, and VRM example assets. Its commit is fixed in CI so the draft character rules cannot silently drift. **Currently non-blocking:** the pinned validator predates the current `KHR_character` drafts (it still requires `rootNode`), so CI runs it and publishes the reports but does not fail on them until a validator that implements the current specifications is pinned. |
+| 3 | **glTF-Validator** | `Validate-Glb` | The pinned proposal-aware `gltf_validator` fork requires `numErrors == 0` across Synthetic, FromBlender, and VRM example assets. Its immutable commit fixes the draft rules for CI. Warnings remain in uploaded reports; any error fails this gate. |
 | 4 | **Round-trip goldens** | `Export-Goldens` | The normalized wire snapshot of each fixture matches its committed golden. Each FLOAT accessor is **decoded to its actual values (rounded 1e-5)** and byte-packing fields are dropped, so an interior value change can't hide behind unchanged `min`/`max` and packing jitter can't false-diff. Catches structural drift (new/renamed key, reordered array, changed value) that value round-trip tests don't. |
 
 > **Why the floor matters most:** the most dangerous CI failure is a *silent* one — a project that compiles nothing
@@ -117,7 +117,7 @@ plugins in code** (never trusting the committed settings asset, which can silent
 
 ```bash
 git clone https://github.com/Kjakubzak/glTF-Validator.git
-git -C glTF-Validator checkout 8cdb53a43e43a41a169fe1c70a52e0d147b3e4f8
+git -C glTF-Validator checkout 99e8523cf548fe7780870270b1bd2fa60bab6ba2
 cd glTF-Validator && dart pub get && dart run grinder exe
 export GLTF_VALIDATOR="$PWD/build/bin/gltf_validator"
 ```
@@ -125,14 +125,11 @@ export GLTF_VALIDATOR="$PWD/build/bin/gltf_validator"
 This fork validates the draft `KHR_character_*` schemas, cross-references, decoded animation resources, and frozen
 expression semantics. Direct Unity assertions and golden snapshots remain complementary gates rather than substitutes.
 
-> **Report-only until the validator catches up.** The pinned commit implements an earlier draft: it requires
-> `KHR_character.rootNode`, reads the old `expression`, `_mask` and `_texture` vocabulary, and lacks the new rules
-> (marker placement, required entry `name`, single-writer conflicts, blend-threshold and skeleton-name warnings). The
-> `gltf-validator` job in `.github/workflows/ci.yml` therefore runs with `continue-on-error`, validates each corpus in
-> its own non-blocking step, and uploads the reports as the `gltf-validator-reports` artifact. Until then the wire
-> checker in `SandboxSchemaConformanceTests` (gate 2) enforces those rules. When a validator that implements the
-> current specifications is available, bump `ref:` there and the checkout above, remove `continue-on-error` from the
-> Synthetic and FromBlender steps, and keep the `VRM_KHR_Examples` step non-blocking until the hero is re-exported.
+> **Blocking for the full corpus.** The pinned validator implements the current draft, including canonical external
+> input mapping, required expression names and pose labels, independent names, shared expression targets, and
+> cumulative ancestor visibility hints. Synthetic, FromBlender and VRM example errors all fail the job; informative
+> warnings on unsupported vendor material/extension data are retained in `gltf-validator-reports`. There is no blanket
+> `continue-on-error`. Direct runtime assertions and golden snapshots remain complementary checks.
 
 ## Updating goldens (gate 4)
 

@@ -38,7 +38,11 @@ bash Tools/ci/run-tests.sh --project "$PWD" --platform PlayMode \
   --min-tests 203 --min-sandbox-tests 203 --timeout 10
 ```
 
-The Git package consumer runs the 203 testbed cases. Package tests require a separate local-package consumer; that full suite passed 3 EditMode and 723 PlayMode cases in the compatibility setup. A rendered hub and headless tests do not establish each demo control or depth/shadow/outline/light-output conformance.
+The Git package consumer runs the testbed suite. The scripts exclude `Graphics` during a `-nographics` run; invoke
+`--graphics --category Graphics --min-tests 1 --min-sandbox-tests 1` separately for the actual nested-hint color/depth
+measurement. Use the current results XML for case counts. Package tests require a separate local-package consumer.
+A rendered hub and headless tests do not establish each demo control or shadow/outline/light-output conformance.
+See [the normative integration test plan](../../docs/normative-sync.md).
 
 ## Limits
 

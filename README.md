@@ -95,7 +95,8 @@ Under **Assets ▸ UnityGLTF ▸ KHR Character**:
 
 Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consumed through its `KHR_character` data while vendor extensions are ignored — see `Assets/SampleAssets/ATTRIBUTION.md`):
 
-**`Synthetic/`** — CC0 characters built in code and dogfood-exported through the plugin:
+**`Synthetic/`** — CC0 characters and integration fixtures built in code. Controller-authored characters are
+exported through the plugin; focused wire fixtures are packaged from their procedural sources:
 
 | Asset | Carries | Used by |
 |---|---|---|

@@ -13,8 +13,8 @@ using UnityGLTF.VisibilityHints;
 namespace Samples.Editor
 {
     /// <summary>
-    /// Builds the synthetic SC-* sample characters entirely in code and dogfood-exports them to GLB through the KHR
-    /// Character export plugin. Fully license-clean (CC0/synthetic). Each generator is a plain static method so CI
+    /// Builds controller-authored SC-* characters in code and exports through the KHR Character plugin; focused
+    /// normative wire fixtures are packaged from procedural sources. Fully license-clean (CC0/synthetic). Each generator is a plain static method so CI
     /// and tests can call it headlessly; export of the animation channels requires the editor, so this lives in the
     /// editor assembly.
     ///
