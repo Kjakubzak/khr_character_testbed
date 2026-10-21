@@ -21,10 +21,11 @@ ATTRIBUTION="$PROJECT/$ASSETS_REL/ATTRIBUTION.md"
 
 # Enumerate the *committed* (git-tracked) GLBs, so untracked local experiments don't trip the gate. LFS pointers
 # are still tracked, so `git ls-files` lists them even on a no-LFS checkout (we only need the paths, not bytes).
-mapfile -t TRACKED < <(cd "$PROJECT" && git ls-files -- "$ASSETS_REL/*.glb" 2>/dev/null || true)
+TRACKED=()
+while IFS= read -r asset; do TRACKED+=("$asset"); done < <(cd "$PROJECT" && git ls-files -- "$ASSETS_REL/*.glb" 2>/dev/null || true)
 if [[ ${#TRACKED[@]} -eq 0 ]]; then
   # Fallback for a non-git context: enumerate on disk.
-  mapfile -t TRACKED < <(cd "$PROJECT" && find "$ASSETS_REL" -name '*.glb' 2>/dev/null || true)
+  while IFS= read -r asset; do TRACKED+=("$asset"); done < <(cd "$PROJECT" && find "$ASSETS_REL" -name '*.glb' 2>/dev/null || true)
 fi
 
 missing=0
