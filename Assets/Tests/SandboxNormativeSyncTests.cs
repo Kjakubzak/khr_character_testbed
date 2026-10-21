@@ -97,7 +97,7 @@ namespace KhrCharacterTestbed.Tests
             Assert.AreEqual(1, bounded[0]); Assert.AreEqual(1, bounded[1],
                 "each input is clamped before weighting; repeated entries contribute independently");
             foreach (double value in new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity })
-                Assert.Throws<ArgumentException>(() => set.EvaluateExpressionSetMapping("demo_v1",
+                Assert.Catch<ArgumentException>(() => set.EvaluateExpressionSetMapping("demo_v1",
                     new Dictionary<string, double> { ["unknown"] = value }), "all supplied inputs must be finite");
         }
 
@@ -170,6 +170,7 @@ namespace KhrCharacterTestbed.Tests
             var parentState = parent.GetComponent<CoreNodeVisibility>();
             var childState = child.GetComponent<CoreNodeVisibility>();
             Assert.IsNotNull(parentState); Assert.IsNotNull(childState); Assert.IsNotNull(camera);
+            camera.enabled = true; // host selection; imported cameras are disabled by the loader's default policy
             Assert.IsFalse(parentState.Visible); Assert.IsTrue(childState.Visible);
             Assert.IsTrue(parent.gameObject.activeSelf); Assert.IsTrue(child.gameObject.activeInHierarchy);
             Assert.IsTrue(camera.gameObject.activeInHierarchy, "core mesh visibility does not deactivate cameras");
@@ -178,6 +179,7 @@ namespace KhrCharacterTestbed.Tests
                 CoreNodeVisibility.IsVisibleInHierarchy(child, root.transform)));
             yield return null;
             Assert.IsFalse(child.GetComponent<Renderer>().enabled, "the global core adapter suppresses mesh drawing");
+            Assert.IsTrue(camera.enabled, "core mesh visibility cannot undo the host's camera selection");
 
             var animation = root.GetComponentInChildren<Animation>(true);
             Assert.IsNotNull(animation); Assert.IsTrue(animation.enabled);
@@ -194,6 +196,7 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(third.gameObject.activeInHierarchy);
             var nestedCamera = SandboxTestUtil.FindDeep(root.transform, "NestedCamera").GetComponent<Camera>();
             Assert.IsNotNull(nestedCamera); Assert.IsTrue(nestedCamera.gameObject.activeInHierarchy);
+            nestedCamera.enabled = true;
             bool cameraEnabled = camera.enabled;
             bool nestedEnabled = nestedCamera.enabled;
 
