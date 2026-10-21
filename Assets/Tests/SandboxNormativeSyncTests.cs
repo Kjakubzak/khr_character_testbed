@@ -89,6 +89,16 @@ namespace KhrCharacterTestbed.Tests
             var missing = set.EvaluateExpressionSetMapping("demo_v1", new Dictionary<string, double>());
             Assert.AreEqual(0, missing[0]); Assert.AreEqual(0, missing[1]);
             Assert.IsTrue(set.Validation.IsComplete, "independent mapping-entry name is not a mismatch");
+            var reordered = set.EvaluateExpressionSetMapping("demo_v1",
+                new Dictionary<string, double> { ["Half"] = 1, ["Together"] = 0.8 });
+            CollectionAssert.AreEqual(mapped, reordered, "input object order does not change the result");
+            var bounded = set.EvaluateExpressionSetMapping("demo_v1",
+                new Dictionary<string, double> { ["Together"] = 2, ["Half"] = -1 });
+            Assert.AreEqual(1, bounded[0]); Assert.AreEqual(1, bounded[1],
+                "each input is clamped before weighting; repeated entries contribute independently");
+            foreach (double value in new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity })
+                Assert.Throws<ArgumentException>(() => set.EvaluateExpressionSetMapping("demo_v1",
+                    new Dictionary<string, double> { ["unknown"] = value }), "all supplied inputs must be finite");
         }
 
         [UnityTest]

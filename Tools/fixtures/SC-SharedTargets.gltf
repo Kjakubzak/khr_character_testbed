@@ -447,11 +447,16 @@
             {
               "source": 0,
               "name": "independent label",
-              "weight": 1
+              "weight": 0.5
             },
             {
               "source": 1,
               "weight": 1
+            },
+            {
+              "source": 0,
+              "name": "",
+              "weight": 0.5
             }
           ],
           "Half": [

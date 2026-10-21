@@ -145,7 +145,8 @@ def shared_targets():
             "KHR_character_expression_joint": {"channels": [0, 1, 2]},
             "KHR_character_expression_morphtarget": {"channels": [3]}}} for index in range(2)]},
         "KHR_character_expression_mapping": {"expressionSetMappings": {"demo_v1": {
-            "Together": [{"source": 0, "name": "independent label", "weight": 1}, {"source": 1, "weight": 1}],
+            "Together": [{"source": 0, "name": "independent label", "weight": 0.5},
+                         {"source": 1, "weight": 1}, {"source": 0, "name": "", "weight": 0.5}],
             "Half": [{"source": 0, "weight": 0.5}]}}}}
     return f
 
