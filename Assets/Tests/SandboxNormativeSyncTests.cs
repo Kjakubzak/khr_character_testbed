@@ -200,6 +200,15 @@ namespace KhrCharacterTestbed.Tests
             bool cameraEnabled = camera.enabled;
             bool nestedEnabled = nestedCamera.enabled;
 
+            AssertImportedVisibilityBinding(visible, animation, parentState);
+            // The importer uses looping ordinary clips by default. Select a clamped host playback policy before
+            // testing the last authored key; sampling exactly the loop duration otherwise returns its first key.
+            visible.wrapMode = WrapMode.ClampForever;
+#if UNITY_EDITOR
+            var clipSettings = UnityEditor.AnimationUtility.GetAnimationClipSettings(visible);
+            clipSettings.loopTime = false;
+            UnityEditor.AnimationUtility.SetAnimationClipSettings(visible, clipSettings);
+#endif
             visible.SampleAnimation(animation.gameObject, 1);
             Assert.IsTrue(parentState.Visible, "KHR_animation_pointer animates the Boolean core property");
             Assert.IsTrue(CoreNodeVisibility.IsVisibleInHierarchy(child, root.transform));
@@ -232,6 +241,42 @@ namespace KhrCharacterTestbed.Tests
                 if (state.clip.name.Contains(name)) return state.clip;
             Assert.Fail("Missing ordinary imported animation clip: " + name);
             return null;
+        }
+
+        private static void AssertImportedVisibilityBinding(AnimationClip clip, Animation animation, CoreNodeVisibility state)
+        {
+#if UNITY_EDITOR
+            var bindings = UnityEditor.AnimationUtility.GetCurveBindings(clip);
+            var details = new Newtonsoft.Json.Linq.JArray();
+            bool found = false;
+            foreach (var binding in bindings)
+            {
+                var curve = UnityEditor.AnimationUtility.GetEditorCurve(clip, binding);
+                var keys = new Newtonsoft.Json.Linq.JArray();
+                foreach (var key in curve.keys)
+                    keys.Add(new Newtonsoft.Json.Linq.JObject { ["time"] = key.time, ["value"] = key.value });
+                details.Add(new Newtonsoft.Json.Linq.JObject {
+                    ["path"] = binding.path, ["property"] = binding.propertyName,
+                    ["type"] = binding.type.FullName, ["keys"] = keys });
+                if (binding.type == typeof(CoreNodeVisibility) && binding.propertyName == nameof(CoreNodeVisibility.Visible))
+                {
+                    found = true;
+                    Assert.AreSame(state, animation.transform.Find(binding.path)?.GetComponent<CoreNodeVisibility>());
+                    Assert.AreEqual(0, curve.Evaluate(0));
+                    Assert.AreEqual(1, curve.Evaluate(1));
+                }
+            }
+            clip.SampleAnimation(animation.gameObject, 1);
+            var report = new Newtonsoft.Json.Linq.JObject {
+                ["clip"] = clip.name, ["length"] = clip.length, ["wrapMode"] = clip.wrapMode.ToString(),
+                ["animationRoot"] = animation.gameObject.name, ["endSampleBeforeHostClamp"] = state.Visible,
+                ["bindings"] = details };
+            string directory = System.IO.Path.Combine(System.IO.Directory.GetParent(Application.dataPath).FullName,
+                "Artifacts", "normative-animation");
+            System.IO.Directory.CreateDirectory(directory);
+            System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "core-visibility.json"), report.ToString());
+            Assert.IsTrue(found, "the actual imported pointer must bind CoreNodeVisibility.Visible, not GameObject activation");
+#endif
         }
 
         private sealed class MirrorProfile : IVisibilityRoleResolver
