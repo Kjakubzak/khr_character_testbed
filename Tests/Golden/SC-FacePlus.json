@@ -3496,7 +3496,7 @@
       ],
       "min": [
         0.0,
-        -0.079867832362651825,
+        -0.07986783236265182,
         0.0
       ],
       "sparse": {
@@ -3641,7 +3641,7 @@
       "count": 425,
       "max": [
         0.0,
-        0.088742032647132874,
+        0.08874203264713287,
         0.026622608304023743
       ],
       "min": [
@@ -3696,7 +3696,7 @@
       ],
       "min": [
         0.0,
-        -0.088742032647132874,
+        -0.08874203264713287,
         0.0
       ],
       "sparse": {
@@ -4594,22 +4594,8 @@
       ]
     },
     "KHR_character_expression_mapping": {
-      "expressionSetInputMappings": {
-        "https://example.com/expression-vocabularies/demo/v1": {
-          "Smile": [
-            {
-              "target": 7,
-              "weight": 1.0
-            },
-            {
-              "target": 6,
-              "weight": 0.5
-            }
-          ]
-        }
-      },
       "expressionSetMappings": {
-        "https://example.com/expression-vocabularies/demo/v1": {
+        "demo_v1": {
           "Smile": [
             {
               "source": 7,

@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 # run-tests.sh — GATE 1 (compile) + GATE 2 (tests green + min-test-count floor).
-# Usage:  ./Tools/ci/run-tests.sh [--project <p>] [--platform PlayMode|EditMode|Both] [--filter <f>] [--min-tests 120] [--min-sandbox-tests 120] [--timeout 60]
+# Usage:  ./Tools/ci/run-tests.sh [--project <p>] [--platform PlayMode|EditMode|Both] [--filter <f>] [--graphics] [--category <c>] [--min-tests 120] [--min-sandbox-tests 120] [--timeout 60]
 # NOTE: only the testbed's OWN tests run in this consumer project - Unity 'testables' does NOT surface a
 # git-package's tests into a consumer, so the floor tracks the sandbox suite (plugin's ~165 gate in its own repo).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/_common.sh"
 
-PROJECT=""; PLATFORM="PlayMode"; FILTER=""; TIMEOUT=60; MIN_TESTS=120; MIN_SANDBOX=120; RESULTS_DIR=""
+PROJECT=""; PLATFORM="PlayMode"; FILTER=""; TIMEOUT=60; MIN_TESTS=120; MIN_SANDBOX=120; RESULTS_DIR=""; GRAPHICS=0; CATEGORY="!Graphics"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project) PROJECT="$2"; shift 2;;
     --platform) PLATFORM="$2"; shift 2;;
     --filter) FILTER="$2"; shift 2;;
+    --graphics) GRAPHICS=1; CATEGORY=""; shift;;
+    --category) CATEGORY="$2"; shift 2;;
     --timeout) TIMEOUT="$2"; shift 2;;
     --min-tests) MIN_TESTS="$2"; shift 2;;
     --min-sandbox-tests) MIN_SANDBOX="$2"; shift 2;;
@@ -55,7 +57,9 @@ for p in "${platforms[@]}"; do
   tag="$(echo "$p" | tr '[:upper:]' '[:lower:]')"
   results="$RESULTS_DIR/results-$tag.xml"
   log="$RESULTS_DIR/run-$tag.log"
-  args=(-batchmode -nographics -projectPath "$PROJECT" -runTests -testPlatform "$p" -testResults "$results" -logFile "$log")
+  args=(-batchmode -projectPath "$PROJECT" -runTests -testPlatform "$p" -testResults "$results" -logFile "$log")
+  if [[ $GRAPHICS -eq 0 ]]; then args+=(-nographics); fi
+  if [[ -n "$CATEGORY" ]]; then args+=(-testCategory "$CATEGORY"); fi
   if [[ -n "$FILTER" ]]; then args+=(-testFilter "$FILTER"); fi
 
   echo "[ci] Run-Tests: GATE 2 ($p)"

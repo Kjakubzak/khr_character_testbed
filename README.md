@@ -41,12 +41,21 @@ consumer supports: a channel listed by a derived extension the consumer supports
 `_texture_transform`) whose target extensions, such as `KHR_animation_pointer` and `KHR_texture_transform`, it also
 supports. Each derived extension is a separate conformance claim, so a consumer that supports only the base
 extension animates nothing; the `KHR_character` plugin supports all three. Additive components compose over the
-authored value as `y = b + sum(s - n)`, with no clamp. Single-writer properties (node rotation and scale, and
-texture-transform scale) keep their one absolute sample. Only how that result mixes with other animation writers is
-host-defined. Imports are passive by default (the `ExpressionResponseSet` computes but writes nothing); only
+authored value as `y = b + sum(s - n)`, with no clamp. Multiple entries may target the same rotation, scale,
+Boolean or integer property; their composition method is host-defined. This Unity adapter takes the ordinary sample
+of the highest active expression index for those properties. Mixing with other animation writers is also host-defined. Imports are passive by default (the `ExpressionResponseSet` computes but writes nothing); only
 **Expressions**, **GazeAndCamera**, and **CharacterShowcase** explicitly opt into UnityGLTF's `ExpressionController`,
 which applies the composed result to blendshapes, transforms, and `MaterialPropertyBlock`s. That scene writing is
 one Unity integration route among many.
+
+Mapping sets use the sole `expressionSetMappings` property. Their keys identify external input vocabularies;
+`source` references the native expression array by index. Each input is clamped, its contributions are summed per
+native expression, and that final sum is clamped before suppression. Labels do not participate in resolution.
+
+Node hints AND every local role result along the glTF ancestor path using the same view tags. A descendant's
+`always` role cannot restore ancestor-hidden content. Primitive rendering additionally ANDs its own role and the
+independent core `KHR_node_visibility` result. Hints leave cameras, animation and transforms active. Shadow,
+reflection and lighting behavior is the application's policy. See [the normative sync test plan](docs/normative-sync.md).
 
 ---
 
@@ -63,7 +72,7 @@ Launch any of these from **SampleHub**:
 | **RigAndPose** | Runtime Generic ↔ Humanoid rig switch + reference pose | Toggle to Humanoid (builds a Mecanim Avatar); "Apply Reference Pose" |
 | **RoundTrip** | Lossless host-data export plus passive-expression safety | Round-trip SC-Body; load an expression asset to see lossy legacy-controller export fail closed |
 | **Health** | Per-capability Active/Degraded/Inert triage | Load a partial character; see what's inert |
-| **VisibilityHints** | View-tag visibility (`KHR_node_visibility_hint` + `KHR_mesh_primitive_visibility_hint`) | Swap between the built-in figure and the khr-character example variants; pick the view's tags (third_person, first_person, both, none) — `third_person` content such as the head/eyes/brows hides (via an invisible-material swap) without the `third_person` tag, while `always` content such as hair + body stays |
+| **VisibilityHints** | View-tag visibility (`KHR_node_visibility_hint` + `KHR_mesh_primitive_visibility_hint`) | Swap between the built-in figure and the khr-character example variants; pick the view's tags (third_person, first_person, both, none) — `third_person` content such as the head/eyes/brows hides (via an invisible-material swap) without the `third_person` tag, while `always` content such as hair + body stays when no ancestor hint vetoes it |
 | **HumanoidAnimation** | Procedural clips on a humanoid rig | Play a wave / nod / idle-sway |
 | **AnimationRigging** | Runtime aim constraint (Unity Animation Rigging) | Move the target; a bone tracks it |
 | **AnimationSandbox** | Any character + any rig mode + any clip | Defaults to Generic; pick a character-adaptive procedural clip and Play (clips are filtered to the compatible rig mode) |
@@ -77,7 +86,7 @@ Every scene carries an on-screen **caveat banner** so the demo never over-promis
 Under **Assets ▸ UnityGLTF ▸ KHR Character**:
 
 - **Enable Plugins** — turns on the (disabled-by-default) KHR character import + export plugins.
-- **Generate Sample Characters** — builds the `SC-*` sample GLBs *in code* and **dogfood-exports** them through the plugin (so the samples themselves are produced by the exporter under test).
+- **Generate Sample Characters** — builds the `SC-*` sample GLBs in code and exports them through the plugin; also packages the procedural `SC-SharedTargets` and `VH-Ancestors` integration fixtures.
 - **Build Sample Scenes** — (re)generates the demo scenes and registers them in Build Settings.
 
 ---
@@ -93,8 +102,10 @@ Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consu
 | `SC-Face.glb` | `KHR_character` + expression (morph + joint) | GlbViewer, Expressions, Gaze |
 | `SC-FacePlus.glb` | + texture-transform expression (`KHR_character_expression_texture_transform` on a `KHR_texture_transform` offset) | Expressions |
 | `SC-Body.glb` | skeleton mapping + reference pose + camera hint (humanoid-mappable) | RigAndPose, Health, procedural animation |
+| `SC-SharedTargets.glb` | Shared additive translation/morph plus quaternion/scale responses and external mapping | Normative integration tests |
+| `VH-Ancestors.glb` | Nested node/primitive hints, custom roles, core Boolean visibility, camera and ordinary animation | Normative integration and GPU color/depth tests |
 
-**`VRM_KHR_Examples/`** — the "hero" character (`khr-character-example.glb`, VRM-origin, consumed via `KHR_character`; `VRMC_*` ignored) plus per-role visibility-hint variants (`-always`, `-first-person`, `-third-person`), used by CharacterShowcase and VisibilityHints. The hero is pending re-export (caveat C10): its expression entries have no `name` and its look expressions share the eye rotations, so its expression data does not import and the expression demos use the synthetic fallbacks until 0b5vr re-exports it.
+**`VRM_KHR_Examples/`** — the "hero" character (`khr-character-example.glb`, VRM-origin, consumed via `KHR_character`; `VRMC_*` ignored) plus per-role visibility-hint variants (`-always`, `-first-person`, `-third-person`), used by CharacterShowcase and VisibilityHints. The committed wire has been normalized to the current draft. Shared eye rotations are valid; expression demos use the hero when available and synthetic fallbacks when it is absent.
 
 **`FromBlender/`** — fixtures authored by the sibling [`khr_character_blender`](https://github.com/kenjimeta/khr_character_blender) addon (one per extension combination, incl. `visibility_hints.glb`), so the importer is tested against Blender-authored wire too.
 

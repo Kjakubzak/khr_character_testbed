@@ -20,7 +20,7 @@ namespace Samples.Shared
         CubicSplineToLinear,
         /// <summary>Expression names need not be unique, so the demos address expressions by array index.</summary>
         DuplicateExpressionLabels,
-        /// <summary>Expression composition is normative; only its mix with other animation writers is host-defined.</summary>
+        /// <summary>Additive expression aggregation is normative; other property composition and writer mixing are host-defined.</summary>
         HostDefinedWriterMix,
         /// <summary>A camera hint's projection index does not round-trip through glTF.</summary>
         CameraProjectionOffWire,
@@ -32,7 +32,7 @@ namespace Samples.Shared
         HeroNonCommercial,
         /// <summary>Geometric eye-aim is a demo convenience, not part of KHR_character.</summary>
         EyeAimNonSpec,
-        /// <summary>The hero's expression data is rejected until 0b5vr re-exports it.</summary>
+        /// <summary>Older external hero wire may lack required expression names.</summary>
         HeroPendingReexport,
     }
 
@@ -59,13 +59,13 @@ namespace Samples.Shared
             [Caveat.Draft] = "Tracks glTF PR #2512 (KHR_character / avatar) — a DRAFT extension set, not ratified; the wire may still change.",
             [Caveat.CubicSplineToLinear] = "Animation import bakes CUBICSPLINE tangents to sampled LINEAR keys (curve shape approximated).",
             [Caveat.DuplicateExpressionLabels] = "Duplicate expression names are valid, so a name does not identify an expression; the demos address expressions by their authoritative array index.",
-            [Caveat.HostDefinedWriterMix] = "Expression composition is normative (y = b + sum(s - n) per additive component, no clamp); only how the result mixes with other animation writers is host-defined.",
+            [Caveat.HostDefinedWriterMix] = "Additive expression components compose as y = b + sum(s - n), with no clamp. Composition of shared rotation, scale, Boolean and integer responses, and mixing with other animation writers, is host-defined.",
             [Caveat.CameraProjectionOffWire] = "A camera hint's projection index does not round-trip through glTF.",
             [Caveat.OneCharacterPerDocument] = "KHR_character marks the asset as containing at most one character; it names no root or member nodes.",
             [Caveat.SkeletonGracefulDegrade] = "The optional Unity Humanoid adapter reports Degraded when its selected mapping lacks a HumanTrait-required role; the glTF mapping itself is not thereby invalid.",
             [Caveat.HeroNonCommercial] = "The VRoid \"hero\" is VRM 1.0 (non-commercial); the demos read only its KHR_character data. The synthetic SC-* fallbacks are CC0.",
             [Caveat.EyeAimNonSpec] = "Geometric eye-aim is a demo convenience, not part of KHR_character.",
-            [Caveat.HeroPendingReexport] = "The hero is pending re-export: its expression entries have no name and its look expressions rotate the same eye nodes (a prohibited single-writer conflict), so its expression data does not import. Expression demos use the synthetic fallback until it is re-exported.",
+            [Caveat.HeroPendingReexport] = "An older external hero may lack required expression names. Its invalid expression data is rejected and expression demos use a synthetic fallback. The committed hero wire is normalized; shared eye rotation targets are valid.",
         };
 
         /// <summary>Stable display id for a caveat, e.g. <c>"C1"</c>. Dense (no gaps) by construction.</summary>

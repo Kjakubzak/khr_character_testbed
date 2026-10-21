@@ -151,8 +151,7 @@ namespace Samples.Shared
             _ui.AddLabel($"Unity controller adapter: {expressions.Count}");
             _ui.AddLabel($"  Morph {morph} \u00b7 Joint {joint} \u00b7 TexTransform {texture}");
             _ui.AddLabel($"  Binary: {binary}");
-            AddVocabularies("Output vocabulary sets", expressions.OutputVocabularySets);
-            AddVocabularies("Input vocabulary sets", expressions.InputVocabularySets);
+            AddVocabularies("External expression mapping sets", expressions.InputVocabularySets);
             AddExpressionNames(handles);
         }
 

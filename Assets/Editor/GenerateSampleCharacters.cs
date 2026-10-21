@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Samples.Editor
 {
     /// <summary>
-    /// Tool B — generates the eight synthetic SC-* sample characters by delegating to
+    /// Tool B — generates the synthetic sample characters and normative integration fixtures by delegating to
     /// <see cref="SampleCharacterFactory"/> and writing them under <c>Assets/SampleAssets/Synthetic/</c>. Each
     /// factory method is also callable directly from CI/tests. Batchmode-safe (no blocking dialog when headless).
     /// </summary>
@@ -26,11 +26,13 @@ namespace Samples.Editor
                 string pseudoVrm = SampleCharacterFactory.GenerateSCPseudoVRM(OutputDirectory);
                 string exprEdge = SampleCharacterFactory.GenerateSCExprEdge(OutputDirectory);
                 string degraded = SampleCharacterFactory.GenerateSCDegraded(OutputDirectory);
+                string shared = SampleCharacterFactory.GenerateSCSharedTargets(OutputDirectory);
+                string ancestors = SampleCharacterFactory.GenerateVHAncestors(OutputDirectory);
 
-                Debug.Log($"[Samples] Generated sample characters:\n  {face}\n  {facePlus}\n  {body}\n  {lookAt}\n  {partial}\n  {pseudoVrm}\n  {exprEdge}\n  {degraded}");
+                Debug.Log($"[Samples] Generated sample characters:\n  {face}\n  {facePlus}\n  {body}\n  {lookAt}\n  {partial}\n  {pseudoVrm}\n  {exprEdge}\n  {degraded}\n  {shared}\n  {ancestors}");
                 if (!Application.isBatchMode)
                     EditorUtility.DisplayDialog("Generate Sample Characters",
-                        $"Wrote:\n{face}\n{facePlus}\n{body}\n{lookAt}\n{partial}\n{pseudoVrm}\n{exprEdge}\n{degraded}", "OK");
+                        $"Wrote:\n{face}\n{facePlus}\n{body}\n{lookAt}\n{partial}\n{pseudoVrm}\n{exprEdge}\n{degraded}\n{shared}\n{ancestors}", "OK");
             }
             catch (System.Exception ex)
             {

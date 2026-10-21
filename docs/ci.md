@@ -37,10 +37,9 @@ Two independent floors, both enforced every run (and all of `failed`/`inconclusi
 > always-run count. The lone `[Category("Hero")]` tag remains only as an optional exclusion hint; it is not required to
 > keep the gate green.
 >
-> While the hero is pending re-export (`CharacterLoader.HeroNeedsReexport`, caveat C10), the importer rejects its
-> expression data as a whole and logs an error. Hero-variant imports then expect that error with `LogAssert.Expect`
-> and still assert the hub, skeleton, camera and visibility hints; the expression-driving hero cases use their
-> synthetic fallback; and the wire checker asserts exactly the known pending defects. None of these skip.
+> The committed hero wire is normalized to the current draft. Older external replacements that lack required
+> expression names still trigger `CharacterLoader.HeroNeedsReexport` and the synthetic fallback. Shared eye rotations
+> are valid and do not trigger that compatibility route.
 
 ## Preflight lints (no Unity)
 
@@ -105,7 +104,7 @@ plugins in code** (never trusting the committed settings asset, which can silent
 
 - `Samples.Editor.SandboxCI.EnablePlugins` — enable the KHR Character import/export + AnimationPointer plugins.
 - `Samples.Editor.SandboxCI.ExportAllFixtures` — regenerate the committed `SC-*.glb` and `VH-*.glb` under
-  `Assets/SampleAssets/Synthetic` (the Generate Sample Characters menu writes only `SC-*`).
+  `Assets/SampleAssets/Synthetic` (the menu also packages `SC-SharedTargets` and `VH-Ancestors`).
 - `Samples.Editor.SandboxCI.ExportGoldens` — export fixtures to `Artifacts/glb/` and write normalized wire
   snapshots to `Artifacts/snapshots/`.
 
