@@ -1,6 +1,6 @@
 # Isolated Unity 6 testbed
 
-The default project remains on Unity 2022.2.23f1. This optional setup creates a separate worktree for **Unity 6000.5.4f1**, with its own Library and temporary files. It uses an immutable UnityGLTF compatibility pin and preserves asset GUIDs.
+The default project remains on Unity 2022.2.23f1. This optional setup creates a separate worktree for **Unity 6000.5.4f1**, with its own Library and temporary files. It uses the same immutable UnityGLTF pin as the Unity 2022 project; that package includes conditional Unity 6 compatibility. Asset GUIDs are preserved.
 
 ## Prepare
 
