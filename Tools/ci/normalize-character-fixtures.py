@@ -13,8 +13,10 @@ The rewrite is idempotent, so the script is safe to re-run on already normalized
 - the unqualified look-at hint ``eyes`` becomes ``ACME_eye_target``;
 - legacy expression-name references become expression indices.
 
-Mapping-set identifiers may be any nonempty string. Exporters SHOULD still use a version-pinned identifier, so
-the short legacy identifiers below are replaced with version-pinned ones.
+Mapping-set identifiers are nonempty aliases, not documentation URLs. Known legacy
+aliases/URLs below migrate to stable aliases; unrelated identifiers are preserved.
+An authored legacy input mapping is moved to the sole expressionSetMappings
+operation with target indices renamed source. This never computes an inverse.
 """
 
 import json
@@ -48,22 +50,20 @@ LOOKAT_HINT_REPLACEMENTS = {
     "eyes": "ACME_eye_target",
 }
 EXPRESSION_MAPPING_IDENTIFIER_REPLACEMENTS = {
-    "ARKit": "https://example.com/expression-vocabularies/arkit/v1",
-    "demoVocabulary": "https://example.com/expression-vocabularies/demo/v1",
-    "vrmExpressionPresets": (
-        "https://github.com/vrm-c/vrm-specification/blob/"
-        "70ae16e93abd6da727fdf641b67aa41010c6d933/"
-        "specification/VRMC_vrm-1.0/expressions.md"
-    ),
+    "ARKit": "arkit_v1",
+    "https://example.com/expression-vocabularies/arkit/v1": "arkit_v1",
+    "demoVocabulary": "demo_v1",
+    "https://example.com/expression-vocabularies/demo/v1": "demo_v1",
+    "vrmExpressionPresets": "vrm1_expressions",
+    "https://github.com/vrm-c/vrm-specification/blob/70ae16e93abd6da727fdf641b67aa41010c6d933/specification/VRMC_vrm-1.0/expressions.md": "vrm1_expressions",
 }
 SKELETON_MAPPING_IDENTIFIER_REPLACEMENTS = {
-    "default": "https://example.com/skeleton-vocabularies/default/v1",
-    "unityHumanoid": "https://example.com/skeleton-vocabularies/unity-humanoid/v1",
-    "vrmHumanoid": (
-        "https://github.com/vrm-c/vrm-specification/blob/"
-        "70ae16e93abd6da727fdf641b67aa41010c6d933/"
-        "specification/VRMC_vrm-1.0/humanoid.md"
-    ),
+    "default": "default_v1",
+    "https://example.com/skeleton-vocabularies/default/v1": "default_v1",
+    "unityHumanoid": "unity_humanoid_v1",
+    "https://example.com/skeleton-vocabularies/unity-humanoid/v1": "unity_humanoid_v1",
+    "vrmHumanoid": "vrm1_humanoid",
+    "https://github.com/vrm-c/vrm-specification/blob/70ae16e93abd6da727fdf641b67aa41010c6d933/specification/VRMC_vrm-1.0/humanoid.md": "vrm1_humanoid",
 }
 
 
@@ -276,44 +276,33 @@ def normalize_json(root: dict) -> bool:
     mapping_extension = extensions.get(MAPPING, {})
     mapping_sets = mapping_extension.get("expressionSetMappings", {})
     changed |= normalize_mapping_identifiers(mapping_sets, EXPRESSION_MAPPING_IDENTIFIER_REPLACEMENTS)
+    legacy_inputs = mapping_extension.pop("expressionSetInputMappings", None)
+    if isinstance(legacy_inputs, dict):
+        changed = True
+        normalize_mapping_identifiers(legacy_inputs, EXPRESSION_MAPPING_IDENTIFIER_REPLACEMENTS)
+        for alias, commands in legacy_inputs.items():
+            converted = {}
+            for command, records in commands.items():
+                converted[command] = [
+                    {("source" if key == "target" else key): value for key, value in record.items()}
+                    for record in records
+                ]
+            mapping_sets[alias] = converted
+        mapping_extension["expressionSetMappings"] = mapping_sets
     if isinstance(mapping_sets, dict):
-        for set_name, targets in mapping_sets.items():
-            if not isinstance(targets, dict):
+        for alias, inputs in mapping_sets.items():
+            if not isinstance(inputs, dict):
                 continue
-            for target_name, sources in targets.items():
-                if not isinstance(sources, list):
+            for input_key, records in inputs.items():
+                if not isinstance(records, list):
                     continue
-                for source_index, source in enumerate(sources):
-                    if not isinstance(source, dict) or "source" not in source:
+                for record_index, record in enumerate(records):
+                    if not isinstance(record, dict) or "source" not in record:
                         continue
-                    resolved = resolve_legacy_reference(
-                        source["source"],
-                        indices,
-                        f"expressionSetMappings[{set_name!r}][{target_name!r}][{source_index}].source",
-                    )
-                    if resolved != source["source"]:
-                        source["source"] = resolved
-                        changed = True
-    input_mapping_sets = mapping_extension.get("expressionSetInputMappings", {})
-    changed |= normalize_mapping_identifiers(input_mapping_sets, EXPRESSION_MAPPING_IDENTIFIER_REPLACEMENTS)
-    if isinstance(input_mapping_sets, dict):
-        for set_name, commands in input_mapping_sets.items():
-            if not isinstance(commands, dict):
-                continue
-            for command_name, targets in commands.items():
-                if not isinstance(targets, list):
-                    continue
-                for target_index, target in enumerate(targets):
-                    if not isinstance(target, dict) or "target" not in target:
-                        continue
-                    resolved = resolve_legacy_reference(
-                        target["target"],
-                        indices,
-                        f"expressionSetInputMappings[{set_name!r}][{command_name!r}]"
-                        f"[{target_index}].target",
-                    )
-                    if resolved != target["target"]:
-                        target["target"] = resolved
+                    resolved = resolve_legacy_reference(record["source"], indices,
+                        f"expressionSetMappings[{alias!r}][{input_key!r}][{record_index}].source")
+                    if resolved != record["source"]:
+                        record["source"] = resolved
                         changed = True
 
     skeleton_mapping_sets = extensions.get(SKELETON_MAPPING, {}).get("skeletalRigMappings", {})

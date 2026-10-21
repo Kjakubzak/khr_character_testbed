@@ -10,20 +10,20 @@ namespace KhrCharacterTestbed.Tests
     /// <summary>
     /// Wire conformance gate. A dependency-free, license-clean checker (<see cref="KhrSchemaCheck"/> plus the
     /// cross-reference walkers below) encodes the schema constraints and the structural validation rules of the
-    /// KHR_character extension family: marker placement, required entry names, channel listings, single-writer
-    /// conflicts, suppression and mapping references. POSITIVE: the committed SC-* and FromBlender wire passes.
+    /// KHR_character extension family: marker placement, required entry names, channel listings, within-animation target
+    /// uniqueness, suppression and mapping references. POSITIVE: the committed SC-* and FromBlender wire passes.
     /// NEGATIVE: one malformed payload per rule must be rejected, so a regression that emits an out-of-spec wire is
-    /// caught. Rules the specifications make warnings (a blend threshold, a skeleton name mismatch) are collected
+    /// caught. Rules the specifications make warnings (a blend threshold) are collected
     /// separately and never fail the wire.
     /// </summary>
     public class SandboxSchemaConformanceTests
     {
         private const string UnityHumanoidVocabulary =
-            "https://example.com/skeleton-vocabularies/unity-humanoid/v1";
+            "unity_humanoid_v1";
         private const string DefaultSkeletonVocabulary =
-            "https://example.com/skeleton-vocabularies/default/v1";
+            "default_v1";
         private const string Vrm10HumanoidVocabulary =
-            "https://github.com/vrm-c/vrm-specification/blob/70ae16e93abd6da727fdf641b67aa41010c6d933/specification/VRMC_vrm-1.0/humanoid.md";
+            "vrm1_humanoid";
 
         private const string JointExtension = "KHR_character_expression_joint";
         private const string MorphExtension = "KHR_character_expression_morphtarget";
@@ -70,6 +70,15 @@ namespace KhrCharacterTestbed.Tests
                 NonNegativeOptionalInt(ext, "camera", "KHR_node_camera_hint", e);
                 NonNegativeOptionalInt(ext, "targetNode", "KHR_node_camera_hint", e);
                 return e;
+            }
+
+            public static List<string> ReferencePose(JObject ext)
+            {
+                var errors = new List<string>();
+                var label = ext["poseType"];
+                if (label == null || label.Type != JTokenType.String || ((string)label).Length == 0)
+                    errors.Add("reference pose poseType is required (nonempty string).");
+                return errors;
             }
 
             public static List<string> LookatTarget(JObject ext)
@@ -154,7 +163,7 @@ namespace KhrCharacterTestbed.Tests
             WalkExtensions(root, root, "$", report);
             report.Errors.AddRange(ExpressionEntries(root, report));
             report.Errors.AddRange(ExpressionChannelReferences(root, report.Incomplete));
-            report.Errors.AddRange(SingleWriterConflicts(root));
+            report.Errors.AddRange(WithinAnimationDuplicateTargets(root));
             report.Errors.AddRange(ExpressionObjectReferences(root));
             report.Errors.AddRange(SkeletonObjectReferences(root, report.Warnings));
             return report;
@@ -166,7 +175,7 @@ namespace KhrCharacterTestbed.Tests
         [Test]
         public void RealWire_ConformsToSchemaConstraints(
             [Values("SC-Body.glb", "SC-Degraded.glb", "SC-LookAt.glb", "SC-Face.glb", "SC-FacePlus.glb",
-                "SC-ExprEdge.glb", "SC-Partial.glb", "SC-PseudoVRM.glb")] string fixture)
+                "SC-ExprEdge.glb", "SC-Partial.glb", "SC-PseudoVRM.glb", "SC-SharedTargets.glb")] string fixture)
         {
             byte[] glb = System.IO.File.ReadAllBytes(CharacterLoader.SyntheticPath(fixture));
             string json = CharacterLoader.ExtractGltfJson(glb);
@@ -191,7 +200,7 @@ namespace KhrCharacterTestbed.Tests
                 Assert.Greater(report.JointAssociation, 0, $"{fixture} must carry skeleton joint associations to validate.");
                 var rigs = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
                 Assert.IsNotNull(rigs?[UnityHumanoidVocabulary],
-                    $"{fixture} must use the versioned Unity Humanoid vocabulary URI.");
+                    $"{fixture} must use the stable Unity Humanoid vocabulary alias.");
             }
             if (fixture == "SC-Degraded.glb")
             {
@@ -225,18 +234,14 @@ namespace KhrCharacterTestbed.Tests
             var report = CheckWire(root);
             if (IsHeroFixture(relativePath) && CharacterLoader.PendingReexportDefects(root).Count > 0)
             {
-                // D7: until 0b5vr re-exports the hero, its entries carry only the legacy `expression` label (so no
-                // diagnostic mapping name can match an entry name) and its look expressions all rotate the two eye
-                // nodes. Assert exactly those pending defects; never skip.
+                // An unnormalized external hero can still lack required entry names. Shared eye rotations
+                // are valid; independent mapping names are never mismatch errors.
                 string joined = string.Join(" | ", report.Errors);
                 StringAssert.Contains("expression entry name is required", joined, $"{relativePath}: {joined}");
-                StringAssert.Contains("single-writer property /nodes/11/rotation", joined, $"{relativePath}: {joined}");
-                StringAssert.Contains("single-writer property /nodes/12/rotation", joined, $"{relativePath}: {joined}");
+
                 foreach (var error in report.Errors)
                     Assert.IsTrue(
-                        error.Contains("expression entry name is required")
-                        || error.Contains("single-writer property")
-                        || error.Contains("mapping name does not match"),
+                        error.Contains("expression entry name is required"),
                         $"{relativePath}: unexpected wire error beyond the pending hero defects: {error}");
             }
             else
@@ -248,7 +253,7 @@ namespace KhrCharacterTestbed.Tests
             {
                 var rigs = root["extensions"]?["KHR_character_skeleton_mapping"]?["skeletalRigMappings"] as JObject;
                 Assert.IsNotNull(rigs?[expectedSkeletonVocabulary],
-                    $"{relativePath} must use the expected version-stable skeleton vocabulary URI.");
+                    $"{relativePath} must use the expected stable skeleton vocabulary alias.");
             }
         }
 
@@ -419,11 +424,10 @@ namespace KhrCharacterTestbed.Tests
                 string.Join(" | ", CheckWire(MappingAsset("'vrm': { '': [ { 'source': 0, 'weight': 1.0 } ] }")).Errors));
 
         [Test]
-        public void MappingName_MismatchWithEntryName_Rejected()
-            => StringAssert.Contains("mapping name does not match",
-                string.Join(" | ", CheckWire(MappingAsset(
-                    "'vrm': { 'Smile': [ { 'source': 0, 'name': 'Smile', 'weight': 1.0 } ] }")).Errors),
-                "diagnostic names compare by code point, so 'Smile' does not match the entry name 'smile'.");
+        public void MappingName_IndependentOfEntryName_Accepted()
+            => Assert.IsEmpty(CheckWire(MappingAsset(
+                "'vrm': { 'Smile': [ { 'source': 0, 'name': 'independent label', 'weight': 1.0 } ] }")).Errors,
+                "mapping-entry name is independent metadata, not a comparison with the expression label");
 
         [Test]
         public void MappingName_MatchesEntryName_Accepted()
@@ -431,7 +435,34 @@ namespace KhrCharacterTestbed.Tests
                 "'vrm': { 'Smile': [ { 'source': 0, 'name': 'smile', 'weight': 1.0 } ] }")).Errors);
 
         [Test]
-        public void InputMapping_OutOfRangeTarget_Rejected()
+        public void MappingName_EmptyString_Accepted()
+            => Assert.IsEmpty(CheckWire(MappingAsset(
+                "'vrm1_expressions': { 'Smile': [ { 'source': 0, 'name': '', 'weight': 1.0 } ] }")).Errors,
+                "optional mapping names have no minLength and do not identify a native expression");
+
+        [TestCase("'demo_v1': { 'Smile': [] }")]
+        [TestCase("'demo_v1': { 'Smile': {} }")]
+        public void MappingContributions_MissingOrEmptyArray_Rejected(string sets)
+            => StringAssert.Contains("contributions must be a nonempty array", string.Join(" | ", CheckWire(MappingAsset(sets)).Errors));
+
+        [TestCase(null)]
+        [TestCase("")]
+        public void ReferencePose_MissingOrEmptyPoseType_Rejected(string label)
+        {
+            var pose = new JObject();
+            if (label != null) pose["poseType"] = label;
+            Assert.IsNotEmpty(KhrSchemaCheck.ReferencePose(pose));
+        }
+
+        [TestCase("t_pose")]
+        [TestCase("a_pose")]
+        [TestCase("i_pose")]
+        [TestCase("ACME_custom_pose")]
+        public void ReferencePose_ExplicitNonemptyLabel_Accepted(string label)
+            => Assert.IsEmpty(KhrSchemaCheck.ReferencePose(new JObject { ["poseType"] = label }));
+
+        [Test]
+        public void Mapping_OutOfRangeSource_Rejected()
         {
             var root = JObject.Parse(@"{
                 'extensions': {
@@ -439,9 +470,9 @@ namespace KhrCharacterTestbed.Tests
                         'expressions': [ { 'name': 'smile', 'animation': 0 } ]
                     },
                     'KHR_character_expression_mapping': {
-                        'expressionSetInputMappings': {
+                        'expressionSetMappings': {
                             'https://example.com/vocabulary/v1': {
-                                'Smile': [ { 'target': 1, 'weight': 1.0 } ]
+                                'Smile': [ { 'source': 1, 'weight': 1.0 } ]
                             }
                         }
                     }
@@ -462,7 +493,7 @@ namespace KhrCharacterTestbed.Tests
                 new JObject { ["node"] = 0, ["name"] = "Hips" }));
 
         [Test]
-        public void SkeletonAssociation_NameMismatch_IsWarningNotError()
+        public void SkeletonAssociation_NameIsIndependent_NoMismatchDiagnostic()
         {
             var report = CheckWire(@"{
                 'extensions': {
@@ -474,7 +505,7 @@ namespace KhrCharacterTestbed.Tests
                 'nodes': [ { 'name': 'Pelvis' }, {} ]
             }");
             Assert.IsEmpty(report.Errors, "a name mismatch, even against an unnamed node, does not invalidate the association.");
-            Assert.AreEqual(2, report.Warnings.Count, "both mismatches should be reported as warnings.");
+            Assert.IsEmpty(report.Warnings, "association names are independent labels and must not produce mismatch warnings.");
         }
 
         [Test]
@@ -517,11 +548,11 @@ namespace KhrCharacterTestbed.Tests
                 "[ { 'name': 'fx', 'animation': 0, 'extensions': { 'KHR_character_expression_texture': { 'channels': [0] } } } ]",
                 Animation("{ 'node': 0, 'path': 'translation' }")));
             Assert.IsEmpty(report.Errors, "an unrecognized entry extension is not a rejection.");
-            Assert.IsNotEmpty(report.Incomplete, "its listing and conflict checks are incomplete.");
+            Assert.IsNotEmpty(report.Incomplete, "its listing ownership checks are incomplete.");
         }
 
         [Test]
-        public void SingleWriter_RotationOnTwoEntries_Rejected()
+        public void CrossEntry_RotationOnTwoEntries_Accepted()
         {
             // Entry 0 lists the core form and entry 1 the pointer form of node 0's rotation: one property.
             var report = CheckWire(ExpressionAsset(@"[
@@ -529,12 +560,11 @@ namespace KhrCharacterTestbed.Tests
                 { 'name': 'lookRight', 'animation': 1, 'extensions': { 'KHR_character_expression_joint': { 'channels': [0] } } } ]",
                 Animation("{ 'node': 0, 'path': 'rotation' }") + ", " + Animation(PointerTarget("/nodes/0/rotation")),
                 "'KHR_animation_pointer'"));
-            StringAssert.Contains("single-writer property /nodes/0/rotation is listed by expression entries 0, 1",
-                string.Join(" | ", report.Errors));
+            Assert.IsEmpty(report.Errors, "shared quaternion targets are valid across expression entries");
         }
 
         [Test]
-        public void SingleWriter_TextureScaleOnTwoEntries_Rejected()
+        public void CrossEntry_TextureScaleOnTwoEntries_Accepted()
         {
             const string pointer = "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/scale";
             var report = CheckWire(ExpressionAsset(@"[
@@ -542,11 +572,11 @@ namespace KhrCharacterTestbed.Tests
                 { 'name': 'b', 'animation': 1, 'extensions': { 'KHR_character_expression_texture_transform': { 'channels': [0] } } } ]",
                 Animation(PointerTarget(pointer)) + ", " + Animation(PointerTarget(pointer)),
                 "'KHR_animation_pointer', 'KHR_texture_transform'"));
-            StringAssert.Contains($"single-writer property {pointer}", string.Join(" | ", report.Errors));
+            Assert.IsEmpty(report.Errors, "shared texture-scale targets are valid across expression entries");
         }
 
         [Test]
-        public void SingleWriter_TranslationOverlap_Accepted()
+        public void CrossEntry_TranslationOverlap_Accepted()
         {
             var report = CheckWire(ExpressionAsset(@"[
                 { 'name': 'up', 'animation': 0, 'extensions': { 'KHR_character_expression_joint': { 'channels': [0] } } },
@@ -558,6 +588,27 @@ namespace KhrCharacterTestbed.Tests
                 Animation("{ 'node': 0, 'path': 'rotation' }")));
             Assert.IsEmpty(report.Errors,
                 "translation is additive, and an unlisted rotation channel has no possible response records.");
+        }
+
+        [Test]
+        public void WithinAnimation_CoreAndPointerAlias_Rejected()
+        {
+            var root = JObject.Parse(ExpressionAsset("[ { 'name': 'nod', 'animation': 0 } ]",
+                Animation("{ 'node': 0, 'path': 'rotation' }"), "'KHR_animation_pointer'"));
+            var channels = (JArray)root["animations"][0]["channels"];
+            channels.Add(JObject.Parse("{ 'sampler': 0, 'target': " + PointerTarget("/nodes/0/rotation") + " }"));
+            StringAssert.Contains("duplicate target", string.Join(" | ", CheckWire(root).Errors),
+                "cross-entry sharing does not permit two channels in one animation to target the same property");
+        }
+
+        [Test]
+        public void WithinAnimation_EntireWeightsAndElementOverlap_Rejected()
+        {
+            var root = JObject.Parse(ExpressionAsset("[ { 'name': 'smile', 'animation': 0 } ]",
+                Animation("{ 'node': 0, 'path': 'weights' }"), "'KHR_animation_pointer'"));
+            ((JArray)root["animations"][0]["channels"]).Add(JObject.Parse(
+                "{ 'sampler': 0, 'target': " + PointerTarget("/nodes/0/weights/0") + " }"));
+            StringAssert.Contains("duplicate target", string.Join(" | ", CheckWire(root).Errors));
         }
 
         // ── Cross-reference walkers ──
@@ -586,6 +637,8 @@ namespace KhrCharacterTestbed.Tests
                         report.CameraHint++;
                         report.Errors.AddRange(KhrSchemaCheck.CameraHint(ch));
                     }
+                    if (exts["KHR_character_reference_pose"] is JObject pose)
+                        report.Errors.AddRange(KhrSchemaCheck.ReferencePose(pose));
                     if (exts["KHR_node_lookat_target"] is JObject lt)
                     {
                         report.Lookat++;
@@ -678,7 +731,7 @@ namespace KhrCharacterTestbed.Tests
                     if (property.Name != JointExtension && property.Name != MorphExtension
                         && property.Name != TextureTransformExtension && property.Name != SuppressionExtension)
                         incomplete.Add($"entry {entryIndex} carries the unrecognized extension '{property.Name}', so its " +
-                                       "listing and conflict checks are incomplete.");
+                                       "listing ownership checks are incomplete.");
             }
 
             var used = root["extensionsUsed"] as JArray;
@@ -751,60 +804,31 @@ namespace KhrCharacterTestbed.Tests
             return pointerForm;
         }
 
-        // Single-writer properties covered by two entries' listed channels make the asset invalid: a node's rotation
-        // and its scale (core and pointer forms are one property) and a KHR_texture_transform scale.
-        private static List<string> SingleWriterConflicts(JObject root)
+        // Cross-entry overlap is allowed. Core and pointer aliases must still be unique within an animation.
+        private static List<string> WithinAnimationDuplicateTargets(JObject root)
         {
             var errors = new List<string>();
-            var expressions = root["extensions"]?["KHR_character_expression"]?["expressions"] as JArray;
-            var animations = root["animations"] as JArray;
-            if (expressions == null || animations == null) return errors;
-
-            var writers = new SortedDictionary<string, List<int>>(System.StringComparer.Ordinal);
-            for (int entryIndex = 0; entryIndex < expressions.Count; entryIndex++)
+            if (!(root["animations"] is JArray animations)) return errors;
+            for (int animationIndex = 0; animationIndex < animations.Count; animationIndex++)
             {
-                if (!(expressions[entryIndex] is JObject expression) || expression["animation"]?.Type != JTokenType.Integer)
-                    continue;
-                int animationIndex = (int)expression["animation"];
-                if (animationIndex < 0 || animationIndex >= animations.Count) continue;
-                var channels = animations[animationIndex]?["channels"] as JArray;
-                if (channels == null) continue;
-
-                var properties = new HashSet<string>(System.StringComparer.Ordinal);
-                foreach (var name in new[] { JointExtension, MorphExtension, TextureTransformExtension })
+                if (!(animations[animationIndex]?["channels"] is JArray channels)) continue;
+                var properties = new List<string>();
+                foreach (var channel in channels)
                 {
-                    if (!(expression["extensions"]?[name]?["channels"] is JArray indices)) continue;
-                    foreach (var token in indices)
-                    {
-                        if (token.Type != JTokenType.Integer || (int)token < 0 || (int)token >= channels.Count) continue;
-                        string property = SingleWriterProperty(channels[(int)token]?["target"] as JObject);
-                        if (property != null) properties.Add(property);
-                    }
-                }
-                foreach (var property in properties)
-                {
-                    if (!writers.TryGetValue(property, out var entries)) writers.Add(property, entries = new List<int>());
-                    entries.Add(entryIndex);
+                    var target = channel?["target"] as JObject;
+                    var path = (string)target?["path"];
+                    var property = path == "pointer" ? PointerOf(target)
+                        : target?["node"]?.Type == JTokenType.Integer ? $"/nodes/{(int)target["node"]}/{path}" : null;
+                    if (property == null) continue;
+                    foreach (var previous in properties)
+                        if (previous == property
+                            || (previous.EndsWith("/weights", System.StringComparison.Ordinal) && property.StartsWith(previous + "/", System.StringComparison.Ordinal))
+                            || (property.EndsWith("/weights", System.StringComparison.Ordinal) && previous.StartsWith(property + "/", System.StringComparison.Ordinal)))
+                            errors.Add($"duplicate target {property} in animation {animationIndex}");
+                    properties.Add(property);
                 }
             }
-            foreach (var pair in writers)
-                if (pair.Value.Count > 1)
-                    errors.Add($"single-writer property {pair.Key} is listed by expression entries {string.Join(", ", pair.Value)}.");
             return errors;
-        }
-
-        private static string SingleWriterProperty(JObject target)
-        {
-            if (target == null) return null;
-            string path = (string)target["path"];
-            if ((path == "rotation" || path == "scale") && target["node"]?.Type == JTokenType.Integer)
-                return $"/nodes/{(int)target["node"]}/{path}";
-            string pointer = path == "pointer" ? PointerOf(target) : null;
-            if (pointer == null) return null;
-            var trs = NodeTrsPointer.Match(pointer);
-            if (trs.Success) return trs.Groups[2].Value == "translation" ? null : pointer;
-            var texture = TextureTransformPointer.Match(pointer);
-            return texture.Success && texture.Groups[2].Value == "scale" ? pointer : null;
         }
 
         private static string PointerOf(JObject target)
@@ -831,8 +855,10 @@ namespace KhrCharacterTestbed.Tests
             }
 
             var mappingExtension = root["extensions"]?["KHR_character_expression_mapping"];
+            if (mappingExtension != null && (!(mappingExtension["expressionSetMappings"] is JObject sets) || !sets.HasValues))
+                errors.Add("expressionSetMappings is required and must be a nonempty object.");
             CheckMappingSets(mappingExtension?["expressionSetMappings"] as JObject, "source", "mapping", expressions, errors);
-            CheckMappingSets(mappingExtension?["expressionSetInputMappings"] as JObject, "target", "input mapping", expressions, errors);
+
             return errors;
         }
 
@@ -851,25 +877,25 @@ namespace KhrCharacterTestbed.Tests
                 foreach (var endpoint in endpoints.Properties())
                 {
                     if (endpoint.Name.Length == 0) errors.Add($"{label} endpoint key must be nonempty.");
-                    if (!(endpoint.Value is JArray entries)) continue;
+                    if (!(endpoint.Value is JArray entries) || entries.Count == 0)
+                    {
+                        errors.Add($"{label} endpoint contributions must be a nonempty array.");
+                        continue;
+                    }
                     foreach (var entry in entries)
                     {
                         var index = entry?[indexKey];
                         if (index?.Type != JTokenType.Integer || (int)index < 0 || (int)index >= expressions.Count)
                             errors.Add($"{label} {indexKey} does not resolve in KHR_character_expression.expressions.");
-                        else if (entry?["name"] != null && !NameMatchesEntry(entry["name"], expressions[(int)index]))
-                            errors.Add($"{label} name does not match the name of expression entry {(int)index}.");
+                        if (entry?["name"] != null && entry["name"].Type != JTokenType.String)
+                            errors.Add($"{label} name must be a string.");
+                        if (entry?["weight"] == null || (entry["weight"].Type != JTokenType.Float && entry["weight"].Type != JTokenType.Integer)
+                            || (double)entry["weight"] < 0 || (double)entry["weight"] > 1)
+                            errors.Add($"{label} weight must be in [0, 1].");
                     }
                 }
             }
         }
-
-        // Diagnostic names compare by code point with the entry name; a legacy `expression` label is not a name.
-        private static bool NameMatchesEntry(JToken name, JToken expression)
-            => name.Type == JTokenType.String
-               && expression is JObject entry
-               && entry["name"]?.Type == JTokenType.String
-               && string.Equals((string)name, (string)entry["name"], System.StringComparison.Ordinal);
 
         private static bool IsHeroFixture(string relativePath)
             => relativePath == CharacterLoader.HeroRelativePath
@@ -907,9 +933,7 @@ namespace KhrCharacterTestbed.Tests
                         errors.Add("skeleton association node does not resolve in nodes.");
                         continue;
                     }
-                    if (association["name"]?.Type == JTokenType.String
-                        && !string.Equals((string)association["name"], (string)nodes[(int)node]?["name"], System.StringComparison.Ordinal))
-                        warnings?.Add($"skeleton association '{joint.Name}' name does not match the name of node {(int)node}.");
+
                 }
             }
             return errors;

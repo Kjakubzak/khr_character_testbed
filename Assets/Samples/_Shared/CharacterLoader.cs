@@ -392,64 +392,18 @@ namespace Samples.Shared
             catch (System.Exception e) { Debug.LogException(e); return false; }
         }
 
-        /// <summary>
-        /// The expression defects that keep the VRM-origin hero from importing until it is re-exported: entries without
-        /// a nonempty <c>name</c>, and a node <c>rotation</c> or <c>scale</c> listed by more than one entry, which is a
-        /// prohibited single-writer conflict (core and <c>KHR_animation_pointer</c> forms name the same property).
-        /// </summary>
+        /// <summary>Legacy assets without required expression names still need a wire migration.
+        /// Cross-expression quaternion and scale overlap is valid under the current specification.</summary>
         public static List<string> PendingReexportDefects(JObject root)
         {
             var defects = new List<string>();
             var expressions = root?["extensions"]?["KHR_character_expression"]?["expressions"] as JArray;
             if (expressions == null) return defects;
-            var animations = root["animations"] as JArray;
-            var listers = new SortedDictionary<string, List<int>>(System.StringComparer.Ordinal);
             for (int index = 0; index < expressions.Count; index++)
-            {
-                var entry = expressions[index] as JObject;
-                if (entry?["name"]?.Type != JTokenType.String || ((string)entry["name"]).Length == 0)
+                if (expressions[index]?["name"]?.Type != JTokenType.String
+                    || ((string)expressions[index]["name"]).Length == 0)
                     defects.Add($"expression entry {index} has no name");
-                if (entry?["animation"]?.Type != JTokenType.Integer || animations == null) continue;
-                int animationIndex = (int)entry["animation"];
-                if (animationIndex < 0 || animationIndex >= animations.Count) continue;
-                var channels = animations[animationIndex]?["channels"] as JArray;
-                var listed = new HashSet<string>(System.StringComparer.Ordinal);
-                foreach (var extension in new[] { "KHR_character_expression_joint", "KHR_character_expression_morphtarget" })
-                {
-                    if (!(entry["extensions"]?[extension]?["channels"] is JArray indices) || channels == null) continue;
-                    foreach (var token in indices)
-                    {
-                        if (token.Type != JTokenType.Integer || (int)token < 0 || (int)token >= channels.Count) continue;
-                        string property = NodeTrsProperty(channels[(int)token]?["target"] as JObject);
-                        if (property != null && !property.EndsWith("/translation", System.StringComparison.Ordinal))
-                            listed.Add(property);
-                    }
-                }
-                foreach (var property in listed)
-                {
-                    if (!listers.TryGetValue(property, out var entries)) listers.Add(property, entries = new List<int>());
-                    entries.Add(index);
-                }
-            }
-            foreach (var pair in listers)
-                if (pair.Value.Count > 1)
-                    defects.Add($"single-writer property {pair.Key} is listed by expression entries {string.Join(", ", pair.Value)}");
             return defects;
-        }
-
-        // "/nodes/{n}/translation|rotation|scale" for a core or pointer node-TRS target, else null.
-        private static string NodeTrsProperty(JObject target)
-        {
-            if (target == null) return null;
-            string path = (string)target["path"];
-            if ((path == "translation" || path == "rotation" || path == "scale")
-                && target["node"]?.Type == JTokenType.Integer)
-                return $"/nodes/{(int)target["node"]}/{path}";
-            if (path != "pointer") return null;
-            var match = System.Text.RegularExpressions.Regex.Match(
-                (string)target["extensions"]?["KHR_animation_pointer"]?["pointer"] ?? string.Empty,
-                "^/nodes/(0|[1-9][0-9]*)/(translation|rotation|scale)$");
-            return match.Success ? $"/nodes/{match.Groups[1].Value}/{match.Groups[2].Value}" : null;
         }
 
         // The first four bytes of a binary glTF container spell "glTF": g=0x67 l=0x6C T=0x54 F=0x46

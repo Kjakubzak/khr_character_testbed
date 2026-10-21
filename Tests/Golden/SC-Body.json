@@ -2212,7 +2212,7 @@
     "KHR_character": {},
     "KHR_character_skeleton_mapping": {
       "skeletalRigMappings": {
-        "https://example.com/skeleton-vocabularies/unity-humanoid/v1": {
+        "unity_humanoid_v1": {
           "chest": {
             "name": "Chest",
             "node": 3

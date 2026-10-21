@@ -11,7 +11,7 @@ namespace KhrCharacterTestbed.Tests
     /// <summary>
     /// Spatial / geometry consume-side tests on a real imported character (03 rig lens, Phase 3-P2): the resolved
     /// reference pose (every node, targeted or not, takes its authored or sampled local value; never its live one) and
-    /// camera-hint apply (the camera takes the hint node's position and authored rotation R; a target node only
+    /// camera-hint apply (the camera follows the core glTF view-matrix frame; a target node only
     /// supplies a subject point). State/transform-only, so render-pipeline-agnostic. Anti-hollow via real types.
     /// </summary>
     public class SandboxRigSpatialTests
@@ -133,6 +133,48 @@ namespace KhrCharacterTestbed.Tests
             AssertPose(cam, hint.Node.position, Quaternion.Euler(0f, 30f, 0f) * Vector3.back, "a rotated scene root");
         }
 
+        [UnityTest]
+        public IEnumerator CameraHint_PreservesCoreFrameUnderNonuniformReflection_AndHasNoZeroScalePose()
+        {
+            var load = SandboxTestUtil.LoadSynthetic("SC-Body.glb", _created);
+            yield return load;
+            var hints = load.Current.GetComponent<KhrCharacter>().CameraHints;
+            Assert.IsTrue(hints.TryGetByRole("portrait", out var hint));
+            var parent = hint.Node.parent;
+            parent.localScale = new Vector3(2, 1, -3);
+            parent.localRotation = Quaternion.Euler(0, 25, 0);
+            hint.Node.localRotation = Quaternion.Euler(15, 35, 0);
+            var assetMatrix = load.Current.transform.worldToLocalMatrix * hint.Node.localToWorldMatrix;
+            var expected = assetMatrix;
+            for (int column = 0; column < 3; column++)
+            {
+                Vector3 axis = assetMatrix.GetColumn(column);
+                expected.SetColumn(column, new Vector4(axis.normalized.x, axis.normalized.y, axis.normalized.z, 0));
+            }
+            Assert.Less(expected.determinant, 0, "negative global scale retains the reflected core frame");
+            Assert.IsTrue(hints.TryGetInitialCameraFrame(hint, load.Current.transform, out var actual));
+            AssertMatrix(expected, actual, "scale is removed after the complete transform path is composed");
+            var cameraObject = new GameObject("FrameCamera", typeof(Camera));
+            _created.Add(cameraObject);
+            var camera = cameraObject.GetComponent<Camera>();
+            hints.Apply(hint, camera);
+            var cameraAxisTurn = Matrix4x4.Rotate(Quaternion.Euler(0, 180, 0));
+            var view = Matrix4x4.Scale(new Vector3(1, 1, -1)) *
+                (load.Current.transform.localToWorldMatrix * expected * cameraAxisTurn).inverse;
+            AssertMatrix(view, camera.worldToCameraMatrix,
+                "the view matrix retains a reflected/sheared frame which a quaternion cannot represent");
+
+            var position = camera.transform.position;
+            var rotation = camera.transform.rotation;
+            var previousView = camera.worldToCameraMatrix;
+            parent.localScale = new Vector3(0, 1, 1);
+            Assert.IsFalse(hints.TryGetInitialCameraFrame(hint, load.Current.transform, out _));
+            hints.Apply(hint, camera);
+            Assert.AreEqual(position, camera.transform.position);
+            Assert.AreEqual(rotation, camera.transform.rotation);
+            AssertMatrix(previousView, camera.worldToCameraMatrix, "undefined hint pose leaves the host camera unchanged");
+        }
+
         private static Transform ResolvedNode(ReferencePose pose, int nodeIndex)
         {
             int entry = System.Array.IndexOf(pose.ResolvedNodeIndices, nodeIndex);
@@ -153,6 +195,13 @@ namespace KhrCharacterTestbed.Tests
             Assert.Less(Vector3.Distance(cam.transform.position, position), 1e-4f, $"{label}: camera position.");
             Assert.Less(Vector3.Angle(cam.transform.forward, forward), 0.05f, $"{label}: camera forward.");
             Assert.Less(Vector3.Angle(cam.transform.up, Vector3.up), 0.05f, $"{label}: camera up.");
+        }
+
+        private static void AssertMatrix(Matrix4x4 expected, Matrix4x4 actual, string message)
+        {
+            for (int row = 0; row < 4; row++)
+                for (int column = 0; column < 4; column++)
+                    Assert.AreEqual(expected[row, column], actual[row, column], 1e-4f, message);
         }
     }
 }

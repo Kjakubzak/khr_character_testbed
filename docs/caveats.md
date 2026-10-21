@@ -16,19 +16,19 @@ existing ids stay stable.
 | C1 | `Draft` | Tracks glTF PR #2512 (KHR_character / avatar) — a DRAFT extension set, not ratified; the wire may still change. |
 | C2 | `CubicSplineToLinear` | Animation import bakes CUBICSPLINE tangents to sampled LINEAR keys (curve shape approximated). |
 | C3 | `DuplicateExpressionLabels` | Duplicate expression names are valid, so a name does not identify an expression; the demos address expressions by their authoritative array index. |
-| C4 | `HostDefinedWriterMix` | Expression composition is normative (y = b + sum(s - n) per additive component, no clamp); only how the result mixes with other animation writers is host-defined. |
+| C4 | `HostDefinedWriterMix` | Additive expression components compose as y = b + sum(s - n), with no clamp. Composition of shared rotation, scale, Boolean and integer responses, and mixing with other animation writers, is host-defined. |
 | C5 | `CameraProjectionOffWire` | A camera hint's projection index does not round-trip through glTF. |
 | C6 | `OneCharacterPerDocument` | KHR_character marks the asset as containing at most one character; it names no root or member nodes. |
 | C7 | `SkeletonGracefulDegrade` | The optional Unity Humanoid adapter reports Degraded when its selected mapping lacks a HumanTrait-required role; the glTF mapping itself is not thereby invalid. |
 | C8 | `HeroNonCommercial` | The VRoid "hero" is VRM 1.0 (non-commercial); the demos read only its KHR_character data. The synthetic SC-* fallbacks are CC0. |
 | C9 | `EyeAimNonSpec` | Geometric eye-aim is a demo convenience, not part of KHR_character. |
-| C10 | `HeroPendingReexport` | The hero is pending re-export: its expression entries have no name and its look expressions rotate the same eye nodes (a prohibited single-writer conflict), so its expression data does not import. Expression demos use the synthetic fallback until it is re-exported. |
+| C10 | `HeroPendingReexport` | An older external hero may lack required expression names. Its invalid expression data is rejected and expression demos use a synthetic fallback. The committed hero wire is normalized; shared eye rotation targets are valid. |
 
 ## Which demo surfaces which caveat
 
 Every demo surfaces **C1 (Draft)**; the capability demos add the caveats relevant to what they exercise. The demos
 that load or offer the hero also show **C10** while `CharacterLoader.HeroNeedsReexport` is true, so it disappears
-by itself once the hero is re-exported.
+for the normalized committed hero and returns only if an older external hero is substituted.
 
 | Demo scene | Caveats |
 |------------|---------|

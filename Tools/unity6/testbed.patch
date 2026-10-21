@@ -12,7 +12,7 @@ index bf31505..e2078d8 100644
    MIN_SANDBOX_TESTS: "120"
  
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
-index 7aeed35..d9e6e37 100644
+index e044413..c04c442 100644
 --- a/.github/workflows/ci.yml
 +++ b/.github/workflows/ci.yml
 @@ -27,7 +27,7 @@ concurrency:
@@ -101,17 +101,16 @@ index 364dc64..5e7ffe3 100644
                  if (kv.Key.CharacterId == instanceId) stale.Add(kv.Key);
              foreach (var key in stale)
 diff --git a/Packages/manifest.json b/Packages/manifest.json
-index 7295b24..c4a705d 100644
+index 154d5c3..49bff6e 100644
 --- a/Packages/manifest.json
 +++ b/Packages/manifest.json
 @@ -1,9 +1,9 @@
  {
    "dependencies": {
--    "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#1574efecb61dc4b279a76262fa2835c0340e5b5f",
+     "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#55cc226cd37593b4b7ce013c50bdc2f0682a2fa0",
 -    "com.unity.animation.rigging": "1.3.0",
 -    "com.unity.test-framework": "1.1.33",
 -    "com.unity.render-pipelines.universal": "14.0.7",
-+    "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#a17e0a994364ba71740b270455c53d1a4713af66",
 +    "com.unity.animation.rigging": "1.4.1",
 +    "com.unity.test-framework": "1.7.0",
 +    "com.unity.render-pipelines.universal": "17.5.0",
@@ -131,10 +130,10 @@ index 7295b24..c4a705d 100644
    "testables": [
      "org.khronos.unitygltf"
 diff --git a/Packages/packages-lock.json b/Packages/packages-lock.json
-index 3851e1a..76c0c92 100644
+index 5b092ba..ae023ae 100644
 --- a/Packages/packages-lock.json
 +++ b/Packages/packages-lock.json
-@@ -1,115 +1,142 @@
+@@ -1,111 +1,138 @@
  {
    "dependencies": {
      "com.unity.animation.rigging": {
@@ -307,20 +306,6 @@ index 3851e1a..76c0c92 100644
        }
      },
      "org.khronos.unitygltf": {
--      "version": "https://github.com/Kjakubzak/UnityGLTF.git#1574efecb61dc4b279a76262fa2835c0340e5b5f",
-+      "version": "https://github.com/Kjakubzak/UnityGLTF.git#a17e0a994364ba71740b270455c53d1a4713af66",
-       "depth": 0,
-       "source": "git",
-       "dependencies": {
-@@ -121,7 +148,7 @@
-         "com.unity.mathematics": "1.0.0",
-         "com.unity.collections": "1.0.0"
-       },
--      "hash": "1574efecb61dc4b279a76262fa2835c0340e5b5f"
-+      "hash": "a17e0a994364ba71740b270455c53d1a4713af66"
-     },
-     "com.unity.modules.ai": {
-       "version": "1.0.0",
 @@ -133,7 +160,9 @@
        "version": "1.0.0",
        "depth": 0,
@@ -497,10 +482,10 @@ index a11ed58..3702357 100644
    customInterpolatorWarningThreshold: 16
 +  customHeatmapValues: {fileID: 0}
 diff --git a/README.md b/README.md
-index 5c6d5ec..83920d8 100644
+index a33c45d..cf4f440 100644
 --- a/README.md
 +++ b/README.md
-@@ -10,7 +10,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
+@@ -12,7 +12,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
  
  ## Requirements
  
@@ -509,7 +494,7 @@ index 5c6d5ec..83920d8 100644
  - **Git** + **Git LFS** (`git lfs install`) — sample binaries are stored via LFS
  - Internet on first open (resolves the UnityGLTF package from a pinned Git URL)
  
-@@ -23,7 +23,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
+@@ -25,7 +25,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
     git lfs install
     git clone <this-repo-url>
     ```
@@ -518,20 +503,11 @@ index 5c6d5ec..83920d8 100644
  3. **First time only** — if `Assets/SampleAssets/Synthetic/*.glb` or the demo scenes are missing, generate them from the menu:
     - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Generate Sample Characters**
     - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Build Sample Scenes**
-@@ -103,7 +103,7 @@ Three sources under `Assets/SampleAssets/` (CC0 / synthetic, or VRM-origin consu
- This project is a **pure UPM consumer** — it vendors no plugin code. `Packages/manifest.json` pins UnityGLTF (a fork that adds the `KHR_character` plugin) by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
- 
- ```jsonc
--"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#1574efecb61dc4b279a76262fa2835c0340e5b5f",
-+"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#a17e0a994364ba71740b270455c53d1a4713af66",
- "testables": ["org.khronos.unitygltf"]
- ```
- 
 diff --git a/docs/ci.md b/docs/ci.md
-index 9c921b6..a8af9b8 100644
+index 276ee86..569cd26 100644
 --- a/docs/ci.md
 +++ b/docs/ci.md
-@@ -154,7 +154,7 @@ Commit the changed goldens — **the golden diff is the change record** reviewer
+@@ -150,7 +150,7 @@ Commit the changed goldens — **the golden diff is the change record** reviewer
  ## GitHub Actions (`.github/workflows/ci.yml`)
  
  - **Provider:** GitHub Actions + [game-ci](https://game.ci) `unity-test-runner` (pinned editor image + license).

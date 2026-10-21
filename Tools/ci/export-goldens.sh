@@ -36,7 +36,8 @@ if [[ $code -ne 0 ]] || ! compile_log_clean "$log"; then
   exit 1
 fi
 
-mapfile -t snaps < <(find "$SNAP_DIR" -maxdepth 1 -type f -name '*.json' 2>/dev/null | sort)
+snaps=()
+while IFS= read -r snapshot; do snaps+=("$snapshot"); done < <(find "$SNAP_DIR" -maxdepth 1 -type f -name '*.json' 2>/dev/null | sort)
 if [[ ${#snaps[@]} -eq 0 ]]; then echo "[ci] Export-Goldens produced no snapshots in '$SNAP_DIR'." >&2; exit 1; fi
 
 if [[ "$MODE" == "update" ]]; then
@@ -46,7 +47,8 @@ if [[ "$MODE" == "update" ]]; then
   exit 0
 fi
 
-mapfile -t goldens < <(find "$GOLDEN_DIR" -maxdepth 1 -type f -name '*.json' 2>/dev/null | sort)
+goldens=()
+while IFS= read -r golden; do goldens+=("$golden"); done < <(find "$GOLDEN_DIR" -maxdepth 1 -type f -name '*.json' 2>/dev/null | sort)
 if [[ ${#goldens[@]} -eq 0 ]]; then
   echo "[ci] No committed goldens in '$GOLDEN_DIR' -- SKIPPING the golden diff. Run '--update' once and commit them." >&2
   exit 0

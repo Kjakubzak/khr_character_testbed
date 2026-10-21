@@ -1,0 +1,427 @@
+{
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 6,
+      "type": "VEC3",
+      "values": [
+        -0.5,
+        -0.5,
+        0.0,
+        0.5,
+        -0.5,
+        0.0,
+        -0.5,
+        0.5,
+        0.0,
+        0.7,
+        -0.5,
+        0.0,
+        1.7,
+        -0.5,
+        0.0,
+        0.7,
+        0.5,
+        0.0
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 6,
+      "type": "VEC3",
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5123,
+      "count": 3,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 3,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "values": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC3",
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.5,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5121,
+      "count": 2,
+      "type": "SCALAR"
+    }
+  ],
+  "animations": [
+    {
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 1,
+            "path": "translation"
+          }
+        }
+      ],
+      "name": "AncestorMotion",
+      "samplers": [
+        {
+          "input": 4,
+          "interpolation": "LINEAR",
+          "output": 5
+        }
+      ]
+    },
+    {
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/nodes/9/extensions/KHR_node_visibility/visible"
+              }
+            },
+            "path": "pointer"
+          }
+        }
+      ],
+      "name": "CoreVisibilityMotion",
+      "samplers": [
+        {
+          "input": 4,
+          "interpolation": "STEP",
+          "output": 6
+        }
+      ]
+    }
+  ],
+  "asset": {
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "target": 34963
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    },
+    {
+      "buffer": 0
+    }
+  ],
+  "buffers": [
+    {}
+  ],
+  "cameras": [
+    {
+      "name": "NestedCameraProjection",
+      "perspective": {
+        "yfov": 0.7,
+        "zfar": 100,
+        "znear": 0.1
+      },
+      "type": "perspective"
+    }
+  ],
+  "extensionsUsed": [
+    "KHR_node_visibility_hint",
+    "KHR_mesh_primitive_visibility_hint",
+    "KHR_node_visibility",
+    "KHR_animation_pointer"
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "FixtureRed",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 1
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "SharedFixtureMesh",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0
+          },
+          "extensions": {
+            "KHR_mesh_primitive_visibility_hint": {
+              "role": "always"
+            }
+          },
+          "indices": 2,
+          "material": 0
+        },
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0
+          },
+          "extensions": {
+            "KHR_mesh_primitive_visibility_hint": {
+              "role": "first_person"
+            }
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1,
+        5,
+        7,
+        9,
+        11
+      ],
+      "name": "FixtureRoot"
+    },
+    {
+      "children": [
+        2,
+        4,
+        14
+      ],
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "role": "third_person"
+        }
+      },
+      "name": "ThirdParent"
+    },
+    {
+      "children": [
+        3
+      ],
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "role": "always"
+        }
+      },
+      "mesh": 0,
+      "name": "AlwaysChild"
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "role": "first_person"
+        }
+      },
+      "mesh": 0,
+      "name": "FirstChild",
+      "translation": [
+        3,
+        0,
+        0
+      ]
+    },
+    {
+      "camera": 0,
+      "name": "NestedCamera",
+      "translation": [
+        0,
+        0,
+        3
+      ]
+    },
+    {
+      "children": [
+        6
+      ],
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "role": "ACME_unknown"
+        }
+      },
+      "name": "UnknownParent"
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "role": "always"
+        }
+      },
+      "mesh": 0,
+      "name": "UnknownChild",
+      "translation": [
+        -3,
+        0,
+        0
+      ]
+    },
+    {
+      "children": [
+        8
+      ],
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "role": "ACME_mirror_only"
+        }
+      },
+      "name": "CustomParent"
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "role": "always"
+        }
+      },
+      "mesh": 0,
+      "name": "CustomChild",
+      "translation": [
+        0,
+        3,
+        0
+      ]
+    },
+    {
+      "children": [
+        10,
+        13
+      ],
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
+      "name": "CoreParent"
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": true
+        },
+        "KHR_node_visibility_hint": {
+          "role": "always"
+        }
+      },
+      "mesh": 0,
+      "name": "CoreChild"
+    },
+    {
+      "children": [
+        12
+      ],
+      "name": "UnannotatedBranch"
+    },
+    {
+      "mesh": 0,
+      "name": "FreeChild",
+      "translation": [
+        0,
+        -3,
+        0
+      ]
+    },
+    {
+      "camera": 0,
+      "name": "CoreCamera",
+      "translation": [
+        0,
+        0,
+        3
+      ]
+    },
+    {
+      "children": [
+        15
+      ],
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "role": "ACME_unknown"
+        }
+      },
+      "name": "UnknownUnderThird"
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "role": "always"
+        }
+      },
+      "mesh": 0,
+      "name": "FallbackUnderThird"
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ]
+}

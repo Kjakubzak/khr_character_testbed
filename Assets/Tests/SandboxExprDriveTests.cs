@@ -99,70 +99,49 @@ namespace KhrCharacterTestbed.Tests
             ec.ResetAll();
         }
 
-        // SC-Face independently authors both mapping directions for one versioned vocabulary. Forward mapping reads
-        // native drivers; input mapping accepts the endpoint command and drives the authored native targets.
+        // The sole wire mapping operation takes external inputs to native drivers, before suppression.
         [UnityTest]
         public IEnumerator Vocabulary_DrivesMappedExpressionOutput()
         {
             var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
             yield return load;
-            var hub = load.Current.GetComponent<KhrCharacter>();
-            var ec = hub.Expressions;
-            Assert.IsNotNull(ec, "SC-Face should have an ExpressionController.");
-            const string vocabulary = "https://example.com/expression-vocabularies/demo/v1";
-            CollectionAssert.Contains(ec.VocabularySets, vocabulary, "SC-Face should expose the demo vocabulary set.");
-            CollectionAssert.Contains(ec.OutputVocabularySets, vocabulary,
-                "the native-to-endpoint operation must be authored explicitly");
-            CollectionAssert.Contains(ec.InputVocabularySets, vocabulary,
-                "the endpoint-to-native operation must be authored explicitly");
+            var ec = load.Current.GetComponent<KhrCharacter>().Expressions;
+            Assert.IsNotNull(ec);
+            const string vocabulary = "demo_v1";
+            CollectionAssert.Contains(ec.InputVocabularySets, vocabulary);
             var smr = load.Current.GetComponentInChildren<SkinnedMeshRenderer>();
             int smileShape = BlendShapeIndex(smr, "smile");
-            Assert.GreaterOrEqual(smileShape, 0, "SC-Face mesh should carry the 'smile' blendshape driven by 'happy'.");
-
-            ec.SetWeight("happy", 0.5f);
-            var outputs = ec.EvaluateVocabularyOutputs(vocabulary);
-            Assert.IsTrue(outputs.TryGetValue("Smile", out float smileOutput));
-            Assert.AreEqual(0.5f, smileOutput, 1e-6f,
-                "native-to-endpoint evaluation must use only the explicitly authored forward operation");
-
+            Assert.GreaterOrEqual(smileShape, 0);
             ec.ResetAll();
             yield return null;
             float rest = smr.GetBlendShapeWeight(smileShape);
-
-            Assert.IsTrue(ec.SelectVocabularyInputSet(vocabulary),
-                "the separately authored endpoint-to-native operation must be selected explicitly");
+            Assert.IsTrue(ec.SelectVocabularyInputSet(vocabulary));
             ec.SetWeightByVocabulary(vocabulary, "Smile", 1f);
             yield return null;
-            float driven = smr.GetBlendShapeWeight(smileShape);
-            Assert.Greater(driven, rest + 1e-3f,
-                "driving the 'Smile' vocabulary target should raise the mapped 'smile' blendshape output.");
-
-            ec.SetWeightByVocabulary(vocabulary, "Smile", 0f);
+            Assert.Greater(smr.GetBlendShapeWeight(smileShape), rest + 1e-3f);
             ec.UseDirectNativeInputs();
             ec.ResetAll();
         }
 
-        // Smile = 1.0 * happy + 0.5 * aa. "happy" blend-suppresses "aa", but the forward mapping reads the requested
-        // drivers u, never the suppressed vector v: 0.5 + 0.5 * 0.6 = 0.8, not 0.5 + 0.5 * (0.6 * (1 - 0.5)) = 0.65.
         [UnityTest]
-        public IEnumerator Vocabulary_OutputReadsPreSuppressionDrivers()
+        public IEnumerator Vocabulary_MapsNativeSnapshotBeforeSuppression()
         {
             var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
             yield return load;
             var ec = load.Current.GetComponent<KhrCharacter>().Expressions;
-            Assert.IsNotNull(ec, "SC-Face should have an ExpressionController.");
-            const string vocabulary = "https://example.com/expression-vocabularies/demo/v1";
-
+            Assert.IsNotNull(ec);
             ec.ResetAll();
-            ec.SetWeight("happy", 0.5f);
-            ec.SetWeight("aa", 0.6f);
+            Assert.IsTrue(ec.SelectVocabularyInputSet("demo_v1"));
+            ec.SetWeightByVocabulary("demo_v1", "Smile", 0.8f);
             yield return null;
-            Assert.IsTrue(ec.EvaluateVocabularyOutputs(vocabulary).TryGetValue("Smile", out float smile));
-            Assert.AreEqual(0.8f, smile, 1e-6f, "endpoint outputs must come from the pre-suppression drivers u.");
-            Assert.IsNotNull(ec.Snapshot, "the controller should have built a driver snapshot.");
-            Assert.AreEqual(0.3, ec.Snapshot.V[FindHandle(ec, "aa")], 1e-6,
-                "the suppression still applies to the response driver v.");
-
+            Assert.IsNotNull(ec.Snapshot);
+            int happy = FindHandle(ec, "happy");
+            int aa = FindHandle(ec, "aa");
+            Assert.AreEqual(0.8, ec.Snapshot.U[happy], 1e-6);
+            Assert.AreEqual(0.4, ec.Snapshot.U[aa], 1e-6);
+            Assert.AreEqual(0.08, ec.Snapshot.V[aa], 1e-6,
+                "mapping runs before happy's blend suppression attenuates aa");
+            ec.UseDirectNativeInputs();
             ec.ResetAll();
         }
 

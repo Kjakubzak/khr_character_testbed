@@ -68,10 +68,10 @@ namespace KhrCharacterTestbed.Tests
             float aaSuppressed = smr.GetBlendShapeWeight(0);
             Assert.Greater(aaAlone, aaSuppressed, "'happy' should blend-suppress (attenuate) 'aa' on blendshape 0.");
 
-            // The input operation maps the "Smile" command to two native drivers. It is authored independently of
-            // the native-to-endpoint output operation and must be selected explicitly by this host adapter.
+            // The selected canonical mapping takes external "Smile" input to two native expression drivers.
+            // Host selection and direct-input arbitration remain explicit.
             controller.ResetAll();
-            const string vocabulary = "https://example.com/expression-vocabularies/demo/v1";
+            const string vocabulary = "demo_v1";
             CollectionAssert.Contains((ICollection)controller.VocabularySets, vocabulary);
             CollectionAssert.Contains((ICollection)controller.VocabularyExpressions(vocabulary), "Smile");
             Assert.AreEqual(2, SmileInputContributionCount(controller),
@@ -246,13 +246,13 @@ namespace KhrCharacterTestbed.Tests
 
         private static int SmileInputContributionCount(ExpressionController controller)
         {
-            var sets = controller.Set?.InputMappingSets;
+            var sets = controller.Set?.MappingSets;
             if (sets == null) return 0;
             foreach (var ms in sets)
             {
-                if (ms == null || ms.SetName != "https://example.com/expression-vocabularies/demo/v1" || ms.Commands == null) continue;
-                foreach (var command in ms.Commands)
-                    if (command != null && command.CommandName == "Smile")
+                if (ms == null || ms.SetName != "demo_v1" || ms.Targets == null) continue;
+                foreach (var command in ms.Targets)
+                    if (command != null && command.TargetName == "Smile")
                         return command.Contributions?.Length ?? 0;
             }
             return 0;

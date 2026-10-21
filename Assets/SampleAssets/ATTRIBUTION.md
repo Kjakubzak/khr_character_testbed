@@ -24,6 +24,16 @@ third-party, scanned, or real vendor content. (`SC-PseudoVRM`'s `VRMC_*` tokens 
 real VRM data; `SC-Degraded` is `SC-Body` with its `leftFoot` role association omitted.) They are dedicated to the
 public domain under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
 
+## Procedural normative integration fixtures — CC0
+
+| Asset | Source | License (SPDX) | Notes |
+|---|---|---|---|
+| `Synthetic/SC-SharedTargets.glb` | `Tools/ci/generate-normative-fixtures.py::shared_targets` | `CC0-1.0` | Shared translation, morph, scale and quaternion targets; canonical external mapping and independent labels. |
+| `Synthetic/VH-Ancestors.glb` | `Tools/ci/generate-normative-fixtures.py::ancestors` | `CC0-1.0` | Nested mesh/primitive hints, custom roles, Boolean core visibility, camera and ordinary/pointer animations. |
+
+These small meshes and animation keys are authored here and dedicated to the public domain under CC0 1.0.
+Regenerate with `python3 Tools/ci/generate-normative-fixtures.py`; review the `.gltf`/`.bin` sources in `Tools/fixtures`.
+
 ## FromBlender/ — authored in `khr_character_blender`, committed
 
 Eleven canonical KHR-Character `.glb` variations exported by the
@@ -58,10 +68,10 @@ addon's earlier wire vocabulary (`rootNode`, `expression`, `_mask`,
 
 | Asset | Source | License (SPDX) | Notes |
 |---|---|---|---|
-| `khr-character-example.glb` | By **0b5vr**, authored in **VRoid Studio 2.12.0** | `LicenseRef-VRM-1.0` | The demo "hero" used as the default character across all scenes. The demos consume **only its `KHR_character` data** (skeleton mapping, expressions, camera hints) and **ignore** its VRM extensions (`VRMC_vrm` / `VRMC_springBone` / `VRMC_materials_mtoon` / `VRMC_character_expression_lookat`) and MToon materials. **Pending re-export (caveat C10):** its expression entries still use the earlier `expression` label instead of `name`, and its four look expressions all rotate the two eye nodes (a prohibited single-writer conflict), so its expression data does not import and the expression demos fall back to `SC-*` until 0b5vr re-exports it. Stored via **Git LFS** (~10.5 MB). |
-| `khr-character-example-always.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `always` `KHR_node_visibility_hint` role (visible in every view). Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its pending re-export. Stored via **Git LFS** (~11 MB). |
-| `khr-character-example-first-person.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `first_person` `KHR_node_visibility_hint` role. Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its pending re-export. Stored via **Git LFS** (~11 MB). |
-| `khr-character-example-third-person.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant whose face primitives carry the `third_person` `KHR_mesh_primitive_visibility_hint` role (visible only in views tagged `third_person`), with `always` node hints on the body and hair. Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its pending re-export. Stored via **Git LFS** (~11 MB). |
+| `khr-character-example.glb` | By **0b5vr**, authored in **VRoid Studio 2.12.0** | `LicenseRef-VRM-1.0` | The demo "hero" used as the default character across all scenes. The demos consume **only its `KHR_character` data** (skeleton mapping, expressions, camera hints) and **ignore** its VRM extensions (`VRMC_vrm` / `VRMC_springBone` / `VRMC_materials_mtoon` / `VRMC_character_expression_lookat`) and MToon materials. Its `KHR_character` wire is normalized to the current draft (required expression names, stable mapping aliases and canonical external input mapping). Shared eye rotation targets are valid and preserved. Stored via **Git LFS** (~10.5 MB). |
+| `khr-character-example-always.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `always` `KHR_node_visibility_hint` role (visible in every view). Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its normalized character wire. Stored via **Git LFS** (~11 MB). |
+| `khr-character-example-first-person.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `first_person` `KHR_node_visibility_hint` role. Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its normalized character wire. Stored via **Git LFS** (~11 MB). |
+| `khr-character-example-third-person.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant whose face primitives carry the `third_person` `KHR_mesh_primitive_visibility_hint` role (visible only in views tagged `third_person`), with `always` node hints on the body and hair. Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its normalized character wire. Stored via **Git LFS** (~11 MB). |
 
 > **License — read from the model's embedded `VRMC_vrm.meta`** (authoritative for its declared terms): author
 > **0b5vr**, under the [**VRM 1.0 license**](https://vrm.dev/licenses/1.0/). There is no SPDX short-identifier for the
