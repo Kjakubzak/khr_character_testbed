@@ -107,7 +107,7 @@ index 154d5c3..49bff6e 100644
 @@ -1,9 +1,9 @@
  {
    "dependencies": {
-     "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#55cc226cd37593b4b7ce013c50bdc2f0682a2fa0",
+     "org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#f000c7e5fa1bde529cb3551021269aec608f5890",
 -    "com.unity.animation.rigging": "1.3.0",
 -    "com.unity.test-framework": "1.1.33",
 -    "com.unity.render-pipelines.universal": "14.0.7",
