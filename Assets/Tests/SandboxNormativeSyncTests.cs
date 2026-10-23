@@ -49,7 +49,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
-        public IEnumerator DuplicateNativeNamesFailTheActualBytesImport()
+        public IEnumerator DuplicateNativeNamesBindNoResponsesInTheActualBytesImport()
         {
             foreach (bool sameAnimation in new[] { false, true })
             {
@@ -62,13 +62,15 @@ namespace KhrCharacterTestbed.Tests
                 });
                 var parent = new GameObject("invalidNamesImport");
                 _created.Add(parent);
-                LogAssert.Expect(LogType.Exception, new System.Text.RegularExpressions.Regex("duplicate name"));
+                LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Expression response data is invalid: .*duplicate name"));
                 var task = CharacterLoader.LoadFromBytesAsync(bytes, parent.transform, CharacterExpressionHostPolicy.Passive);
                 float deadline = Time.realtimeSinceStartup + 30;
                 while (!task.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
                 Assert.IsTrue(task.IsCompleted, "duplicate-name import did not finish");
                 Assert.IsFalse(task.IsFaulted);
-                Assert.IsNull(task.Result, "invalid native names must not produce an imported character");
+                Assert.IsNotNull(task.Result);
+                Assert.IsNull(task.Result.GetComponent<KhrCharacter>()?.ExpressionResponses,
+                    "invalid native names must not bind any expression responses");
             }
         }
 
