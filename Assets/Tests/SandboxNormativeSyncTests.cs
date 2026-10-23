@@ -24,6 +24,57 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [UnityTest]
+        public IEnumerator UniqueNamesAreExactAndLocalWhileSharedAnimationsKeepTheirIndices()
+        {
+            var bytes = SandboxTestUtil.PatchGlbJson(System.IO.File.ReadAllBytes(
+                CharacterLoader.SyntheticPath("SC-SharedTargets.glb")), json =>
+            {
+                var entries = json["extensions"]["KHR_character_expression"]["expressions"];
+                entries[0]["name"] = "smile";
+                entries[1]["name"] = "Smile";
+                entries[1]["animation"] = entries[0]["animation"].DeepClone();
+            });
+            for (int asset = 0; asset < 2; asset++)
+            {
+                var load = new SandboxTestUtil.BytesLoad(bytes, _created, CharacterExpressionHostPolicy.Passive);
+                yield return load;
+                var set = load.Current.GetComponent<KhrCharacter>().ExpressionResponses;
+                Assert.AreEqual(2, set.Count);
+                Assert.AreEqual("smile", set.Entries[0].Name);
+                Assert.AreEqual("Smile", set.Entries[1].Name);
+                Assert.AreEqual(set.Entries[0].AnimationIndex, set.Entries[1].AnimationIndex);
+                Assert.AreEqual(4, set.Evaluate(0, 0.5).Records.Count);
+                Assert.AreEqual(4, set.Evaluate(1, 0.75).Records.Count);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator DuplicateNativeNamesBindNoResponsesInTheActualBytesImport()
+        {
+            foreach (bool sameAnimation in new[] { false, true })
+            {
+                var bytes = SandboxTestUtil.PatchGlbJson(System.IO.File.ReadAllBytes(
+                    CharacterLoader.SyntheticPath("SC-SharedTargets.glb")), json =>
+                {
+                    var entries = json["extensions"]["KHR_character_expression"]["expressions"];
+                    entries[1]["name"] = entries[0]["name"].DeepClone();
+                    if (sameAnimation) entries[1]["animation"] = entries[0]["animation"].DeepClone();
+                });
+                var parent = new GameObject("invalidNamesImport");
+                _created.Add(parent);
+                LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Expression response data is invalid: .*duplicate name"));
+                var task = CharacterLoader.LoadFromBytesAsync(bytes, parent.transform, CharacterExpressionHostPolicy.Passive);
+                float deadline = Time.realtimeSinceStartup + 30;
+                while (!task.IsCompleted && Time.realtimeSinceStartup < deadline) yield return null;
+                Assert.IsTrue(task.IsCompleted, "duplicate-name import did not finish");
+                Assert.IsFalse(task.IsFaulted);
+                Assert.IsNotNull(task.Result);
+                Assert.IsNull(task.Result.GetComponent<KhrCharacter>()?.ExpressionResponses,
+                    "invalid native names must not bind any expression responses");
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SharedTargets_KeepAdditiveContributorsAndAbsoluteOtherResponses()
         {
             var load = Load("SC-SharedTargets.glb");
