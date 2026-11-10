@@ -118,6 +118,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enabled: 1
   Rig: 0
+  CreateExpressionController: 0
+  SuppressNonInteractiveAnimationAutoPlay: 0
 --- !u!114 &-4249731223371105286
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -438,6 +440,8 @@ MonoBehaviour:
   m_Name: VisibilityHintImportPlugin
   m_EditorClassIdentifier: 
   enabled: 1
+  _hostSupportsRequiredNodeUse: 0
+  _hostSupportsRequiredPrimitiveUse: 0
 --- !u!114 &5892536572506140997
 MonoBehaviour:
   m_ObjectHideFlags: 3

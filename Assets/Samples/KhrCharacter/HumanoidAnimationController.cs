@@ -36,7 +36,7 @@ namespace Samples.Characters
             _ui.AddLabel("Load a character, switch to Humanoid, play a procedural clip. Proves the KHR → Avatar → Playables path.");
             _ui.AddLabel(CharacterLoader.DemoCharacterBlurb(usingHero, fallbackDisplay));
             _status = _ui.AddLabel("Loading ...");
-            Caveats.Render(_ui, Caveat.Draft, Caveat.CubicSplineToLinear);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft, Caveat.CubicSplineToLinear));
 
             var root = new GameObject("CharacterRoot");
             root.transform.SetParent(transform, false);

@@ -10,8 +10,9 @@ namespace KhrCharacterTestbed.Tests
     /// <summary>
     /// Capability-health tri-state coverage. Locks the observable Active vs Degraded distinction the Health demo
     /// relies on: SC-Body maps to a complete humanoid skeleton (SkeletonMapping Active), while SC-Degraded is
-    /// authored with a required humanoid bone missing (see <c>SampleCharacterFactory</c>) so its SkeletonMapping
-    /// must report Degraded. Without this, the fixture that exists solely to demonstrate degradation was unasserted.
+    /// a valid generic mapping that omits a Unity-required recognized role (see <c>SampleCharacterFactory</c>), so
+    /// the optional Unity Humanoid adapter must report SkeletonMapping Degraded. Without this, the fixture that
+    /// exists solely to demonstrate degradation was unasserted.
     /// </summary>
     public class SandboxHealthTests
     {
@@ -35,7 +36,7 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(hub, "SC-Degraded should import as a KHR Character hub.");
 
             Assert.AreEqual(CapabilityStatus.Degraded, StatusOf(hub, CharacterCapability.SkeletonMapping),
-                "SC-Degraded is authored with a required humanoid bone missing, so SkeletonMapping must report Degraded.");
+                "SC-Degraded validly omits leftFoot, so the optional Unity Humanoid adapter must report Degraded.");
         }
 
         [UnityTest]

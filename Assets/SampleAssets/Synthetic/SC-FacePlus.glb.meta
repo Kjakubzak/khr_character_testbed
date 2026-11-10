@@ -96,11 +96,11 @@ ScriptedImporter:
     supported: 1
     used: 1
     required: 0
-  - name: KHR_character_expression_texture
+  - name: KHR_character_expression_texture_transform
     supported: 1
     used: 1
     required: 0
-  - name: KHR_character_expression_mask
+  - name: KHR_character_expression_suppression
     supported: 1
     used: 1
     required: 0

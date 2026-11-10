@@ -10,10 +10,10 @@ namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
     /// Expression-drive semantics on a real imported character (01 expr lens, Phase 3-P2). Drives expressions via
-    /// ExpressionController and asserts the RESOLVED target output (blendshape weights / material property block),
-    /// because there is no public masked-weight getter - the masked value is computed in LateUpdate and consumed
-    /// internally. ExpressionController drives in LateUpdate (execution order 100), so each SetWeight is followed by
-    /// one frame before asserting. References real plugin types, so it also acts as an anti-hollow gate.
+    /// ExpressionController and asserts the RESOLVED target output (blendshape weights / material property block), so
+    /// the suppressed driver is observed through its effect. ExpressionController drives in LateUpdate (execution
+    /// order 100), so each SetWeight is followed by one frame before asserting. References real plugin types, so it
+    /// also acts as an anti-hollow gate.
     /// </summary>
     public class SandboxExprDriveTests
     {
@@ -33,10 +33,10 @@ namespace KhrCharacterTestbed.Tests
             return i;
         }
 
-        // SC-Face: "aa" drives blendshape "jawOpen" (linearly to 0.6); "happy" blend-masks "aa" (amount 1). Driving
-        // happy must scale aa's effective contribution toward zero - observed on the shared blendshape's output.
+        // SC-Face: "aa" drives blendshape "jawOpen" (linearly to 0.6); "happy" blend-suppresses "aa" (amount 1).
+        // Driving happy must scale aa's effective driver toward zero - observed on the shared blendshape's output.
         [UnityTest]
-        public IEnumerator Mask_BlendReducesMaskedTargetOutput()
+        public IEnumerator Suppression_BlendReducesSuppressedTargetOutput()
         {
             var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
             yield return load;
@@ -53,23 +53,23 @@ namespace KhrCharacterTestbed.Tests
             ec.ResetAll();
             ec.SetWeight("aa", 1f);
             yield return null;
-            float unmasked = smr.GetBlendShapeWeight(jawShape);
-            Assert.Greater(unmasked, 1e-3f, "driving 'aa' alone should raise the shared blendshape weight.");
+            float unsuppressed = smr.GetBlendShapeWeight(jawShape);
+            Assert.Greater(unsuppressed, 1e-3f, "driving 'aa' alone should raise the shared blendshape weight.");
 
-            // Now also drive happy, which blend-masks aa (amount 1): aa's effective output must drop sharply.
+            // Now also drive happy, which blend-suppresses aa (amount 1): aa's effective output must drop sharply.
             ec.SetWeight("happy", 1f);
             yield return null;
-            float masked = smr.GetBlendShapeWeight(jawShape);
-            Assert.Less(masked, unmasked * 0.5f,
-                $"driving 'happy' (blend-masks 'aa') must reduce aa's output (unmasked={unmasked}, masked={masked}).");
+            float suppressed = smr.GetBlendShapeWeight(jawShape);
+            Assert.Less(suppressed, unsuppressed * 0.5f,
+                $"driving 'happy' (blend-suppresses 'aa') must reduce aa's output (unsuppressed={unsuppressed}, suppressed={suppressed}).");
 
             ec.ResetAll();
         }
 
-        // SC-ExprEdge: "edgeB" BLOCK-masks "edgeA" (amount 1, threshold 0). Driving edgeB above the threshold must
-        // fully zero edgeA's output, while edgeB still drives its own shape - the block counterpart to the blend mask.
+        // SC-ExprEdge: "edgeB" BLOCK-suppresses "edgeA" (amount 1, threshold 0). Driving edgeB above the threshold must
+        // fully zero edgeA's output, while edgeB still drives its own shape - the block counterpart to the blend case.
         [UnityTest]
-        public IEnumerator Mask_BlockFullyBlocksTargetAboveThreshold()
+        public IEnumerator Suppression_BlockFullyBlocksTargetAboveThreshold()
         {
             var load = SandboxTestUtil.LoadSynthetic("SC-ExprEdge.glb", _created);
             yield return load;
@@ -88,42 +88,60 @@ namespace KhrCharacterTestbed.Tests
             float aUnblocked = smr.GetBlendShapeWeight(shapeA);
             Assert.Greater(aUnblocked, 1e-3f, "edgeA alone should drive shapeA.");
 
-            // Drive edgeB: it block-masks edgeA above threshold 0, fully zeroing edgeA, while driving its own shapeB.
+            // Drive edgeB: it block-suppresses edgeA above threshold 0, fully zeroing edgeA, while driving its own shapeB.
             ec.SetWeight("edgeB", 1f);
             yield return null;
             float aBlocked = smr.GetBlendShapeWeight(shapeA);
             float bOut = smr.GetBlendShapeWeight(shapeB);
-            Assert.Less(aBlocked, aUnblocked * 0.1f, "a Block mask above threshold must fully reduce the target (edgeA -> ~0).");
+            Assert.Less(aBlocked, aUnblocked * 0.1f, "a block suppression above threshold must fully reduce the target (edgeA -> ~0).");
             Assert.Greater(bOut, 1e-3f, "edgeB should still drive its own shapeB while blocking edgeA.");
 
             ec.ResetAll();
         }
 
-        // SC-Face declares a "demoVocabulary" set whose "Smile" target maps to happy(1.0) + aa(0.5). Driving the
-        // vocabulary target must drive the mapped expressions' output (the "smile" blendshape from happy).
+        // The sole wire mapping operation takes external inputs to native drivers, before suppression.
         [UnityTest]
         public IEnumerator Vocabulary_DrivesMappedExpressionOutput()
         {
             var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
             yield return load;
-            var hub = load.Current.GetComponent<KhrCharacter>();
-            var ec = hub.Expressions;
-            Assert.IsNotNull(ec, "SC-Face should have an ExpressionController.");
-            CollectionAssert.Contains(ec.VocabularySets, "demoVocabulary", "SC-Face should expose the demoVocabulary set.");
+            var ec = load.Current.GetComponent<KhrCharacter>().Expressions;
+            Assert.IsNotNull(ec);
+            const string vocabulary = "demo_v1";
+            CollectionAssert.Contains(ec.InputVocabularySets, vocabulary);
             var smr = load.Current.GetComponentInChildren<SkinnedMeshRenderer>();
             int smileShape = BlendShapeIndex(smr, "smile");
-            Assert.GreaterOrEqual(smileShape, 0, "SC-Face mesh should carry the 'smile' blendshape driven by 'happy'.");
-
+            Assert.GreaterOrEqual(smileShape, 0);
             ec.ResetAll();
             yield return null;
             float rest = smr.GetBlendShapeWeight(smileShape);
-
-            ec.SetWeightByVocabulary("demoVocabulary", "Smile", 1f);
+            Assert.IsTrue(ec.SelectVocabularyInputSet(vocabulary));
+            ec.SetWeightByVocabulary(vocabulary, "Smile", 1f);
             yield return null;
-            float driven = smr.GetBlendShapeWeight(smileShape);
-            Assert.Greater(driven, rest + 1e-3f,
-                "driving the 'Smile' vocabulary target should raise the mapped 'smile' blendshape output.");
+            Assert.Greater(smr.GetBlendShapeWeight(smileShape), rest + 1e-3f);
+            ec.UseDirectNativeInputs();
+            ec.ResetAll();
+        }
 
+        [UnityTest]
+        public IEnumerator Vocabulary_MapsNativeSnapshotBeforeSuppression()
+        {
+            var load = SandboxTestUtil.LoadSynthetic("SC-Face.glb", _created);
+            yield return load;
+            var ec = load.Current.GetComponent<KhrCharacter>().Expressions;
+            Assert.IsNotNull(ec);
+            ec.ResetAll();
+            Assert.IsTrue(ec.SelectVocabularyInputSet("demo_v1"));
+            ec.SetWeightByVocabulary("demo_v1", "Smile", 0.8f);
+            yield return null;
+            Assert.IsNotNull(ec.Snapshot);
+            int happy = FindHandle(ec, "happy");
+            int aa = FindHandle(ec, "aa");
+            Assert.AreEqual(0.8, ec.Snapshot.U[happy], 1e-6);
+            Assert.AreEqual(0.4, ec.Snapshot.U[aa], 1e-6);
+            Assert.AreEqual(0.08, ec.Snapshot.V[aa], 1e-6,
+                "mapping runs before happy's blend suppression attenuates aa");
+            ec.UseDirectNativeInputs();
             ec.ResetAll();
         }
 
@@ -169,7 +187,13 @@ namespace KhrCharacterTestbed.Tests
             ec.ResetAll();
         }
 
-        // SC-FacePlus exercises all five expression sub-domains; the hub must report each as a capability.
+        private static readonly CharacterCapability[] ExpressionSubDomains =
+        {
+            CharacterCapability.Morphtarget, CharacterCapability.Joint, CharacterCapability.TextureTransform,
+            CharacterCapability.Suppression, CharacterCapability.Mapping,
+        };
+
+        // SC-FacePlus exercises all five expression sub-domains; the hub must report each as an active capability.
         [UnityTest]
         public IEnumerator CapabilityDetection_FacePlusReportsAllExpressionSubDomains()
         {
@@ -179,12 +203,43 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(hub, "SC-FacePlus should import a KhrCharacter hub.");
             var caps = hub.Capabilities;
             Assert.IsNotNull(caps);
-            foreach (var c in new[]
+            foreach (var c in ExpressionSubDomains)
             {
-                CharacterCapability.Morphtarget, CharacterCapability.Joint, CharacterCapability.Texture,
-                CharacterCapability.Mask, CharacterCapability.Mapping,
-            })
                 CollectionAssert.Contains(caps, c, $"SC-FacePlus should report the {c} expression sub-domain capability.");
+                Assert.AreEqual(CapabilityStatus.Active, StatusOf(hub, c), $"{c} should be active.");
+            }
+        }
+
+        // The passive response set implements every expression extension, so the sub-domains are active without the
+        // optional Unity controller; capabilities come from the asset's declarations.
+        [UnityTest]
+        public IEnumerator CapabilityDetection_PassiveImportReportsActiveSubDomainsWithoutController()
+        {
+            var load = SandboxTestUtil.LoadSynthetic("SC-FacePlus.glb", _created, CharacterExpressionHostPolicy.Passive);
+            yield return load;
+            var hub = load.Current.GetComponent<KhrCharacter>();
+            Assert.IsNotNull(hub, "SC-FacePlus should import a KhrCharacter hub.");
+            Assert.IsNull(hub.Expressions, "the passive policy creates no controller.");
+            Assert.IsNotNull(hub.ExpressionResponses);
+            foreach (var c in ExpressionSubDomains)
+                Assert.AreEqual(CapabilityStatus.Active, StatusOf(hub, c),
+                    $"{c} should be active through the passive response set alone.");
+        }
+
+        private static CapabilityStatus StatusOf(KhrCharacter hub, CharacterCapability capability)
+        {
+            foreach (var health in hub.GetHealth().Capabilities)
+                if (health.Capability == capability) return health.Status;
+            Assert.Fail($"Health report has no {capability} capability to check.");
+            return default;
+        }
+
+        private static int FindHandle(ExpressionController controller, string name)
+        {
+            for (int index = 0; index < controller.Count; index++)
+                if (controller.Expressions[index].Name == name) return index;
+            Assert.Fail($"Expression '{name}' is not on the controller.");
+            return -1;
         }
     }
 }

@@ -9,11 +9,9 @@ using Samples.Shared;
 namespace KhrCharacterTestbed.Tests
 {
     /// <summary>
-    /// Structural round-trip (04 neutral lens, Phase 2-A): for each committed fixture, import (A), re-export through
-    /// the KHR plugin, re-import the bytes (B), and assert B preserves A's CAPABILITY SET and per-capability COUNTS
-    /// (expressions, skeleton bones, look-at targets, camera hints). Upgrades the count-only M5 to per-capability
-    /// structural survival: a capability/driver that silently stops round-tripping turns this red. State-only (no
-    /// pixels), so it is render-pipeline-agnostic. References real plugin types, so it also acts as an anti-hollow gate.
+    /// Structural round-trip for character data that has a lossless Unity export source. Imported passive expression
+    /// responses are deliberately excluded because exporting their legacy-controller projection is rejected as
+    /// lossy; that safety boundary has separate coverage. Skeleton, look-at, and camera data still round-trip here.
     /// </summary>
     public class SandboxRoundTripTests
     {
@@ -40,19 +38,19 @@ namespace KhrCharacterTestbed.Tests
                 Caps = hub.Capabilities != null
                     ? new HashSet<CharacterCapability>(hub.Capabilities)
                     : new HashSet<CharacterCapability>(),
-                Expr = hub.Expressions != null ? hub.Expressions.Count : 0,
+                Expr = hub.ExpressionResponses != null
+                    ? hub.ExpressionResponses.Count
+                    : hub.Expressions != null ? hub.Expressions.Count : 0,
                 Bones = hub.Skeleton != null && hub.Skeleton.Result != null && hub.Skeleton.Result.Bones != null
                     ? hub.Skeleton.Result.Bones.Count : 0,
-                Look = hub.Gaze != null ? hub.Gaze.AuthoredTargets.Count : 0,
+                Look = hub.LookAtTargets?.Targets != null ? hub.LookAtTargets.Targets.Count : 0,
                 Cam = hub.CameraHints != null && hub.CameraHints.Hints != null ? hub.CameraHints.Hints.Count : 0,
             };
         }
 
-        // SC-PseudoVRM is intentionally excluded (its vendor tokens are covered by the neutralization gate; its KHR
-        // capability subset is the same as SC-Partial, so it adds no structural coverage here).
         [UnityTest]
-        public IEnumerator RoundTrip_PreservesCapabilitiesAndCounts(
-            [Values("SC-Face.glb", "SC-FacePlus.glb", "SC-Body.glb", "SC-LookAt.glb", "SC-Partial.glb")] string fixture)
+        public IEnumerator NonExpressionRoundTrip_PreservesCapabilitiesAndCounts(
+            [Values("SC-Body.glb", "SC-LookAt.glb")] string fixture)
         {
             // A: import the committed fixture.
             var loadA = SandboxTestUtil.LoadSynthetic(fixture, _created);

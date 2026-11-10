@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityGLTF.KhrCharacter;
+using UnityGLTF.VisibilityHints;
 using Samples.Shared;
 
 namespace KhrCharacterTestbed.Tests
@@ -20,10 +23,11 @@ namespace KhrCharacterTestbed.Tests
     /// LFS-complete checkout additionally covers the VRM hero variants — matching the never-skip fallback pattern in
     /// <see cref="SandboxNSeriesTests"/> (prefer the hero when real; fall back to a committed synthetic otherwise).
     ///
-    /// Two checks per corpus entry: (1) it imports to a scene root (and, for the hero variants, reconstructs the
-    /// <see cref="KhrCharacter"/> hub — the base hero is a KHR_character); (2) the source wire declares the expected
-    /// visibility-hint extension(s) + role token. The wire check re-reads the .glb JSON directly (authoritative "what
-    /// did we author?") so it holds regardless of which import plugins the test context has enabled.
+    /// Two checks per corpus entry: (1) it imports to a scene root with its visibility hints (and, for the hero
+    /// variants, the <see cref="KhrCharacter"/> hub — the base hero is a KHR_character); (2) the source wire declares
+    /// the expected visibility-hint extension(s) with exactly the expected role tokens. The wire check re-reads the
+    /// .glb JSON directly (authoritative "what did we author?") so it holds regardless of which import plugins the
+    /// test context has enabled.
     /// </summary>
     public class SandboxHeroVariantsTests
     {
@@ -60,11 +64,13 @@ namespace KhrCharacterTestbed.Tests
         // What a corpus entry should exhibit on import + on the wire.
         private struct Expectation
         {
-            public string Path;               // absolute path
-            public bool ExpectKhrHub;         // KHR_character root reconstructs on import (hero variants only)
-            public string NodeRole;           // expected KHR_node_visibility_hint role token, or null if no node hint
-            public bool ExpectPrimitiveHint;  // expects KHR_mesh_primitive_visibility_hint on the wire
+            public string Path;              // absolute path
+            public bool ExpectKhrHub;        // KHR_character marker reconstructs on import (hero variants only)
+            public string[] NodeRoles;       // exact KHR_node_visibility_hint roles on the wire, or empty
+            public string[] PrimitiveRoles;  // exact KHR_mesh_primitive_visibility_hint roles on the wire, or empty
         }
+
+        private static readonly string[] None = new string[0];
 
         // Resolve a corpus key (a bare .glb file name) to its path + expectations. Keys are unique file names, so a
         // simple switch keeps the mapping in one place and the [ValueSource] parameter a plain (playmode-serializable)
@@ -74,17 +80,17 @@ namespace KhrCharacterTestbed.Tests
             switch (key)
             {
                 case "VH-Node.glb":
-                    return new Expectation { Path = CharacterLoader.SyntheticPath(key), ExpectKhrHub = false, NodeRole = "third_person", ExpectPrimitiveHint = false };
+                    return new Expectation { Path = CharacterLoader.SyntheticPath(key), NodeRoles = new[] { "third_person" }, PrimitiveRoles = None };
                 case "VH-Primitive.glb":
-                    return new Expectation { Path = CharacterLoader.SyntheticPath(key), ExpectKhrHub = false, NodeRole = null, ExpectPrimitiveHint = true };
+                    return new Expectation { Path = CharacterLoader.SyntheticPath(key), NodeRoles = None, PrimitiveRoles = new[] { "first_person" } };
                 case "VH-ViewContext.glb":
-                    return new Expectation { Path = CharacterLoader.SyntheticPath(key), ExpectKhrHub = false, NodeRole = "third_person", ExpectPrimitiveHint = true };
+                    return new Expectation { Path = CharacterLoader.SyntheticPath(key), NodeRoles = new[] { "third_person" }, PrimitiveRoles = new[] { "first_person" } };
                 case "khr-character-example-always.glb":
-                    return new Expectation { Path = HeroVariantPath(key), ExpectKhrHub = true, NodeRole = "always", ExpectPrimitiveHint = false };
+                    return new Expectation { Path = HeroVariantPath(key), ExpectKhrHub = true, NodeRoles = new[] { "always" }, PrimitiveRoles = None };
                 case "khr-character-example-first-person.glb":
-                    return new Expectation { Path = HeroVariantPath(key), ExpectKhrHub = true, NodeRole = "first_person", ExpectPrimitiveHint = false };
+                    return new Expectation { Path = HeroVariantPath(key), ExpectKhrHub = true, NodeRoles = new[] { "first_person" }, PrimitiveRoles = None };
                 case "khr-character-example-third-person.glb":
-                    return new Expectation { Path = HeroVariantPath(key), ExpectKhrHub = true, NodeRole = "third_person", ExpectPrimitiveHint = true };
+                    return new Expectation { Path = HeroVariantPath(key), ExpectKhrHub = true, NodeRoles = new[] { "always" }, PrimitiveRoles = new[] { "third_person" } };
                 default:
                     throw new System.ArgumentException($"unmapped visibility-hint corpus key '{key}'.");
             }
@@ -103,6 +109,12 @@ namespace KhrCharacterTestbed.Tests
         public IEnumerator Fixture_ImportsAndAttachesHubWhenHero([ValueSource(nameof(Corpus))] string key)
         {
             var fx = Describe(key);
+            // D7: a hero variant pending re-export logs the importer's rejection of its expression data (all or
+            // nothing), while everything else still imports. Expect that error instead of skipping.
+            bool pendingReexport = fx.ExpectKhrHub && CharacterLoader.NeedsReexport(fx.Path);
+            if (pendingReexport)
+                LogAssert.Expect(LogType.Error, new Regex(@"^\[KHR_character\] Expression response data is invalid: "));
+
             var load = SandboxTestUtil.LoadFromAbsolutePath(fx.Path, _created);
             yield return load;
             Assert.IsNotNull(load.Current, $"{key} failed to import.");
@@ -110,8 +122,22 @@ namespace KhrCharacterTestbed.Tests
             {
                 var hub = load.Current.GetComponent<KhrCharacter>();
                 Assert.IsNotNull(hub, $"{key} imported without a KhrCharacter hub — the base hero's " +
-                                      "KHR_character root marker didn't reconstruct on import.");
+                                      "KHR_character marker didn't reconstruct on import.");
+                Assert.IsNotNull(hub.Skeleton, $"{key} should still import its skeleton mapping.");
+                Assert.IsNotNull(hub.CameraHints, $"{key} should still import its camera hints.");
+                if (pendingReexport)
+                {
+                    Assert.IsNull(hub.ExpressionResponses, $"{key}: invalid expression data binds no response set.");
+                    Assert.IsNull(hub.Expressions, $"{key}: invalid expression data creates no controller.");
+                }
             }
+
+            var nodeHints = load.Current.GetComponent<NodeVisibilityHintSet>();
+            CollectionAssert.AreEquivalent(fx.NodeRoles, ImportedRoles(nodeHints?.Entries, e => e.Role),
+                $"{key}: imported node visibility roles.");
+            var primitiveHints = load.Current.GetComponent<PrimitiveVisibilityHintSet>();
+            CollectionAssert.AreEquivalent(fx.PrimitiveRoles, ImportedRoles(primitiveHints?.Entries, e => e.Role),
+                $"{key}: imported primitive visibility roles.");
         }
 
         [Test]
@@ -121,22 +147,42 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(File.Exists(fx.Path), $"{key}: missing at '{fx.Path}'.");
             var json = CharacterLoader.ExtractGltfJson(File.ReadAllBytes(fx.Path));
             Assert.IsNotNull(json, $"{key} has no JSON chunk (corrupt?).");
+            var root = JObject.Parse(json);
 
-            if (fx.NodeRole != null)
-            {
-                Assert.IsTrue(json.Contains("\"KHR_node_visibility_hint\""),
-                    $"{key} missing KHR_node_visibility_hint on the wire.");
-                // Prefix match on the role VALUE (no trailing quote): the standard KHR_node_visibility_hint vocabulary
-                // is 'always'/'first_person'/'third_person' (the hero variants use these verbatim), but the UnityGLTF
-                // exporter currently emits the non-standard custom variants 'first_person_only'/'third_person_only' for
-                // the synthetic fixtures. Matching the standard prefix accepts both while still asserting the role is a
-                // real "role":"<context>..." token. (The exporter/spec vocabulary mismatch is flagged as a cross-repo item.)
-                Assert.IsTrue(json.Contains($"\"role\":\"{fx.NodeRole}") || json.Contains($"\"role\": \"{fx.NodeRole}"),
-                    $"{key} missing expected node-visibility role token '{fx.NodeRole}' on the wire.");
-            }
-            if (fx.ExpectPrimitiveHint)
-                Assert.IsTrue(json.Contains("\"KHR_mesh_primitive_visibility_hint\""),
-                    $"{key} missing KHR_mesh_primitive_visibility_hint on the wire.");
+            // Roles compare exactly: a differently spelled or cased token (for example "third_person_only" or
+            // "First_Person") is a custom role that a consumer hides by default, not a standard one.
+            var nodeRoles = new List<string>();
+            foreach (var node in (root["nodes"] as JArray) ?? new JArray())
+                if (node?["extensions"]?["KHR_node_visibility_hint"]?["role"] is JValue role) nodeRoles.Add((string)role);
+            var primitiveRoles = new List<string>();
+            foreach (var mesh in (root["meshes"] as JArray) ?? new JArray())
+                foreach (var primitive in (mesh?["primitives"] as JArray) ?? new JArray())
+                    if (primitive?["extensions"]?["KHR_mesh_primitive_visibility_hint"]?["role"] is JValue role)
+                        primitiveRoles.Add((string)role);
+
+            CollectionAssert.AreEquivalent(fx.NodeRoles, Distinct(nodeRoles), $"{key}: KHR_node_visibility_hint roles.");
+            CollectionAssert.AreEquivalent(fx.PrimitiveRoles, Distinct(primitiveRoles),
+                $"{key}: KHR_mesh_primitive_visibility_hint roles.");
+            var used = root["extensionsUsed"]?.ToObject<string[]>() ?? new string[0];
+            if (fx.NodeRoles.Length > 0) CollectionAssert.Contains(used, "KHR_node_visibility_hint");
+            if (fx.PrimitiveRoles.Length > 0) CollectionAssert.Contains(used, "KHR_mesh_primitive_visibility_hint");
+        }
+
+        private static List<string> ImportedRoles<T>(IReadOnlyList<T> entries, System.Func<T, string> role)
+        {
+            var roles = new List<string>();
+            if (entries != null)
+                foreach (var entry in entries)
+                    if (entry != null) roles.Add(role(entry));
+            return Distinct(roles);
+        }
+
+        private static List<string> Distinct(List<string> values)
+        {
+            var distinct = new List<string>();
+            foreach (var value in values)
+                if (!distinct.Contains(value)) distinct.Add(value);
+            return distinct;
         }
     }
 }

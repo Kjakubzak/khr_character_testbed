@@ -10,7 +10,7 @@ for Linux CI). Contributors run the **same** scripts CI runs, so there is no dri
 |---|------|--------|---------------|
 | 1 | **Compile clean** | `Run-Tests` (Phase A) / `Warm-Library` | Unity exits 0 **and** no `error CS` in the compile log. Runs *before* any test pass — a `-runTests` against uncompilable code hangs forever, so we fail fast instead. |
 | 2 | **Tests green + floor** | `Run-Tests` | Every NUnit run has `failed == 0`, `inconclusive == 0`, `skipped == 0`, the results XML is present, `total >= floor` (default **120**), **and** `sandbox >= sub-floor` (default **120**, the testbed's own `KhrCharacterTestbed.*` cases). Only the testbed's own tests run here (Unity `testables` does **not** surface a git-package's tests into a consumer), so a hollow package resolve fails **GATE 1 compile** (the `Sandbox.Tests` assembly links real plugin types); the floor kills the "0 tests ran = false green" trap. |
-| 3 | **glTF-Validator** | `Validate-Glb` | The official Khronos `gltf_validator` reports `numErrors == 0` on every exported GLB. Independent, spec-authoritative — catches a bad wire even if our own tests have a bug. |
+| 3 | **glTF-Validator** | `Validate-Glb` | The pinned proposal-aware `gltf_validator` fork requires `numErrors == 0` across Synthetic, FromBlender, and VRM example assets. Its immutable commit fixes the draft rules for CI. Warnings remain in uploaded reports; any error fails this gate. |
 | 4 | **Round-trip goldens** | `Export-Goldens` | The normalized wire snapshot of each fixture matches its committed golden. Each FLOAT accessor is **decoded to its actual values (rounded 1e-5)** and byte-packing fields are dropped, so an interior value change can't hide behind unchanged `min`/`max` and packing jitter can't false-diff. Catches structural drift (new/renamed key, reordered array, changed value) that value round-trip tests don't. |
 
 > **Why the floor matters most:** the most dangerous CI failure is a *silent* one — a project that compiles nothing
@@ -36,6 +36,10 @@ Two independent floors, both enforced every run (and all of `failed`/`inconclusi
 > optional ~11 MB hero still runs real checks and keeps `skipped == 0`, and the floor (120) sits comfortably below the
 > always-run count. The lone `[Category("Hero")]` tag remains only as an optional exclusion hint; it is not required to
 > keep the gate green.
+>
+> The committed hero wire is normalized to the current draft. Older external replacements that lack required
+> expression names still trigger `CharacterLoader.HeroNeedsReexport` and the synthetic fallback. Shared eye rotations
+> are valid and do not trigger that compatibility route.
 
 ## Preflight lints (no Unity)
 
@@ -99,7 +103,8 @@ Artifacts land under `Logs/ci/` (logs, per-run `*.pid`, NUnit XML) and `Artifact
 plugins in code** (never trusting the committed settings asset, which can silently drift):
 
 - `Samples.Editor.SandboxCI.EnablePlugins` — enable the KHR Character import/export + AnimationPointer plugins.
-- `Samples.Editor.SandboxCI.ExportAllFixtures` — regenerate the committed `SC-*.glb` under `Assets/SampleAssets/Synthetic`.
+- `Samples.Editor.SandboxCI.ExportAllFixtures` — regenerate the committed `SC-*.glb` and `VH-*.glb` under
+  `Assets/SampleAssets/Synthetic` (the menu also packages `SC-SharedTargets` and `VH-Ancestors`).
 - `Samples.Editor.SandboxCI.ExportGoldens` — export fixtures to `Artifacts/glb/` and write normalized wire
   snapshots to `Artifacts/snapshots/`.
 
@@ -107,17 +112,24 @@ plugins in code** (never trusting the committed settings asset, which can silent
 
 `Validate-Glb` looks for `gltf_validator` on `PATH` (or `$env:GLTF_VALIDATOR`). Locally, if it is absent the gate
 **skips non-fatally** with this message. On CI it runs with `--required` (PS: `-Required`), so a missing validator
-(or an unparseable report) is a **hard error**, not a silent skip. Install one of:
+(or an unparseable report) is a **hard error**, not a silent skip. Build the same commit pinned in
+`.github/workflows/ci.yml` with Dart 2.19.6:
 
 ```bash
-npm i -g gltf-validator           # provides the gltf_validator CLI
-# or download a prebuilt binary from https://github.com/KhronosGroup/glTF-Validator/releases
-#    and set GLTF_VALIDATOR=/path/to/gltf_validator
+git clone https://github.com/Kjakubzak/glTF-Validator.git
+git -C glTF-Validator checkout 99e8523cf548fe7780870270b1bd2fa60bab6ba2
+cd glTF-Validator && dart pub get && dart run grinder exe
+export GLTF_VALIDATOR="$PWD/build/bin/gltf_validator"
 ```
 
-Pin a specific validator version in CI so local and CI match. The validator reports our `KHR_character_*`
-extensions as `UNSUPPORTED_EXTENSION` *info* (they are non-ratified) — that is expected; their structural
-correctness is covered by the **golden snapshot** (gate 4), not the validator.
+This fork validates the draft `KHR_character_*` schemas, cross-references, decoded animation resources, and frozen
+expression semantics. Direct Unity assertions and golden snapshots remain complementary gates rather than substitutes.
+
+> **Blocking for the full corpus.** The pinned validator implements the current draft, including canonical external
+> input mapping, required expression names and pose labels, independent names, shared expression targets, and
+> cumulative ancestor visibility hints. Synthetic, FromBlender and VRM example errors all fail the job; informative
+> warnings on unsupported vendor material/extension data are retained in `gltf-validator-reports`. There is no blanket
+> `continue-on-error`. Direct runtime assertions and golden snapshots remain complementary checks.
 
 ## Updating goldens (gate 4)
 
@@ -132,8 +144,8 @@ Goldens live in `Tests/Golden/*.json` (one per fixture). When you intentionally 
 ./Tools/ci/Export-Goldens.ps1 -Update    # or: ./Tools/ci/export-goldens.sh --update
 ```
 
-Commit the changed goldens — **the golden diff is the change record** reviewers see. A first-time run (no committed
-goldens) skips the diff with a message to run `-Update` once.
+Commit the changed goldens — **the golden diff is the change record** reviewers see. Bootstrap locally with
+`--update`; CI fails closed when no committed golden exists or when either side has an unmatched file.
 
 ## GitHub Actions (`.github/workflows/ci.yml`)
 

@@ -61,7 +61,7 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsNotNull(load.Current, $"{fixture} failed to import.");
             var hub = load.Current.GetComponent<KhrCharacter>();
             Assert.IsNotNull(hub, $"{fixture} imported without a KhrCharacter component — the addon's " +
-                                  "KHR_character root marker didn't reconstruct on UnityGLTF's import path.");
+                                  "KHR_character marker didn't reconstruct on UnityGLTF's import path.");
         }
 
         // ── Expression fixtures reconstruct the expected expression count ──
@@ -119,11 +119,10 @@ namespace KhrCharacterTestbed.Tests
             var expected = new[]
             {
                 "KHR_character",
-                "KHR_xmp_json_ld",
                 "KHR_character_expression",
                 "KHR_character_expression_morphtarget",
                 "KHR_character_expression_joint",
-                "KHR_character_expression_mask",
+                "KHR_character_expression_suppression",
                 "KHR_character_expression_mapping",
                 "KHR_character_reference_pose",
                 "KHR_character_skeleton_mapping",
@@ -142,7 +141,7 @@ namespace KhrCharacterTestbed.Tests
             var glbBytes = System.IO.File.ReadAllBytes(CharacterLoader.FromBlenderPath("expressions_morph.glb"));
             var root = JObject.Parse(CharacterLoader.ExtractGltfJson(glbBytes));
             var used = root["extensionsUsed"] as JArray;
-            CollectionAssert.Contains(used?.ToObject<string[]>(), "KHR_xmp_json_ld");
+            CollectionAssert.DoesNotContain(used?.ToObject<string[]>(), "KHR_xmp_json_ld");
             CollectionAssert.DoesNotContain(used?.ToObject<string[]>(), "KHR_animation_pointer",
                 "ordinary weights channels do not require KHR_animation_pointer");
 
@@ -159,7 +158,7 @@ namespace KhrCharacterTestbed.Tests
             }
         }
 
-        // ── Minimal fixture carries only the character marker plus its declaration-only XMP dependency ──
+        // ── Minimal fixture carries only the character marker ──
 
         [UnityTest]
         public IEnumerator Minimal_HasZeroExpressionsAndNoSkeleton()

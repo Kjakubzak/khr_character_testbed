@@ -13,6 +13,8 @@ param(
     [int]$TimeoutMinutes = 60,
     [int]$MinTests = 120,
     [int]$MinSandboxTests = 120,
+    [switch]$Graphics,
+    [string]$Category,
     [string]$ResultsDir
 )
 . "$PSScriptRoot/_Common.ps1"
@@ -40,8 +42,13 @@ foreach ($p in $platforms) {
     $tag = $p.ToLower()
     $results = Join-Path $ResultsDir "results-$tag.xml"
     $log = Join-Path $ResultsDir "run-$tag.log"
-    $unityArgs = @('-batchmode', '-nographics', '-projectPath', $ProjectPath, '-runTests',
+    $unityArgs = @('-batchmode', '-projectPath', $ProjectPath, '-runTests',
         '-testPlatform', $p, '-testResults', $results, '-logFile', $log)
+    if (-not $Graphics) {
+        $unityArgs += '-nographics'
+        if (-not $Category) { $unityArgs += @('-testCategory', '!Graphics') }
+    }
+    if ($Category) { $unityArgs += @('-testCategory', $Category) }
     if ($Filter) { $unityArgs += @('-testFilter', $Filter) }
 
     Write-Host "[ci] Run-Tests: GATE 2 ($p)"

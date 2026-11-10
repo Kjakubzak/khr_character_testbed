@@ -58,7 +58,7 @@ ScriptedImporter:
   hasMaterialData: 0
   hasTextureData: 0
   animations:
-  - name: ReferencePose_TPose
+  - name: ReferencePose_t_pose
   _extensions:
   - name: KHR_character
     supported: 1

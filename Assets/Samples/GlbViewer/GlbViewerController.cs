@@ -10,9 +10,9 @@ namespace Samples.GlbViewer
 {
     /// <summary>
     /// M1 — runtime "load + inspect a GLB". Loads a GLB by absolute path (default: the local hero if
-    /// present, else the first entry in the preset dropdown), frames it with the orbit camera, and
-    /// lists discovered capabilities from <see cref="KhrCharacter.GetHealth"/>. A plain glTF with no
-    /// character hub shows "no KHR Character data". Everything is null-checked.
+    /// present and its expression data imports, else the first non-hero entry in the preset dropdown), frames it
+    /// with the orbit camera, and lists discovered capabilities from <see cref="KhrCharacter.GetHealth"/>. A plain
+    /// glTF with no character hub shows "no KHR Character data". Everything is null-checked.
     ///
     /// The preset dropdown enumerates the <see cref="CharacterLoader.AssetSourceCatalog"/>: every
     /// registered directory contributes its ``.glb`` / ``.gltf`` files, prefixed by the source's
@@ -22,7 +22,7 @@ namespace Samples.GlbViewer
     /// </summary>
     public class GlbViewerController : DemoControllerBase
     {
-        [Tooltip("Absolute path to the GLB/glTF to load. Defaults to the local hero if present, else the first preset in the catalog.")]
+        [Tooltip("Absolute path to the GLB/glTF to load. Defaults to the local hero if its expressions import, else the first catalog preset.")]
         public string GlbPath;
 
         private DemoUiBuilder _ui;
@@ -57,7 +57,7 @@ namespace Samples.GlbViewer
             _ui.AddButton("Load", () => { _ = LoadAndShow(GlbPath); });
             _status = _ui.AddLabel(string.Empty);
             _capabilities = _ui.AddLabel(string.Empty);
-            Caveats.Render(_ui, Caveat.Draft);
+            Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft));
 
             // Windows-only: drag a .glb/.gltf from Explorer onto the window to load it (inert on other platforms).
             gameObject.AddComponent<WindowsFileDrop>().FilesDropped += OnFilesDropped;
@@ -71,12 +71,12 @@ namespace Samples.GlbViewer
             _ui.AddButton("Add source folder", OnAddSource);
             _sourceStatus = _ui.AddLabel(string.Empty);
 
-            // Initial load: use GlbPath if the user pre-set one; else the current dropdown selection.
+            // Initial load: use GlbPath if the user pre-set one; else the default preset, selected in the dropdown.
             if (string.IsNullOrEmpty(GlbPath))
             {
-                GlbPath = CharacterLoader.HeroIsRealGlb
-                    ? CharacterLoader.HeroAbsolutePath
-                    : (_presetPaths.Count > 0 ? _presetPaths[0] : string.Empty);
+                int preset = DefaultPresetIndex();
+                GlbPath = preset >= 0 ? _presetPaths[preset] : string.Empty;
+                if (preset >= 0 && _presetDropdown != null) _presetDropdown.SetValueWithoutNotify(preset);
             }
             if (_pathField != null) _pathField.text = GlbPath;
 
@@ -84,6 +84,28 @@ namespace Samples.GlbViewer
                 await LoadAndShow(GlbPath);
             else if (_status != null)
                 _status.text = "No preset asset found. Add a source folder to point at your .glb files.";
+        }
+
+        // The hero when it would load for expression features, else the first preset outside the hero family (whose
+        // expression data is rejected while it is pending re-export), else the first preset.
+        private int DefaultPresetIndex()
+        {
+            if (_presetPaths.Count == 0) return -1;
+            if (CharacterLoader.WouldLoadHeroFor(expressionFeatures: true))
+            {
+                int hero = _presetPaths.IndexOf(CharacterLoader.HeroAbsolutePath);
+                if (hero >= 0) return hero;
+            }
+            for (int i = 0; i < _presetPaths.Count; i++)
+                if (!IsHeroFile(_presetPaths[i])) return i;
+            return 0;
+        }
+
+        private static bool IsHeroFile(string path)
+        {
+            foreach (var (_, heroPath) in CharacterLoader.EnumerateHeroFiles())
+                if (string.Equals(heroPath, path, System.StringComparison.Ordinal)) return true;
+            return false;
         }
 
         // Build the dropdown option list from the catalog. Populates ``_presetPaths`` in parallel so
@@ -233,7 +255,10 @@ namespace Samples.GlbViewer
                     return;
                 }
 
-                if (_status != null) _status.text = "Loaded a KHR Character.";
+                if (_status != null)
+                    _status.text = CharacterLoader.HeroNeedsReexport && IsHeroFile(path)
+                        ? $"Loaded a KHR Character. Its expression data is pending re-export and did not import [{Caveats.Id(Caveat.HeroPendingReexport)}]."
+                        : "Loaded a KHR Character.";
                 hub.WhenReady(PopulateCapabilities);
             }
             finally

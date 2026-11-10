@@ -123,14 +123,19 @@ namespace Samples.Shared
 
         /// <summary>Enumerate the clips embedded in <paramref name="character"/> — imported from
         /// the source .glb's <c>animations[]</c>. Used by the AnimationSandbox scene to append a
-        /// per-character source to <see cref="AnimationClipCatalog"/>.</summary>
-        public static IEnumerable<AnimationClip> EnumerateCharacterClips(GameObject character)
+        /// per-character source to <see cref="AnimationClipCatalog"/>. Clips named in
+        /// <paramref name="excludedClipNames"/> are skipped, such as the expression and reference-pose clips from
+        /// <see cref="CharacterLoader.ReadNonPlaybackClipNames"/>.</summary>
+        public static IEnumerable<AnimationClip> EnumerateCharacterClips(
+            GameObject character, ICollection<string> excludedClipNames = null)
         {
             if (character == null) yield break;
             var animation = character.GetComponent<Animation>();
             if (animation == null) yield break;
             foreach (AnimationState state in animation)
-                if (state != null && state.clip != null) yield return state.clip;
+                if (state != null && state.clip != null
+                    && (excludedClipNames == null || !excludedClipNames.Contains(state.clip.name)))
+                    yield return state.clip;
         }
 
         // ── Mode-specific binding ─────────────────────────────────────────

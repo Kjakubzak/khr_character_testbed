@@ -9,7 +9,7 @@ namespace Samples.Editor
     /// <summary>
     /// Enables the VisibilityHints import and export plugins in the project's shared GLTFSettings asset. Both are
     /// disabled by default (non-ratified); this is the manual safety net so imported/exported glTF round-trips the
-    /// view-context hints. The VisibilityHints demo scene itself authors hints at runtime and works without this,
+    /// visibility hints. The VisibilityHints demo scene itself authors hints at runtime and works without this,
     /// but enabling the plugins lets the GlbViewer / RoundTrip demos carry the hints through glTF too.
     /// </summary>
     public static class VisibilityHintsPluginsMenu
