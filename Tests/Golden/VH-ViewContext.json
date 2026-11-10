@@ -223,7 +223,9 @@
           "extensions": {
             "KHR_mesh_primitive_visibility_hint": {
               "label": "BodyArms",
-              "role": "first_person"
+              "roles": [
+                "first_person"
+              ]
             }
           },
           "indices": 6,
@@ -244,7 +246,9 @@
       "extensions": {
         "KHR_node_visibility_hint": {
           "label": "Head",
-          "role": "third_person"
+          "roles": [
+            "third_person"
+          ]
         }
       },
       "mesh": 0,
