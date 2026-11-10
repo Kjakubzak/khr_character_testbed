@@ -10,9 +10,13 @@
 # The KHR test / glTF-validation / golden gates are RP-agnostic (they decode/validate the wire), so they run on
 # the Built-in cell and pass identically anywhere.
 #
-# SETUP (one-time): add a repository secret `UNITY_LICENSE` containing a Unity *Personal* license file (.ulf).
-# Activate locally once with game-ci's request/activation flow, then paste the .ulf contents into the secret.
-# See https://game.ci/docs/github/activation and docs/ci.md.
+# SETUP (one-time), per https://game.ci/docs/github/activation and docs/ci.md:
+#   Personal license:     secrets UNITY_LICENSE (contents of the .ulf file), UNITY_EMAIL, UNITY_PASSWORD.
+#   Professional license: secrets UNITY_SERIAL, UNITY_EMAIL, UNITY_PASSWORD.
+# Secrets that are not set expand to empty strings, so only the set for your license type is needed.
+#
+# Editor image: game-ci picks unityci/editor:ubuntu-<UNITY_VERSION>-<module>-3 from UNITY_VERSION (base for the test
+# runner, linux-il2cpp for the StandaloneLinux64 builder host). Both tags exist for the pinned editor version.
 
 name: CI
 
@@ -27,7 +31,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  UNITY_VERSION: "2022.2.23f1"
+  UNITY_VERSION: "2022.3.62f3"
   # Only the testbed's own tests run in this consumer (Unity 'testables' does not surface a git-package's
   # tests); the floor tracks the sandbox suite. The plugin's ~165 tests gate in the plugin repo / khr-test-proj.
   MIN_TESTS: "120"
@@ -68,7 +72,7 @@ jobs:
 
   # GATE 1 (compile) + GATE 2 (tests + min-test-count floor). Built-in RP, required.
   tests:
-    name: Tests (Unity 2022.2.23f1, Built-in)
+    name: Tests (Unity 2022.3.62f3, Built-in)
     needs: package-pin-preflight
     runs-on: ubuntu-latest
     steps:
@@ -90,6 +94,9 @@ jobs:
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
           testMode: playmode
@@ -193,6 +200,9 @@ jobs:
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
           targetPlatform: StandaloneLinux64
