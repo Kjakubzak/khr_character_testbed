@@ -1,0 +1,117 @@
+{
+  "fixture": "LOOK-Animated",
+  "asset": "LOOK-Animated.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "repository": "Kjakubzak/glTF-private",
+    "branch": "avatar_ext_normative",
+    "commit": "314c95c571185776f8624ceb94773ce3b976ad91",
+    "public": "KhronosGroup/glTF#2512 at 7ab5368a87d1d303dff33ec5f9aad42752e84c78"
+  },
+  "kind": "lookat_target",
+  "summary": "The target point is the translation of the evaluated global transform; the marker's own rotation and scale do not move it, its ancestors' do.",
+  "cases": [
+    {
+      "name": "authored state",
+      "level": "MUST",
+      "spec_section": "KHR_node_lookat_target: Target-point semantics",
+      "input": {
+        "instances": [
+          {
+            "state": {
+              "animation": null
+            }
+          }
+        ]
+      },
+      "expected": {
+        "instances": [
+          {
+            "Marker": [
+              1,
+              0,
+              -2
+            ],
+            "HintlessMarker": [
+              5.242640687119286,
+              -4.242640687119286,
+              -2
+            ]
+          }
+        ],
+        "tolerance": 1e-05
+      }
+    },
+    {
+      "name": "two instances in different evaluation states are independent",
+      "level": "MUST",
+      "spec_section": "KHR_node_lookat_target: Target-point semantics",
+      "input": {
+        "instances": [
+          {
+            "state": {
+              "animation": "ParentMotion",
+              "time": 0
+            }
+          },
+          {
+            "state": {
+              "animation": "ParentMotion",
+              "time": 1
+            }
+          },
+          {
+            "state": {
+              "animation": "ParentMotion",
+              "time": 0.5
+            }
+          }
+        ]
+      },
+      "expected": {
+        "instances": [
+          {
+            "Marker": [
+              1,
+              0,
+              -2
+            ],
+            "HintlessMarker": [
+              5.242640687119286,
+              -4.242640687119286,
+              -2
+            ]
+          },
+          {
+            "Marker": [
+              1,
+              1,
+              -2
+            ],
+            "HintlessMarker": [
+              5.242640687119286,
+              -3.2426406871192857,
+              -2
+            ]
+          },
+          {
+            "Marker": [
+              1,
+              0.5,
+              -2
+            ],
+            "HintlessMarker": [
+              5.242640687119286,
+              -3.7426406871192857,
+              -2
+            ]
+          }
+        ],
+        "tolerance": 1e-05
+      }
+    }
+  ],
+  "notes": [
+    "Points are in the asset's coordinate space; a host's placement of each instance is outside it."
+  ]
+}

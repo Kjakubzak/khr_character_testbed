@@ -1,0 +1,112 @@
+{
+  "fixture": "EXPR-Scale",
+  "asset": "EXPR-Scale.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "repository": "Kjakubzak/glTF-private",
+    "branch": "avatar_ext_normative",
+    "commit": "314c95c571185776f8624ceb94773ce3b976ad91",
+    "public": "KhronosGroup/glTF#2512 at 7ab5368a87d1d303dff33ec5f9aad42752e84c78"
+  },
+  "kind": "expression",
+  "summary": "Node scale SHOULD compose per component as b + sum(s - n); translation MUST.",
+  "cases": [
+    {
+      "name": "scale responses 1->2 and 1->3 compose to b + sum(s - n) = 4 (multiplying gives 6)",
+      "level": "SHOULD",
+      "spec_section": "KHR_character_expression_joint: Response handling and runtime composition",
+      "input": {
+        "drivers": {
+          "grow2": 1,
+          "grow3": 1
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/nodes/1/scale",
+            "value": [
+              4,
+              4,
+              4
+            ],
+            "tolerance": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "name": "t = e*T: grow3 has T = 2, so a 0.5 driver samples t = 1",
+      "level": "SHOULD",
+      "spec_section": "KHR_character_expression_joint: Response handling and runtime composition",
+      "input": {
+        "drivers": {
+          "grow3": 0.5
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/nodes/1/scale",
+            "value": [
+              2,
+              2,
+              2
+            ],
+            "tolerance": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "name": "translation uses its own time-zero sample n, not the authored b: 1 + (1.5 - 0.5) = 2",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression: Additive aggregation",
+      "input": {
+        "drivers": {
+          "shift": 1
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/nodes/1/translation",
+            "value": [
+              2,
+              0,
+              0
+            ],
+            "tolerance": 1e-05
+          },
+          {
+            "target": "/nodes/1/scale",
+            "value": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "half driver on the translation",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression: Additive aggregation",
+      "input": {
+        "drivers": {
+          "shift": 0.5
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/nodes/1/translation",
+            "value": [
+              1.5,
+              0,
+              0
+            ],
+            "tolerance": 1e-05
+          }
+        ]
+      }
+    }
+  ]
+}

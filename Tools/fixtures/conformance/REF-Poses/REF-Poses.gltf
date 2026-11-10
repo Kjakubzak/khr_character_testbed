@@ -1,0 +1,245 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "khr_character_testbed conformance fixtures (Tools/ci/generate-conformance-fixtures.py)",
+    "copyright": "CC0-1.0"
+  },
+  "extensionsUsed": [
+    "KHR_character",
+    "KHR_character_reference_pose"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Root",
+      "children": [
+        1,
+        4
+      ]
+    },
+    {
+      "name": "Hips",
+      "translation": [
+        0,
+        1,
+        0
+      ],
+      "children": [
+        2
+      ]
+    },
+    {
+      "name": "Arm",
+      "translation": [
+        0.2,
+        0,
+        0
+      ],
+      "children": [
+        3
+      ]
+    },
+    {
+      "name": "Hand",
+      "translation": [
+        0.3,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Prop",
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0.5,
+        1
+      ]
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 4
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 4,
+      "byteLength": 16
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 20,
+      "byteLength": 4
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 24,
+      "byteLength": 12
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 36,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 44,
+      "byteLength": 32
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 1,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        0
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 1,
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 1,
+      "type": "SCALAR",
+      "min": [
+        2
+      ],
+      "max": [
+        2
+      ]
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 1,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC4"
+    }
+  ],
+  "animations": [
+    {
+      "name": "APose",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 2,
+            "path": "rotation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 0,
+          "output": 1,
+          "interpolation": "STEP"
+        }
+      ],
+      "extensions": {
+        "KHR_character_reference_pose": {
+          "poseType": "a_pose"
+        }
+      }
+    },
+    {
+      "name": "Custom",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 1,
+            "path": "translation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 2,
+          "output": 3,
+          "interpolation": "LINEAR"
+        }
+      ],
+      "extensions": {
+        "KHR_character_reference_pose": {
+          "poseType": "ACME_custom"
+        }
+      }
+    },
+    {
+      "name": "Wave",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 2,
+            "path": "rotation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 4,
+          "output": 5,
+          "interpolation": "LINEAR"
+        }
+      ]
+    }
+  ],
+  "extensions": {
+    "KHR_character": {}
+  },
+  "buffers": [
+    {
+      "byteLength": 76,
+      "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAFe/Dvl6DbD8AAABAAAAAAGZmZj8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAADzBDU/8wQ1Pw=="
+    }
+  ]
+}

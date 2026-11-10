@@ -1,0 +1,172 @@
+{
+  "fixture": "VH-Compose",
+  "asset": "VH-Compose.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "repository": "Kjakubzak/glTF-private",
+    "branch": "avatar_ext_normative",
+    "commit": "314c95c571185776f8624ceb94773ce3b976ad91",
+    "public": "KhronosGroup/glTF#2512 at 7ab5368a87d1d303dff33ec5f9aad42752e84c78"
+  },
+  "kind": "visibility",
+  "summary": "renderPrimitiveInstance = primitive hint AND ancestor-inclusive node hints AND KHR_node_visibility; a child's visible:true does not restore a hidden parent.",
+  "cases": [
+    {
+      "name": "no logic, authored state",
+      "level": "MUST",
+      "spec_section": "KHR_mesh_primitive_visibility_hint: Primitive-instance composition",
+      "input": {
+        "host": {
+          "logic": [],
+          "applies": []
+        },
+        "state": {
+          "animation": null
+        }
+      },
+      "expected": {
+        "primitives": {
+          "ThirdBody#0": true,
+          "ThirdBody#1": true,
+          "ThirdBody#2": true,
+          "CoreChild#0": false,
+          "CoreChild#1": false,
+          "CoreChild#2": false,
+          "FreeBody#0": true,
+          "FreeBody#1": true,
+          "FreeBody#2": true
+        }
+      }
+    },
+    {
+      "name": "first-person view: the node hint hides every primitive; a primitive 'always' cannot restore",
+      "level": "MUST",
+      "spec_section": "KHR_mesh_primitive_visibility_hint: Primitive-instance composition",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person"
+          ],
+          "applies": [
+            "first_person"
+          ]
+        },
+        "state": {
+          "animation": null
+        }
+      },
+      "expected": {
+        "primitives": {
+          "ThirdBody#0": false,
+          "ThirdBody#1": false,
+          "ThirdBody#2": false,
+          "CoreChild#0": false,
+          "CoreChild#1": false,
+          "CoreChild#2": false,
+          "FreeBody#0": true,
+          "FreeBody#1": true,
+          "FreeBody#2": true
+        }
+      }
+    },
+    {
+      "name": "third-person view: primitive AND node",
+      "level": "MUST",
+      "spec_section": "KHR_mesh_primitive_visibility_hint: Primitive-instance composition",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person"
+          ],
+          "applies": [
+            "third_person"
+          ]
+        },
+        "state": {
+          "animation": null
+        }
+      },
+      "expected": {
+        "primitives": {
+          "ThirdBody#0": true,
+          "ThirdBody#1": false,
+          "ThirdBody#2": true,
+          "CoreChild#0": false,
+          "CoreChild#1": false,
+          "CoreChild#2": false,
+          "FreeBody#0": true,
+          "FreeBody#1": false,
+          "FreeBody#2": true
+        }
+      }
+    },
+    {
+      "name": "both roles apply",
+      "level": "MUST",
+      "spec_section": "KHR_mesh_primitive_visibility_hint: Primitive-instance composition",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person"
+          ],
+          "applies": [
+            "first_person",
+            "third_person"
+          ]
+        },
+        "state": {
+          "animation": null
+        }
+      },
+      "expected": {
+        "primitives": {
+          "ThirdBody#0": true,
+          "ThirdBody#1": true,
+          "ThirdBody#2": true,
+          "CoreChild#0": false,
+          "CoreChild#1": false,
+          "CoreChild#2": false,
+          "FreeBody#0": true,
+          "FreeBody#1": true,
+          "FreeBody#2": true
+        }
+      }
+    },
+    {
+      "name": "KHR_node_visibility on the parent animated to true (STEP pointer at t=1)",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Combining hints (coreVisible)",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person"
+          ],
+          "applies": [
+            "third_person"
+          ]
+        },
+        "state": {
+          "animation": "CoreToggle",
+          "time": 1
+        }
+      },
+      "expected": {
+        "primitives": {
+          "ThirdBody#0": true,
+          "ThirdBody#1": false,
+          "ThirdBody#2": true,
+          "CoreChild#0": true,
+          "CoreChild#1": false,
+          "CoreChild#2": true,
+          "FreeBody#0": true,
+          "FreeBody#1": false,
+          "FreeBody#2": true
+        }
+      }
+    }
+  ]
+}

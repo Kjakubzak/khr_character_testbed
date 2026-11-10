@@ -66,6 +66,41 @@ jobs:
       - name: Check every committed .glb has an ATTRIBUTION.md row
         run: bash ./Tools/ci/check-attribution.sh
 
+  # No Unity: the Python fixture tooling, the shared conformance fixtures, and a JSON-level check of every committed
+  # asset against the targeted draft's schemas (KhronosGroup/glTF #2512 at 7ab5368a = glTF-private 314c95c5 payload).
+  character-fixtures:
+    name: Character fixture checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/checkout@v4
+        with:
+          repository: KhronosGroup/glTF
+          ref: 7ab5368a87d1d303dff33ec5f9aad42752e84c78
+          path: .gltf-spec
+          sparse-checkout: |
+            specification/2.0/schema
+            extensions/2.0/Khronos
+      - name: Normalizer unit tests
+        run: python3 Tools/ci/test-normalize-character-fixtures.py
+      - name: Generated fixtures are up to date
+        run: |
+          python3 Tools/ci/generate-normative-fixtures.py --check
+          python3 Tools/ci/generate-conformance-fixtures.py --check
+          python3 Tools/ci/make_hero_variants.py --check
+      - name: Reference evaluator agrees with every expected.json
+        run: python3 Tools/ci/conformance_reference.py
+      - name: Committed assets and conformance fixtures pass the schemas and rules
+        run: |
+          python3 Tools/ci/validate-character-json.py --spec .gltf-spec \
+            $(git ls-files '*.glb' '*.gltf' | grep -v '^Tools/fixtures/conformance/invalid/')
+      - name: Invalid conformance fixtures are rejected for the expected reason
+        run: |
+          python3 Tools/ci/validate-character-json.py --spec .gltf-spec \
+            --expect-invalid Tools/fixtures/conformance/invalid/expected.json
+
   # GATE 1 (compile) + GATE 2 (tests + min-test-count floor). Built-in RP, required.
   tests:
     name: Tests (Unity 2022.2.23f1, Built-in)

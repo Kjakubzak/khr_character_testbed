@@ -1,0 +1,106 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "khr_character_testbed conformance fixtures (Tools/ci/generate-conformance-fixtures.py)",
+    "copyright": "CC0-1.0"
+  },
+  "extensionsUsed": [
+    "KHR_node_visibility_hint"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Root",
+      "children": [
+        1,
+        3
+      ]
+    },
+    {
+      "name": "UnknownParent",
+      "children": [
+        2
+      ],
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "roles": [
+            "ACME_unknown"
+          ]
+        }
+      }
+    },
+    {
+      "name": "UnknownChild",
+      "mesh": 0
+    },
+    {
+      "name": "UnknownOrFirst",
+      "mesh": 0,
+      "translation": [
+        1,
+        0,
+        0
+      ],
+      "extensions": {
+        "KHR_node_visibility_hint": {
+          "roles": [
+            "ACME_unknown",
+            "first_person"
+          ]
+        }
+      }
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 36,
+      "target": 34962
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC3",
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        0.2,
+        0.2,
+        0
+      ]
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Quad",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0
+          },
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 36,
+      "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAzcxMPgAAAAAAAAAAAAAAAM3MTD4AAAAA"
+    }
+  ]
+}

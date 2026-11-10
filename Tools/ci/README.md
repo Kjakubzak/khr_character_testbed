@@ -13,6 +13,17 @@ Linux CI) form with the same behavior and the same exit-code contract (`0` = pas
 | `Validate-Glb` | 3 | Runs the Khronos `gltf_validator` over every exported GLB; gates on `numErrors == 0`; skips non-fatally if the validator is absent. CI runs it report-only until a validator that implements the current `KHR_character` drafts is pinned (see `docs/ci.md`). |
 | `Export-Goldens` | 4 | Re-export + normalize the fixture wire (via `SandboxCI.ExportGoldens`); `-Check` diffs against committed goldens, `-Update` rewrites them. |
 
+Python fixture tools (no Unity; the `Character fixture checks` CI job runs them):
+
+| Script | What it does |
+|--------|--------------|
+| `normalize-character-fixtures.py` | Migrates fixture GLBs to the current wire (JSON chunk only, idempotent). |
+| `make_hero_variants.py` | Normalizes the hero and rebuilds its three visibility-hint variants (`--check`). |
+| `generate-normative-fixtures.py` | Generates `VH-Ancestors` and `SC-SharedTargets` (`--check`). |
+| `generate-conformance-fixtures.py` | Generates the shared conformance fixtures in `Tools/fixtures/conformance/` (`--check`). |
+| `conformance_reference.py` | Recomputes every conformance `expected.json` from its asset and compares. |
+| `validate-character-json.py` | Schema and rule check of glTF/GLB JSON against a glTF spec checkout; `--expect-invalid` for the negative set. |
+
 Full documentation, local examples, validator install, golden updates, and the GitHub Actions wiring: see
 [`docs/ci.md`](../../docs/ci.md).
 

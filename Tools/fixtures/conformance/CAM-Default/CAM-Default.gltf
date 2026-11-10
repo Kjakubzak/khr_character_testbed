@@ -1,0 +1,139 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "khr_character_testbed conformance fixtures (Tools/ci/generate-conformance-fixtures.py)",
+    "copyright": "CC0-1.0"
+  },
+  "extensionsUsed": [
+    "KHR_node_camera_hint"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Root",
+      "children": [
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "name": "Rig"
+    },
+    {
+      "name": "DefaultB",
+      "translation": [
+        0,
+        1.5,
+        1
+      ],
+      "extensions": {
+        "KHR_node_camera_hint": {
+          "role": "default_view",
+          "camera": 0,
+          "targetNode": 4
+        }
+      }
+    },
+    {
+      "name": "Portrait",
+      "translation": [
+        0,
+        1.6,
+        0.6
+      ],
+      "extensions": {
+        "KHR_node_camera_hint": {
+          "role": "portrait",
+          "targetNode": 4,
+          "label": "Face"
+        }
+      }
+    },
+    {
+      "name": "Subject",
+      "translation": [
+        0,
+        1.6,
+        0
+      ]
+    },
+    {
+      "name": "DefaultA",
+      "translation": [
+        1,
+        1,
+        3
+      ],
+      "extensions": {
+        "KHR_node_camera_hint": {
+          "role": "default_view"
+        }
+      }
+    },
+    {
+      "name": "Stand",
+      "translation": [
+        0,
+        0,
+        2
+      ],
+      "children": [
+        2
+      ]
+    },
+    {
+      "name": "Inspect",
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "extensions": {
+        "KHR_node_camera_hint": {
+          "role": "ACME_inspect",
+          "label": "Inspection"
+        }
+      }
+    },
+    {
+      "name": "Spare"
+    },
+    {
+      "name": "DefaultC",
+      "translation": [
+        -1,
+        1,
+        3
+      ],
+      "extensions": {
+        "KHR_node_camera_hint": {
+          "role": "default_view"
+        }
+      }
+    }
+  ],
+  "cameras": [
+    {
+      "name": "Lens",
+      "type": "perspective",
+      "perspective": {
+        "yfov": 0.785398,
+        "znear": 0.01,
+        "zfar": 100
+      }
+    }
+  ]
+}

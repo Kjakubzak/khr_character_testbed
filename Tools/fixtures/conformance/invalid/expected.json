@@ -1,0 +1,77 @@
+{
+  "license": "CC0-1.0",
+  "spec": {
+    "repository": "Kjakubzak/glTF-private",
+    "branch": "avatar_ext_normative",
+    "commit": "314c95c571185776f8624ceb94773ce3b976ad91",
+    "public": "KhronosGroup/glTF#2512 at 7ab5368a87d1d303dff33ec5f9aad42752e84c78"
+  },
+  "summary": "Each file is valid except for one rule; a validator must reject it with the listed error code(s) and no others.",
+  "files": {
+    "node-hint-required.gltf": {
+      "error_codes": [
+        "HINT_REQUIRED"
+      ],
+      "reason": "KHR_node_visibility_hint is listed in extensionsRequired.",
+      "spec_section": "KHR_node_visibility_hint: Extension usage"
+    },
+    "primitive-hint-required.gltf": {
+      "error_codes": [
+        "HINT_REQUIRED"
+      ],
+      "reason": "KHR_mesh_primitive_visibility_hint is listed in extensionsRequired.",
+      "spec_section": "KHR_mesh_primitive_visibility_hint: Extension usage"
+    },
+    "camera-hint-required.gltf": {
+      "error_codes": [
+        "HINT_REQUIRED"
+      ],
+      "reason": "KHR_node_camera_hint is listed in extensionsRequired.",
+      "spec_section": "KHR_node_camera_hint: Extension usage"
+    },
+    "role-without-roles.gltf": {
+      "error_codes": [
+        "SCHEMA",
+        "HINT_WITHOUT_ROLES"
+      ],
+      "reason": "A visibility hint has the retired single role and no roles array.",
+      "spec_section": "KHR_node_visibility_hint: Extension object (roles is required)"
+    },
+    "camera-target-self.gltf": {
+      "error_codes": [
+        "CAMERA_TARGET_SELF"
+      ],
+      "reason": "A camera hint's targetNode refers to the node that carries the hint.",
+      "spec_section": "KHR_node_camera_hint: Subject point"
+    },
+    "duplicate-expression-name.gltf": {
+      "error_codes": [
+        "DUPLICATE_EXPRESSION_NAME"
+      ],
+      "reason": "Two expression entries share the name 'blink'.",
+      "spec_section": "KHR_character_expression: Extension structure"
+    },
+    "mapping-weight-above-one.gltf": {
+      "error_codes": [
+        "SCHEMA"
+      ],
+      "reason": "A mapping weight is 1.5; weights are limited to [0, 1].",
+      "spec_section": "KHR_character_expression_mapping: Mapping entries"
+    },
+    "joint-channel-matrix-node.gltf": {
+      "error_codes": [
+        "MATRIX_TARGET"
+      ],
+      "reason": "A joint channel targets the translation of a node that defines matrix.",
+      "spec_section": "KHR_character_expression: Channel targets"
+    },
+    "channel-in-two-derived-extensions.gltf": {
+      "error_codes": [
+        "CHANNEL_IN_TWO_DERIVED",
+        "CHANNEL_CLASS"
+      ],
+      "reason": "Channel 0 is listed by both KHR_character_expression_morphtarget and KHR_character_expression_joint on the same entry (it is also not a node TRS channel, which the joint extension requires).",
+      "spec_section": "KHR_character_expression: Derived expression extensions"
+    }
+  }
+}

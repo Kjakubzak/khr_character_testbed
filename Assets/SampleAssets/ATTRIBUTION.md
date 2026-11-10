@@ -34,6 +34,28 @@ public domain under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/
 These small meshes and animation keys are authored here and dedicated to the public domain under CC0 1.0.
 Regenerate with `python3 Tools/ci/generate-normative-fixtures.py`; review the `.gltf`/`.bin` sources in `Tools/fixtures`.
 
+## Shared conformance fixtures (`Tools/fixtures/conformance/`) — CC0
+
+| Asset | Source | License (SPDX) | Notes |
+|---|---|---|---|
+| `conformance/VH-MultiRole/VH-MultiRole.gltf` | `Tools/ci/generate-conformance-fixtures.py::vh_multi_role` | `CC0-1.0` | A multi-role visibility hint under several host role contexts. |
+| `conformance/VH-UnknownCustom/VH-UnknownCustom.gltf` | `…::vh_unknown_custom` | `CC0-1.0` | Unrecognized custom roles impose no restriction. |
+| `conformance/VH-AlwaysPlus/VH-AlwaysPlus.gltf` | `…::vh_always_plus` | `CC0-1.0` | `always` with other roles; `always` under a restricted ancestor. |
+| `conformance/VH-Compose/VH-Compose.gltf` | `…::vh_compose` | `CC0-1.0` | Primitive hint AND node hints AND animated `KHR_node_visibility`. |
+| `conformance/SUP-Overlap/SUP-Overlap.gltf` | `…::sup_overlap` | `CC0-1.0` | Overlapping blend suppressions (sum and clamp) and a strict block threshold. |
+| `conformance/SUP-Custom/SUP-Custom.gltf` | `…::sup_custom` | `CC0-1.0` | Custom suppression type without a companion; `threshold` on a blend. |
+| `conformance/EXPR-RotSmall/EXPR-RotSmall.gltf` | `…::expr_rot_small` | `CC0-1.0` | Small-angle rotation responses on one node. |
+| `conformance/EXPR-Scale/EXPR-Scale.gltf` | `…::expr_scale` | `CC0-1.0` | Scale responses, `t = e*T`, translation neutral sample. |
+| `conformance/TT-Atlas/TT-Atlas.gltf` | `…::tt_atlas` | `CC0-1.0` | 2x2 atlas texture (a generated 2x2 PNG) with offset, rotation and scale expressions. |
+| `conformance/CAM-Default/CAM-Default.gltf` | `…::cam_default` | `CC0-1.0` | Several `default_view` hints, a custom role and subject points. |
+| `conformance/LOOK-Animated/LOOK-Animated.gltf` | `…::look_animated` | `CC0-1.0` | Look-at markers under an animated, rotated and scaled parent. |
+| `conformance/REF-Poses/REF-Poses.gltf` | `…::ref_poses` | `CC0-1.0` | `a_pose` (STEP) and custom-label reference poses beside an ordinary animation. |
+| `conformance/invalid/*.gltf` (9 files) | `…::invalid_set` | `CC0-1.0` | Assets that break one rule each; a validator must reject them. |
+
+Every fixture is generated from code (triangles, a 2x2 PNG and hand-written keys) with no third-party content,
+and is dedicated to the public domain under CC0 1.0. Each folder's `expected.json` is part of the fixture. Regenerate
+with `python3 Tools/ci/generate-conformance-fixtures.py`; `Tools/fixtures/conformance/README.md` documents the format.
+
 ## FromBlender/ — authored in `khr_character_blender`, committed
 
 Eleven canonical KHR-Character `.glb` variations exported by the
