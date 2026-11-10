@@ -18,7 +18,7 @@ namespace KhrCharacterTestbed.Tests
     /// adaptive: the committed <b>synthetic</b> VH-* fixtures (always present once LFS is pulled) are the never-skip
     /// floor, and the per-role <b>hero</b> variants
     /// (<c>khr-character-example-{always,first-person,third-person}.glb</c>, built from the pristine hero by
-    /// <c>tools/make_hero_variants.py</c>) are ADDED only when their Git-LFS objects are smudged real GLBs. So a
+    /// <c>Tools/ci/make_hero_variants.py</c>) are ADDED only when their Git-LFS objects are smudged real GLBs. So a
     /// checkout without the (optional, ~11 MB) hero still runs real checks against the synthetic fixtures, and an
     /// LFS-complete checkout additionally covers the VRM hero variants — matching the never-skip fallback pattern in
     /// <see cref="SandboxNSeriesTests"/> (prefer the hero when real; fall back to a committed synthetic otherwise).
