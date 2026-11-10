@@ -92,6 +92,10 @@ jobs:
           python3 Tools/ci/make_hero_variants.py --check
       - name: Reference evaluator agrees with every expected.json
         run: python3 Tools/ci/conformance_reference.py
+      - name: Validator unit tests
+        env:
+          GLTF_SPEC: .gltf-spec
+        run: python3 Tools/ci/test-validate-character-json.py
       - name: Committed assets and conformance fixtures pass the schemas and rules
         run: |
           python3 Tools/ci/validate-character-json.py --spec .gltf-spec \

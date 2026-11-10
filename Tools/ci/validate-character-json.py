@@ -285,9 +285,13 @@ def validate(schemas, root):
     for prefix, path, name, value in placements(root):
         if name in ("KHR_node_visibility_hint", "KHR_mesh_primitive_visibility_hint") and isinstance(value, dict):
             roles = value.get("roles")
-            if "role" in value or not isinstance(roles, list) or not roles:
+            if not isinstance(roles, list) or not roles:
                 err("HINT_WITHOUT_ROLES", f"{path}: hint without a roles array" + (" (has legacy 'role')" if "role" in value else ""))
-            elif "always" in roles and len(roles) > 1:
+                continue
+            if "role" in value:
+                # The schema allows extra members; a leftover legacy role beside roles has no meaning.
+                warnings.append(f"{path}: legacy 'role' beside 'roles' is ignored")
+            if "always" in roles and len(roles) > 1:
                 warnings.append(f"{path}: 'always' listed with other roles")
 
     for a, animation in enumerate(animations):

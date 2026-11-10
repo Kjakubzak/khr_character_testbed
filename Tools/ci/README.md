@@ -23,6 +23,7 @@ Python fixture tools (no Unity; the `Character fixture checks` CI job runs them)
 | `generate-conformance-fixtures.py` | Generates the shared conformance fixtures in `Tools/fixtures/conformance/` (`--check`). |
 | `conformance_reference.py` | Recomputes every conformance `expected.json` from its asset and compares. |
 | `validate-character-json.py` | Schema and rule check of glTF/GLB JSON against a glTF spec checkout; `--expect-invalid` for the negative set. |
+| `test-validate-character-json.py` | Unit tests for the validator (`GLTF_SPEC` = spec checkout). |
 
 Full documentation, local examples, validator install, golden updates, and the GitHub Actions wiring: see
 [`docs/ci.md`](../../docs/ci.md).

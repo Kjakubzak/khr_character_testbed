@@ -113,7 +113,9 @@ angles. The SHOULD tolerances accept an axis-angle sum and quaternion multiplica
 - `reason`: the rule the file breaks.
 - `spec_section`: where the spec states that rule.
 
-Other validators can match on `reason`. Each file breaks one rule:
+Other validators can match on `reason`. Each file breaks one rule, though the last one also trips a second
+check: a channel listed by two derived extensions can't fit both channel classes, so the validator also
+reports `CHANNEL_CLASS` for it. The rules are:
 
 - a visibility hint or camera hint listed in `extensionsRequired`;
 - `role` without `roles`;
