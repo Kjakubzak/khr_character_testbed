@@ -142,7 +142,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Kjakubzak/glTF-Validator
-          ref: 99e8523cf548fe7780870270b1bd2fa60bab6ba2
+          ref: 5ad312fc3f257abc0eecbf3af8ff027f98c44f0b
           path: .gltf-validator
       - name: Build pinned proposal-aware glTF-Validator
         run: |
