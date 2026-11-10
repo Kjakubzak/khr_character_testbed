@@ -61,5 +61,5 @@ It proves direct color/depth behavior for that route. Shadows, reflections, indi
 remain host policy and require their own output evidence; the hint specifications do not prescribe those policies.
 
 Run all committed GLBs through the pinned validator and regenerate/check goldens as described in [CI](ci.md).
-The default project is Unity 2022.2.23f1; [the isolated Unity 6 setup](../Tools/unity6/README.md) remains available.
+The default project is Unity 2022.3.62f3; [the isolated Unity 6 setup](../Tools/unity6/README.md) remains available.
 Unity GitHub jobs require a configured CI licence; local Editor runs do not establish that remote gate.

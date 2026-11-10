@@ -4,7 +4,7 @@ A step-by-step guide to running the `KHR_character` sample project. For the shor
 
 ## Prerequisites
 
-- **Unity 2022.2.23f1** (the version this project is pinned to). Built-in Render Pipeline by default.
+- **Unity 2022.3.62f3** (the version this project is pinned to). Built-in Render Pipeline by default.
 - **Git** with **Git LFS** installed (`git lfs install`) — sample binaries (`.glb`) are tracked via LFS.
 - **Internet access on first open** — Unity resolves the UnityGLTF package (including the `KHR_character` plugin) from a pinned Git URL in `Packages/manifest.json`.
 
@@ -20,7 +20,7 @@ If you cloned before installing LFS, run `git lfs pull` to fetch the real binari
 
 ## 2. Open in Unity
 
-Open the folder with **Unity 2022.2.23f1** (via Unity Hub). On first open Unity will:
+Open the folder with **Unity 2022.3.62f3** (via Unity Hub). On first open Unity will:
 - resolve `org.khronos.unitygltf` from the pinned Git commit (this can take a minute),
 - import the project and compile the sample assemblies.
 

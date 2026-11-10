@@ -150,14 +150,18 @@ Commit the changed goldens — **the golden diff is the change record** reviewer
 ## GitHub Actions (`.github/workflows/ci.yml`)
 
 - **Provider:** GitHub Actions + [game-ci](https://game.ci) `unity-test-runner` (pinned editor image + license).
-- **Unity:** `2022.2.23f1` (exact patch, matches `ProjectSettings/ProjectVersion.txt`).
+- **Unity:** `2022.3.62f3` (exact patch, matches `ProjectSettings/ProjectVersion.txt`).
 - **Render pipeline:** **Built-in = required gate**; **URP = nightly / non-blocking** (see `.github/workflows/ci-nightly.yml`;
   the URP cell is WIRED - it activates a committed URP pipeline asset and runs the suite under URP via xvfb);
   HDRP deferred. The KHR test / glTF-validation / golden gates are RP-agnostic.
 - **Library cache:** keyed on `Packages/manifest.json` + `Packages/packages-lock.json` + `ProjectVersion.txt`.
   Commit `packages-lock.json` so the resolved dependency commit SHA is recorded and a new commit busts the cache.
-- **License (one-time setup):** add a repository secret **`UNITY_LICENSE`** with a Unity **Personal** license
-  (`.ulf`). See <https://game.ci/docs/github/activation>.
+- **Editor image:** game-ci derives `unityci/editor:ubuntu-<version>-base-3` (tests) and
+  `unityci/editor:ubuntu-<version>-linux-il2cpp-3` (the builder host) from `UNITY_VERSION`.
+- **License (one-time setup):** for a Unity **Personal** license add the repository secrets **`UNITY_LICENSE`** (the
+  contents of the `.ulf` file), **`UNITY_EMAIL`** and **`UNITY_PASSWORD`**; for a **Professional** license add
+  **`UNITY_SERIAL`**, **`UNITY_EMAIL`** and **`UNITY_PASSWORD`**. The workflows pass all four through. See
+  <https://game.ci/docs/github/activation>.
 
 > The golden job uses game-ci's builder as a licensed headless host to run the `SandboxCI.ExportGoldens`
 > `-executeMethod` seam, then diffs the snapshots. Exact wiring may need tuning for your game-ci version; the gate
