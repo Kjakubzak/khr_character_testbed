@@ -2,7 +2,7 @@
 
 This testbed follows `Kjakubzak/glTF-private` `avatar_ext_normative` at
 `314c95c571185776f8624ceb94773ce3b976ad91` (2 November 2026), the payload of KhronosGroup/glTF PR #2512 at
-`7ab5368a`. It pins the UnityGLTF fork at `ca2b026b` (Kjakubzak/UnityGLTF PR #7), which implements that revision.
+`7ab5368a`. It pins the UnityGLTF fork at `49bdcc8a` (Kjakubzak/UnityGLTF PR #7), which implements that revision.
 The draft remains subject to change. Runtime composition choices are documented host policy.
 
 ## Changes for 314c95c5

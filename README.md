@@ -121,7 +121,7 @@ exported through the plugin; focused wire fixtures are packaged from their proce
 This project is a **pure UPM consumer** — it vendors no plugin code. `Packages/manifest.json` pins UnityGLTF (a fork that adds the `KHR_character` plugin) by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
 
 ```jsonc
-"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#ca2b026b3bc82a37ea412dba815d0f771b70b383",
+"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#49bdcc8a72fb8e26878d01b5026d2ba26cdebb06",
 "testables": ["org.khronos.unitygltf"]
 ```
 
