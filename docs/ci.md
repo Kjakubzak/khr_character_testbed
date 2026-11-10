@@ -117,7 +117,7 @@ plugins in code** (never trusting the committed settings asset, which can silent
 
 ```bash
 git clone https://github.com/Kjakubzak/glTF-Validator.git
-git -C glTF-Validator checkout 99e8523cf548fe7780870270b1bd2fa60bab6ba2
+git -C glTF-Validator checkout 5ad312fc3f257abc0eecbf3af8ff027f98c44f0b
 cd glTF-Validator && dart pub get && dart run grinder exe
 export GLTF_VALIDATOR="$PWD/build/bin/gltf_validator"
 ```
@@ -125,9 +125,11 @@ export GLTF_VALIDATOR="$PWD/build/bin/gltf_validator"
 This fork validates the draft `KHR_character_*` schemas, cross-references, decoded animation resources, and frozen
 expression semantics. Direct Unity assertions and golden snapshots remain complementary gates rather than substitutes.
 
-> **Blocking for the full corpus.** The pinned validator implements the current draft, including canonical external
-> input mapping, required expression names and pose labels, independent names, shared expression targets, and
-> cumulative ancestor visibility hints. Synthetic, FromBlender and VRM example errors all fail the job; informative
+> **Blocking for the full corpus.** The pinned validator implements the 314c95c5 draft, including canonical external
+> input mapping, required expression names and pose labels, independent names, shared expression targets, optional
+> suppression names, and visibility hints with a required `roles` array that must not be listed in
+> `extensionsRequired`. It does not yet check that expression names are unique (Kjakubzak/glTF-Validator#5).
+> Synthetic, FromBlender and VRM example errors all fail the job; informative
 > warnings on unsupported vendor material/extension data are retained in `gltf-validator-reports`. There is no blanket
 > `continue-on-error`. Direct runtime assertions and golden snapshots remain complementary checks.
 
