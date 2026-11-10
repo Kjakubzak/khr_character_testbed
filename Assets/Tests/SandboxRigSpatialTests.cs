@@ -20,7 +20,8 @@ namespace KhrCharacterTestbed.Tests
         private const int RootNode = 0;
         private const int HeadNode = 5;
         private const int PortraitCameraNode = 20;
-        private const int NodeCount = 21;
+        private const int FirstPersonCameraNode = 21;
+        private const int NodeCount = 22;
 
         private readonly List<Object> _created = new List<Object>();
 
@@ -131,6 +132,38 @@ namespace KhrCharacterTestbed.Tests
             load.Current.transform.rotation = Quaternion.Euler(0f, 30f, 0f);
             chs.Apply(hint, cam);
             AssertPose(cam, hint.Node.position, Quaternion.Euler(0f, 30f, 0f) * Vector3.back, "a rotated scene root");
+        }
+
+        [UnityTest]
+        public IEnumerator CameraHint_FirstPersonLooksAlongTheCharacterForwardFromEyeHeight()
+        {
+            var load = SandboxTestUtil.LoadSynthetic("SC-Body.glb", _created);
+            yield return load;
+            var hub = load.Current.GetComponent<KhrCharacter>();
+            var chs = hub.CameraHints;
+            Assert.IsNotNull(chs, "SC-Body should have a CameraHintSet.");
+            Assert.AreEqual(2, chs.Hints.Count, "SC-Body carries a portrait and a first_person hint.");
+            Assert.IsTrue(chs.TryGetByRole(CameraHintRoles.FirstPerson, out var hint),
+                "SC-Body should carry a 'first_person' camera hint.");
+            Assert.IsNotNull(hint.Node, "the first_person hint should resolve its node.");
+            Assert.AreSame(ResolvedNode(hub.Skeleton.ReferencePoses[0], FirstPersonCameraNode), hint.Node);
+            Assert.IsNull(hint.Target, "the first_person hint names a viewpoint and has no target node.");
+            Assert.IsFalse(CameraHintSet.TryGetSubjectPoint(hint, out _));
+            Assert.IsTrue(TryGetHead(hub, out var head));
+            Assert.Greater(hint.Node.position.y, head.position.y, "the viewpoint is at eye height, above the head joint.");
+
+            var camGo = new GameObject("FirstPersonTestCam", typeof(Camera));
+            _created.Add(camGo);
+            var cam = camGo.GetComponent<Camera>();
+            // The hint node is turned 180 degrees about Y, so its -Z is the character's forward (+Z).
+            chs.Apply(hint, cam);
+            AssertPose(cam, hint.Node.position, Vector3.forward, "the first_person pose");
+        }
+
+        private static bool TryGetHead(KhrCharacter hub, out Transform head)
+        {
+            head = null;
+            return hub.Skeleton != null && hub.Skeleton.TryGetBone("head", out head);
         }
 
         [UnityTest]

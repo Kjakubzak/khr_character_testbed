@@ -41,9 +41,10 @@ consumer supports: a channel listed by a derived extension the consumer supports
 `_texture_transform`) whose target extensions, such as `KHR_animation_pointer` and `KHR_texture_transform`, it also
 supports. Each derived extension is a separate conformance claim, so a consumer that supports only the base
 extension animates nothing; the `KHR_character` plugin supports all three. Additive components compose over the
-authored value as `y = b + sum(s - n)`, with no clamp. Multiple entries may target the same rotation, scale,
-Boolean or integer property; their composition method is host-defined. This Unity adapter takes the ordinary sample
-of the highest active expression index for those properties. Mixing with other animation writers is also host-defined. Imports are passive by default (the `ExpressionResponseSet` computes but writes nothing); only
+authored value as `y = b + sum(s - n)`, with no clamp; node and texture scale compose the same way. Rotations
+compose approximately additively, by a method the host chooses; this Unity adapter uses
+`normalize(b * exp(sum(log(n^-1 * s))))`, which is exact for a shared axis. Boolean and integer properties take the
+sample of the highest active expression index. Mixing with other animation writers is also host-defined. Imports are passive by default (the `ExpressionResponseSet` computes but writes nothing); only
 **Expressions**, **GazeAndCamera**, and **CharacterShowcase** explicitly opt into UnityGLTF's `ExpressionController`,
 which applies the composed result to blendshapes, transforms, and `MaterialPropertyBlock`s. That scene writing is
 one Unity integration route among many.
@@ -51,10 +52,13 @@ one Unity integration route among many.
 Mapping sets use the sole `expressionSetMappings` property. Their keys identify external input vocabularies;
 `source` references the native expression array by index. Each input is clamped, its contributions are summed per
 native expression, and that final sum is clamped before suppression. Labels do not participate in resolution.
+Suppressions that share a target sum their attenuations, and the sum is clamped to [0, 1] before it is applied.
 
-Node hints AND every local role result along the glTF ancestor path using the same view tags. A descendant's
-`always` role cannot restore ancestor-hidden content. Primitive rendering additionally ANDs its own role and the
-independent core `KHR_node_visibility` result. Hints leave cameras, animation and transforms active. Shadow,
+Each visibility hint lists one or more `roles`, which are ORed. Node hints along the glTF ancestor path, the
+primitive hint and the independent core `KHR_node_visibility` result are ANDed, so a descendant's `always` role
+cannot restore ancestor-hidden content. A standard role the application has no logic for applies everywhere, and an
+unrecognized custom role is ignored, so with no role logic nothing is hidden. The hints are never listed in
+`extensionsRequired`. Hints leave cameras, animation and transforms active. Shadow,
 reflection and lighting behavior is the application's policy. See [the normative sync test plan](docs/normative-sync.md).
 
 ---
@@ -72,7 +76,7 @@ Launch any of these from **SampleHub**:
 | **RigAndPose** | Runtime Generic ↔ Humanoid rig switch + reference pose | Toggle to Humanoid (builds a Mecanim Avatar); "Apply Reference Pose" |
 | **RoundTrip** | Lossless host-data export plus passive-expression safety | Round-trip SC-Body; load an expression asset to see lossy legacy-controller export fail closed |
 | **Health** | Per-capability Active/Degraded/Inert triage | Load a partial character; see what's inert |
-| **VisibilityHints** | View-tag visibility (`KHR_node_visibility_hint` + `KHR_mesh_primitive_visibility_hint`) | Swap between the built-in figure and the khr-character example variants; pick the view's tags (third_person, first_person, both, none) — `third_person` content such as the head/eyes/brows hides (via an invisible-material swap) without the `third_person` tag, while `always` content such as hair + body stays when no ancestor hint vetoes it |
+| **VisibilityHints** | Role-based visibility (`KHR_node_visibility_hint` + `KHR_mesh_primitive_visibility_hint`) | Swap between the built-in figure and the khr-character example variants; pick the role logic (no logic, first-person, spectator, mirror) — in the first-person view `third_person` content such as the head/eyes/brows hides (via an invisible-material swap), the figure's status badge (`first_person` or a custom mirror role) shows in the first-person and mirror views only, and `always` content such as hair + body stays when no ancestor hint vetoes it |
 | **HumanoidAnimation** | Procedural clips on a humanoid rig | Play a wave / nod / idle-sway |
 | **AnimationRigging** | Runtime aim constraint (Unity Animation Rigging) | Move the target; a bone tracks it |
 | **AnimationSandbox** | Any character + any rig mode + any clip | Defaults to Generic; pick a character-adaptive procedural clip and Play (clips are filtered to the compatible rig mode) |
@@ -102,7 +106,7 @@ exported through the plugin; focused wire fixtures are packaged from their proce
 |---|---|---|
 | `SC-Face.glb` | `KHR_character` + expression (morph + joint) | GlbViewer, Expressions, Gaze |
 | `SC-FacePlus.glb` | + texture-transform expression (`KHR_character_expression_texture_transform` on a `KHR_texture_transform` offset) | Expressions |
-| `SC-Body.glb` | skeleton mapping + reference pose + camera hint (humanoid-mappable) | RigAndPose, Health, procedural animation |
+| `SC-Body.glb` | skeleton mapping + reference pose + portrait and first-person camera hints (humanoid-mappable) | RigAndPose, Health, procedural animation |
 | `SC-SharedTargets.glb` | Shared additive translation/morph plus quaternion/scale responses and external mapping | Normative integration tests |
 | `VH-Ancestors.glb` | Nested node/primitive hints, custom roles, core Boolean visibility, camera and ordinary animation | Normative integration and GPU color/depth tests |
 
@@ -117,7 +121,7 @@ exported through the plugin; focused wire fixtures are packaged from their proce
 This project is a **pure UPM consumer** — it vendors no plugin code. `Packages/manifest.json` pins UnityGLTF (a fork that adds the `KHR_character` plugin) by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
 
 ```jsonc
-"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#f000c7e5fa1bde529cb3551021269aec608f5890",
+"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#ca2b026b3bc82a37ea412dba815d0f771b70b383",
 "testables": ["org.khronos.unitygltf"]
 ```
 
