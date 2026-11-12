@@ -21,14 +21,18 @@ for Linux CI). Contributors run the **same** scripts CI runs, so there is no dri
 Two independent floors, both enforced every run (and all of `failed`/`inconclusive`/`skipped` must be 0):
 
 - **Total floor — default 120.** Only the testbed's own tests run in this consumer: Unity `testables` does **not**
-  surface a git-package's tests into a consuming project (the plugin's ~165 cases run in the plugin repo /
-  `khr-test-proj`, not here). A hollow package resolve instead fails **GATE 1 (compile)**, since `Sandbox.Tests`
+  surface a git-package's tests into a consuming project (the plugin's own cases run in CI's `plugin-tests` job,
+  which embeds the pinned UnityGLTF commit). A hollow package resolve instead fails **GATE 1 (compile)**, since `Sandbox.Tests`
   links real plugin types. This floor guards the "0 tests ran = false green" trap. Parameterized:
   `Run-Tests -MinTests <n>` (PS) / `run-tests.sh --min-tests <n>` (bash), and `MIN_TESTS` in `.github/workflows/ci.yml`.
 - **Independent sandbox sub-floor — default 120.** Counts only the testbed's own cases (NUnit `classname` under
   `KhrCharacterTestbed.*`), so the testbed can't go hollow even if the package count alone clears the main floor.
   Parameterized: `Run-Tests -MinSandboxTests <n>` (PS) / `run-tests.sh --min-sandbox-tests <n>` (bash), and
   `MIN_SANDBOX_TESTS` in `.github/workflows/ci.yml`.
+- **CI only:** game-ci runs `testMode: all` with `-testCategory !Graphics` (as every measured baseline did), and
+  `Tools/ci/check-test-results.py` sums every results XML. It also enforces `MIN_CONFORMANCE_TESTS` (test cases whose
+  `fullname` starts with `KhrCharacterTestbed.Conformance.`) and, in `plugin-tests`, `MIN_PLUGIN_TESTS` (whole project)
+  and `MIN_PLUGIN_ONLY_TESTS` (cases outside the `Sandbox.*` assemblies).
 
 > Hero-dependent tests never skip: the per-role hero-variant suite uses an **adaptive corpus** (committed synthetic
 > `VH-*` fixtures always, plus the hero variants when their LFS objects are real GLBs) and the other hero cases fall
@@ -162,6 +166,21 @@ Commit the changed goldens — **the golden diff is the change record** reviewer
 > The golden job uses game-ci's builder as a licensed headless host to run the `SandboxCI.ExportGoldens`
 > `-executeMethod` seam, then diffs the snapshots. Exact wiring may need tuning for your game-ci version; the gate
 > logic (the diff) is provider-agnostic.
+
+### Licence gate and the `unity-licence` group
+
+The Unity jobs run only when one of these credential sets exists; otherwise they are skipped and the
+**Unity licence missing** check fails, naming the missing secrets (never their values):
+
+- the repository **variable** `UNITY_LICENSING_SERVER` (a floating-licence server URL, which GitHub-hosted runners
+  must be able to reach);
+- secrets `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_SERIAL` (Professional);
+- secrets `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_LICENSE` (the `.ulf` contents).
+
+Email and password alone satisfy the test runner but not game-ci's builder (goldens, URP activation), so the gate
+treats that as missing. Every Unity job, in both workflows, joins the repo-wide `unity-licence` concurrency group
+without cancellation and has a `timeout-minutes` cap. GitHub keeps one pending job per group, so when Unity jobs
+from three runs overlap the older pending one is cancelled and needs a manual re-run.
 
 ## Nightly + demo smoke tests (optional polish)
 

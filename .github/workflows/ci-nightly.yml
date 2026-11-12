@@ -20,10 +20,16 @@ env:
   UNITY_VERSION: "2022.2.23f1"
   MIN_TESTS: "120"
   MIN_SANDBOX_TESTS: "120"
-  MIN_CONFORMANCE_TESTS: "0"
-  # TODO(floors from Stage 3.7): the floors above are placeholders; use the counts from the Stage 3.7 evidence.
+  # Not a placeholder: 53 conformance cases + the count guard (EditMode, Sandbox.Conformance.Tests).
+  MIN_CONFORMANCE_TESTS: "54"
+  # TODO(floors from Stage 3.7): MIN_TESTS / MIN_SANDBOX_TESTS are placeholders; use the Stage 3.7 counts.
   # game-ci/unity-test-runner@v4 downloads the game-ci CLI release named here (its default is `latest`).
   GAME_CI_CLI_VERSION: "v0.1.72"
+
+# checks: write lets game-ci's test runner post its results check; without it the step fails after the tests pass.
+permissions:
+  contents: read
+  checks: write
 
 jobs:
   # Package-resolution preflight (no Unity): the nightly's job is to catch environment/dependency drift, and a
@@ -34,21 +40,33 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       unity-licence: ${{ steps.unity-licence.outputs.available }}
+      unity-licence-missing: ${{ steps.unity-licence.outputs.missing }}
     steps:
       # `secrets` is not readable in a job-level `if:`, so the Unity jobs gate on this output. It runs first so the
-      # output is set even when the pin check below fails.
+      # output is set even when the pin check below fails. The accepted sets are the ones unity-builder (goldens, URP
+      # activation) accepts; the test runner accepts a superset. Only secret names are ever printed.
       - name: Detect Unity licence secrets
         id: unity-licence
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_LICENSING_SERVER: ${{ vars.UNITY_LICENSING_SERVER }}
         run: |
-          if [ -n "$UNITY_EMAIL" ] || [ -n "$UNITY_LICENSE" ] || [ -n "$UNITY_SERIAL" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
+          if [ -n "$UNITY_LICENSING_SERVER" ]; then
+            available=true
+          elif [ -n "$UNITY_EMAIL" ] && [ -n "$UNITY_PASSWORD" ] && [ -n "$UNITY_SERIAL$UNITY_LICENSE" ]; then
+            available=true
           else
-            echo "available=false" >> "$GITHUB_OUTPUT"
+            available=false
+            missing=""
+            [ -n "$UNITY_EMAIL" ] || missing="$missing UNITY_EMAIL"
+            [ -n "$UNITY_PASSWORD" ] || missing="$missing UNITY_PASSWORD"
+            [ -n "$UNITY_SERIAL$UNITY_LICENSE" ] || missing="$missing UNITY_SERIAL-or-UNITY_LICENSE"
+            echo "missing=${missing# }" >> "$GITHUB_OUTPUT"
           fi
+          echo "available=$available" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
       - name: Check pinned UnityGLTF fork is reachable + consistent
         run: bash ./Tools/ci/check-package-pin.sh
@@ -61,8 +79,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Fail with the missing-secrets reason
+        env:
+          MISSING: ${{ needs.package-pin-preflight.outputs.unity-licence-missing }}
         run: |
-          echo "::error title=Unity licence missing::None of UNITY_EMAIL, UNITY_LICENSE or UNITY_SERIAL is set, so every Unity job was skipped. Add the secrets for your licence type (docs/ci.md)."
+          echo "::error title=Unity licence missing::Every Unity job was skipped. Missing: ${MISSING}. Set the repository variable UNITY_LICENSING_SERVER, or the secrets UNITY_EMAIL + UNITY_PASSWORD + (UNITY_SERIAL or UNITY_LICENSE); see docs/ci.md."
           exit 1
 
   # Built-in nightly: the same PlayMode suite as the required gate, on a schedule (drift detection). Non-blocking
@@ -72,23 +92,13 @@ jobs:
     needs: package-pin-preflight
     runs-on: ubuntu-24.04
     if: needs.package-pin-preflight.outputs.unity-licence == 'true'
+    timeout-minutes: 60
     concurrency:
       group: unity-licence
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-      # LFS objects come from a cache keyed on the pointer list: this repo is not a fork, so every LFS download is
-      # billed to the owner's quota.
-      - name: Hash the LFS object list
-        id: lfs
-        run: echo "key=lfs-$(git lfs ls-files --long | cut -d' ' -f1 | sort | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
-      - name: Cache LFS objects
-        uses: actions/cache@v4
-        with:
-          path: .git/lfs
-          key: ${{ steps.lfs.outputs.key }}
-      - name: Pull LFS objects
-        run: git lfs pull
+      - uses: ./.github/actions/lfs-pull-cached
       - name: Cache Library
         uses: actions/cache@v4
         with:
@@ -97,12 +107,17 @@ jobs:
           restore-keys: |
             Library-${{ env.UNITY_VERSION }}-builtin-
       - name: Run EditMode + PlayMode tests (game-ci)
-        uses: game-ci/unity-test-runner@v4
+        uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4 (v4.4.0)
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
+          unityLicensingServer: ${{ vars.UNITY_LICENSING_SERVER }}
           testMode: all
+          customParameters: -testCategory !Graphics
           cliVersion: ${{ env.GAME_CI_CLI_VERSION }}
           coverageEnabled: false
           artifactsPath: artifacts/test-results
@@ -134,23 +149,13 @@ jobs:
     if: ${{ !cancelled() && needs.package-pin-preflight.result == 'success' && needs.package-pin-preflight.outputs.unity-licence == 'true' }}
     runs-on: ubuntu-24.04
     continue-on-error: true
+    timeout-minutes: 90
     concurrency:
       group: unity-licence
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-      # LFS objects come from a cache keyed on the pointer list: this repo is not a fork, so every LFS download is
-      # billed to the owner's quota.
-      - name: Hash the LFS object list
-        id: lfs
-        run: echo "key=lfs-$(git lfs ls-files --long | cut -d' ' -f1 | sort | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
-      - name: Cache LFS objects
-        uses: actions/cache@v4
-        with:
-          path: .git/lfs
-          key: ${{ steps.lfs.outputs.key }}
-      - name: Pull LFS objects
-        run: git lfs pull
+      - uses: ./.github/actions/lfs-pull-cached
       - name: Cache Library (URP)
         uses: actions/cache@v4
         with:
@@ -162,21 +167,29 @@ jobs:
       # is used purely as a licensed headless host for the -executeMethod seam (mirrors the golden job); allowDirtyBuild
       # since we don't produce a player. The change is written to disk for the test step to read.
       - name: Activate URP (SandboxCI.ActivateUrp)
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4 (v4.8.2)
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
+          unityLicensingServer: ${{ vars.UNITY_LICENSING_SERVER }}
           targetPlatform: StandaloneLinux64
           buildMethod: Samples.Editor.SandboxCI.ActivateUrp
           allowDirtyBuild: true
       # Step 2: run the PlayMode suite under the now-active URP pipeline (xvfb display, no -nographics).
       - name: Run PlayMode tests under URP (game-ci)
-        uses: game-ci/unity-test-runner@v4
+        uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4 (v4.4.0)
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
+          unityLicensingServer: ${{ vars.UNITY_LICENSING_SERVER }}
           testMode: playmode
           cliVersion: ${{ env.GAME_CI_CLI_VERSION }}
           coverageEnabled: false
