@@ -1,11 +1,12 @@
 # Normative draft integration
 
-This testbed follows `Kjakubzak/glTF-private` `avatar_ext_normative` at
-`314c95c571185776f8624ceb94773ce3b976ad91` (2 November 2026), the payload of KhronosGroup/glTF PR #2512 at
-`7ab5368a`. It pins the UnityGLTF fork at `49bdcc8a` (Kjakubzak/UnityGLTF PR #7), which implements that revision.
+This testbed follows the extension specification in
+[KhronosGroup/glTF#2512](https://github.com/KhronosGroup/glTF/pull/2512) at
+`7ab5368a87d1d303dff33ec5f9aad42752e84c78` (2 November 2026). It pins the UnityGLTF fork at `49bdcc8a`
+(Kjakubzak/UnityGLTF PR #7), which implements that revision.
 The draft remains subject to change. Runtime composition choices are documented host policy.
 
-## Changes for 314c95c5
+## Changes for #2512 @ `7ab5368a`
 
 - **Suppression sums and clamps.** The attenuations of all suppressions that target an expression are summed, the
   sum is clamped to `[0,1]`, and `v[t] = u[t] * (1 - clamp(sum, 0, 1))`. Earlier drafts multiplied one factor per
@@ -40,13 +41,12 @@ not calculate an inverse of the former output projection. Numeric indices preser
 ambiguous legacy string references fail with an error. Animation channels, hierarchy, vendor data and binary
 chunks are preserved. The committed Blender and VRM-origin examples have undergone this migration.
 
-The script also migrates assets to the wire of `avatar_ext_normative` at `314c95c5` (KhronosGroup/glTF PR #2512 at
-`7ab5368a`): a visibility hint's `role` becomes the `roles` array; the visibility hints and `KHR_node_camera_hint` are
-removed from `extensionsRequired`; the made-up `KHR_mesh_annotation*` and `KHR_virtual_transforms` extensions are
-deleted (a first- or third-person-only annotation becomes a `KHR_mesh_primitive_visibility_hint`); and index
-properties written as strings become integers. Its docstring lists every rule. `Tools/ci/make_hero_variants.py`
-normalizes the hero, restores its suppressions and rebuilds its three visibility-hint variants; `--check` verifies the
-committed files.
+The script also migrates assets to the wire of KhronosGroup/glTF#2512 at `7ab5368a`: a visibility hint's `role`
+becomes the `roles` array; the visibility hints and `KHR_node_camera_hint` are removed from `extensionsRequired`; the
+non-standard (unratified) `KHR_mesh_annotation*` and `KHR_virtual_transforms` extensions are deleted (a first- or
+third-person-only annotation becomes a `KHR_mesh_primitive_visibility_hint`); and index properties written as strings
+become integers. Its docstring lists every rule. `Tools/ci/make_hero_variants.py` normalizes the hero, restores its
+suppressions and rebuilds its three visibility-hint variants; `--check` verifies the committed files.
 
 ## Integration cases
 
