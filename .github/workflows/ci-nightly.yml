@@ -20,6 +20,10 @@ env:
   UNITY_VERSION: "2022.2.23f1"
   MIN_TESTS: "120"
   MIN_SANDBOX_TESTS: "120"
+  MIN_CONFORMANCE_TESTS: "0"
+  # TODO(floors from Stage 3.7): the floors above are placeholders; use the counts from the Stage 3.7 evidence.
+  # game-ci/unity-test-runner@v4 downloads the game-ci CLI release named here (its default is `latest`).
+  GAME_CI_CLI_VERSION: "v0.1.72"
 
 jobs:
   # Package-resolution preflight (no Unity): the nightly's job is to catch environment/dependency drift, and a
@@ -28,21 +32,63 @@ jobs:
   package-pin-preflight:
     name: Package pin preflight
     runs-on: ubuntu-latest
+    outputs:
+      unity-licence: ${{ steps.unity-licence.outputs.available }}
     steps:
+      # `secrets` is not readable in a job-level `if:`, so the Unity jobs gate on this output. It runs first so the
+      # output is set even when the pin check below fails.
+      - name: Detect Unity licence secrets
+        id: unity-licence
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        run: |
+          if [ -n "$UNITY_EMAIL" ] || [ -n "$UNITY_LICENSE" ] || [ -n "$UNITY_SERIAL" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
       - name: Check pinned UnityGLTF fork is reachable + consistent
         run: bash ./Tools/ci/check-package-pin.sh
+
+  # Without licence secrets the Unity jobs are skipped (not failed); this one check carries the red.
+  unity-licence-missing:
+    name: Unity licence missing
+    needs: package-pin-preflight
+    if: ${{ !cancelled() && needs.package-pin-preflight.outputs.unity-licence == 'false' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fail with the missing-secrets reason
+        run: |
+          echo "::error title=Unity licence missing::None of UNITY_EMAIL, UNITY_LICENSE or UNITY_SERIAL is set, so every Unity job was skipped. Add the secrets for your licence type (docs/ci.md)."
+          exit 1
 
   # Built-in nightly: the same PlayMode suite as the required gate, on a schedule (drift detection). Non-blocking
   # by virtue of being a scheduled workflow that no branch protection depends on.
   nightly-builtin:
     name: Nightly tests (Built-in)
     needs: package-pin-preflight
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    if: needs.package-pin-preflight.outputs.unity-licence == 'true'
+    concurrency:
+      group: unity-licence
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+      # LFS objects come from a cache keyed on the pointer list: this repo is not a fork, so every LFS download is
+      # billed to the owner's quota.
+      - name: Hash the LFS object list
+        id: lfs
+        run: echo "key=lfs-$(git lfs ls-files --long | cut -d' ' -f1 | sort | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Cache LFS objects
+        uses: actions/cache@v4
         with:
-          lfs: true
+          path: .git/lfs
+          key: ${{ steps.lfs.outputs.key }}
+      - name: Pull LFS objects
+        run: git lfs pull
       - name: Cache Library
         uses: actions/cache@v4
         with:
@@ -50,32 +96,23 @@ jobs:
           key: Library-${{ env.UNITY_VERSION }}-builtin-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: |
             Library-${{ env.UNITY_VERSION }}-builtin-
-      - name: Run PlayMode tests (game-ci)
+      - name: Run EditMode + PlayMode tests (game-ci)
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
-          testMode: playmode
+          testMode: all
+          cliVersion: ${{ env.GAME_CI_CLI_VERSION }}
+          coverageEnabled: false
           artifactsPath: artifacts/test-results
           githubToken: ${{ secrets.GITHUB_TOKEN }}
       - name: Enforce test gate + floor
         if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          xml="$(find artifacts/test-results -name '*.xml' | head -n1 || true)"
-          if [ -z "$xml" ]; then echo "Nightly FAILED: no results XML (hang/crash)."; exit 1; fi
-          attr() { tr '\n' ' ' < "$xml" | sed -n 's/.*<test-run[^>]*[[:space:]]'"$1"'="\([0-9]*\)".*/\1/p' | head -n1; }
-          total="$(attr total)"; failed="$(attr failed)"; inc="$(attr inconclusive)"; sk="$(attr skipped)"
-          total="${total:-0}"; failed="${failed:-0}"; inc="${inc:-0}"; sk="${sk:-0}"
-          sandbox="$(tr '\n' ' ' < "$xml" | grep -o '<test-case[^>]*classname="KhrCharacterTestbed[^"]*"' | wc -l | tr -d '[:space:]' || true)"
-          sandbox="${sandbox:-0}"
-          echo "total=$total failed=$failed inconclusive=$inc skipped=$sk sandbox=$sandbox (floor=${MIN_TESTS}, sandbox-floor=${MIN_SANDBOX_TESTS})"
-          if [ "$failed" != "0" ] || [ "$inc" != "0" ] || [ "$sk" != "0" ]; then echo "Nightly FAILED: tests not green."; exit 1; fi
-          if [ "$total" -lt "$MIN_TESTS" ]; then echo "Nightly FAILED (floor): ran $total, need >= ${MIN_TESTS}."; exit 1; fi
-          if [ "$sandbox" -lt "$MIN_SANDBOX_TESTS" ]; then echo "Nightly FAILED (sandbox sub-floor): ran $sandbox."; exit 1; fi
-          echo "Nightly (Built-in) PASS."
+        run: >-
+          python3 Tools/ci/check-test-results.py --results-dir artifacts/test-results --modes editmode,playmode
+          --min-total "$MIN_TESTS" --min-sandbox "$MIN_SANDBOX_TESTS" --min-conformance "$MIN_CONFORMANCE_TESTS"
+          --label "Nightly (Built-in)"
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,13 +128,29 @@ jobs:
   # URP shader-clean boot. The committed project default stays Built-in (this activation is per-run / ephemeral).
   nightly-urp:
     name: Nightly tests (URP)
-    needs: package-pin-preflight
-    runs-on: ubuntu-latest
+    # Chained after the Built-in cell (and runs even when it fails) so only one Unity job per run waits on the
+    # `unity-licence` group: GitHub cancels a second pending job in a group.
+    needs: [package-pin-preflight, nightly-builtin]
+    if: ${{ !cancelled() && needs.package-pin-preflight.result == 'success' && needs.package-pin-preflight.outputs.unity-licence == 'true' }}
+    runs-on: ubuntu-24.04
     continue-on-error: true
+    concurrency:
+      group: unity-licence
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+      # LFS objects come from a cache keyed on the pointer list: this repo is not a fork, so every LFS download is
+      # billed to the owner's quota.
+      - name: Hash the LFS object list
+        id: lfs
+        run: echo "key=lfs-$(git lfs ls-files --long | cut -d' ' -f1 | sort | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Cache LFS objects
+        uses: actions/cache@v4
         with:
-          lfs: true
+          path: .git/lfs
+          key: ${{ steps.lfs.outputs.key }}
+      - name: Pull LFS objects
+        run: git lfs pull
       - name: Cache Library (URP)
         uses: actions/cache@v4
         with:
@@ -125,6 +178,8 @@ jobs:
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
           testMode: playmode
+          cliVersion: ${{ env.GAME_CI_CLI_VERSION }}
+          coverageEnabled: false
           artifactsPath: artifacts/test-results-urp
           githubToken: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload URP test results
