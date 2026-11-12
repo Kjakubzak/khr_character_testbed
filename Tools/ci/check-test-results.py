@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""GATE 2 for CI: sums every NUnit results XML under a directory and enforces the floors.
+"""GATE 2 for CI: sums the NUnit results XMLs in one directory and enforces the floors.
 
 game-ci's `testMode: all` writes one `<mode>-results.xml` per mode, so reading a single file would gate on
-half the run. The counts are summed over every XML whose root is `<test-run>`.
+half the run. The counts are summed over every top-level `*.xml` whose root is `<test-run>`; subdirectories
+are not read, so a stray nested copy cannot be counted twice.
 
 Usage: check-test-results.py --results-dir DIR [--modes editmode,playmode] [--min-total N]
-                             [--min-sandbox N] [--min-conformance N] [--label TEXT]
+                             [--min-sandbox N] [--min-conformance N] [--min-plugin-only N] [--label TEXT]
 Exit 0 = pass. Fails when a listed mode has no results file, when failed/inconclusive/skipped is non-zero,
 or when a floor is not met.
 """
@@ -16,11 +17,27 @@ import sys
 import xml.etree.ElementTree as ET
 
 COUNTS = ("total", "passed", "failed", "inconclusive", "skipped")
-# Sub-floors: (name, test-case attribute, prefix).
-GROUPS = (
+# Sub-floors matched on a test-case attribute: (name, attribute, prefix).
+PREFIX_GROUPS = (
     ("sandbox", "classname", "KhrCharacterTestbed"),
-    ("conformance", "fullname", "KhrCharacterTestbed.Conformance"),
+    ("conformance", "fullname", "KhrCharacterTestbed.Conformance."),
 )
+TESTBED_ASSEMBLY_PREFIX = "Sandbox."
+
+
+def count(root: ET.Element) -> dict:
+    row = {k: int(root.get(k, "0") or 0) for k in COUNTS}
+    cases = list(root.iter("test-case"))
+    for name, attr, prefix in PREFIX_GROUPS:
+        row[name] = sum(1 for c in cases if c.get(attr, "").startswith(prefix))
+    # plugin-only: test cases in assemblies that are not the testbed's own.
+    row["plugin-only"] = sum(
+        sum(1 for _ in s.iter("test-case"))
+        for s in root.iter("test-suite")
+        if s.get("type") == "Assembly"
+        and not s.get("name", "").startswith(TESTBED_ASSEMBLY_PREFIX)
+    )
+    return row
 
 
 def main() -> int:
@@ -34,15 +51,20 @@ def main() -> int:
     ap.add_argument("--min-total", type=int, default=0)
     ap.add_argument("--min-sandbox", type=int, default=0)
     ap.add_argument("--min-conformance", type=int, default=0)
+    ap.add_argument("--min-plugin-only", type=int, default=0)
     ap.add_argument("--label", default="GATE 2")
     a = ap.parse_args()
-    floors = {"sandbox": a.min_sandbox, "conformance": a.min_conformance}
+    floors = {
+        "sandbox": a.min_sandbox,
+        "conformance": a.min_conformance,
+        "plugin-only": a.min_plugin_only,
+    }
 
     def fail(msg: str) -> int:
         print(f"::error title={a.label} failed::{msg}")
         return 1
 
-    files = sorted(a.results_dir.rglob("*.xml")) if a.results_dir.is_dir() else []
+    files = sorted(a.results_dir.glob("*.xml")) if a.results_dir.is_dir() else []
     missing = [
         m
         for m in filter(None, a.modes.split(","))
@@ -50,10 +72,10 @@ def main() -> int:
     ]
     if missing:
         return fail(
-            f"no results XML for mode(s) {', '.join(missing)} under {a.results_dir} (hang/crash?)"
+            f"no results XML for mode(s) {', '.join(missing)} in {a.results_dir} (hang/crash?)"
         )
 
-    sums = dict.fromkeys(COUNTS + tuple(g[0] for g in GROUPS), 0)
+    sums = dict.fromkeys(COUNTS + tuple(floors), 0)
     runs = 0
     for f in files:
         try:
@@ -64,15 +86,12 @@ def main() -> int:
             print(f"skip {f}: root is <{root.tag}>, not <test-run>")
             continue
         runs += 1
-        row = {k: int(root.get(k, "0") or 0) for k in COUNTS}
-        cases = list(root.iter("test-case"))
-        for name, attr, prefix in GROUPS:
-            row[name] = sum(1 for c in cases if c.get(attr, "").startswith(prefix))
+        row = count(root)
         print(f"{f}: " + " ".join(f"{k}={v}" for k, v in row.items()))
         for k, v in row.items():
             sums[k] += v
     if runs == 0:
-        return fail(f"no <test-run> results XML under {a.results_dir} (hang/crash?)")
+        return fail(f"no <test-run> results XML in {a.results_dir} (hang/crash?)")
 
     print(
         f"SUM over {runs} file(s): "
