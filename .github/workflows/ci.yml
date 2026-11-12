@@ -80,8 +80,10 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_LICENSING_SERVER: ${{ vars.UNITY_LICENSING_SERVER }}
+          # Fork PRs get no secrets but do get repository variables; never hand them the floating licence.
+          FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
         run: |
-          if [ -n "$UNITY_LICENSING_SERVER" ]; then
+          if [ "$FORK_PR" != "true" ] && [ -n "$UNITY_LICENSING_SERVER" ]; then
             available=true
           elif [ -n "$UNITY_EMAIL" ] && [ -n "$UNITY_PASSWORD" ] && [ -n "$UNITY_SERIAL$UNITY_LICENSE" ]; then
             available=true
@@ -91,6 +93,7 @@ jobs:
             [ -n "$UNITY_EMAIL" ] || missing="$missing UNITY_EMAIL"
             [ -n "$UNITY_PASSWORD" ] || missing="$missing UNITY_PASSWORD"
             [ -n "$UNITY_SERIAL$UNITY_LICENSE" ] || missing="$missing UNITY_SERIAL-or-UNITY_LICENSE"
+            [ "$FORK_PR" != "true" ] || missing="$missing (fork PR: the licensing server is never used)"
             echo "missing=${missing# }" >> "$GITHUB_OUTPUT"
           fi
           echo "available=$available" >> "$GITHUB_OUTPUT"

@@ -17,4 +17,7 @@ runs:
         restore-keys: lfs-
     - name: Pull LFS objects
       shell: bash
-      run: git lfs pull
+      # prune drops objects a restore-keys hit carried over, so the saved cache stays at this commit's set.
+      run: |
+        git lfs pull
+        git lfs prune

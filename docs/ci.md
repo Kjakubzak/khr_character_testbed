@@ -173,7 +173,8 @@ The Unity jobs run only when one of these credential sets exists; otherwise they
 **Unity licence missing** check fails, naming the missing secrets (never their values):
 
 - the repository **variable** `UNITY_LICENSING_SERVER` (a floating-licence server URL, which GitHub-hosted runners
-  must be able to reach);
+  must be able to reach). Pull requests from forks never use it, because GitHub passes variables, though not
+  secrets, to fork runs;
 - secrets `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_SERIAL` (Professional);
 - secrets `UNITY_EMAIL` + `UNITY_PASSWORD` + `UNITY_LICENSE` (the `.ulf` contents).
 
