@@ -7,7 +7,7 @@ Run it after replacing or re-normalizing ``khr-character-example.glb`` (Git LFS;
 
 1. normalizes the base hero in place with ``normalize-character-fixtures.py`` and restores its
    suppressions when they are missing (see ``HERO_SUPPRESSIONS``), so its wire matches the normative
-   draft at glTF-private 314c95c5 (KhronosGroup/glTF PR #2512 at 7ab5368a);
+   draft in KhronosGroup/glTF#2512 at 7ab5368a (glTF-private 314c95c5 carries the same payload);
 2. writes the three variants next to it. Each starts from the normalized base with the base's
    primitive hints removed, then adds one example:
 
@@ -46,7 +46,7 @@ SUPPRESSION = normalize.SUPPRESSION
 
 # The base hero lost its suppressions in an earlier normalization. These are the masks of the
 # three.js testbed hero (0b5vr/khr-character-testbed, viewer/src/assets/khr-character-example.glb),
-# which its converter derived from the VRM overrideMouth settings ("blend"), translated to the
+# which its converter adapted from the VRM overrideMouth settings ("blend"), translated to the
 # current suppression shape: target by expression name, blend amount, no name echo, no threshold.
 # happy and surprised overlap on aa/ou/oh, so the sum-and-clamp rule matters here.
 HERO_SUPPRESSIONS = {

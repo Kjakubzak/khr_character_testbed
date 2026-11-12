@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Normalize character GLBs written by older exporters to the KHR_character wire format of the
-normative draft at glTF-private 314c95c5 (public KhronosGroup/glTF PR #2512 at 7ab5368a).
+normative draft in KhronosGroup/glTF#2512 at 7ab5368a (glTF-private 314c95c5 carries the same payload).
 
 Only the GLB JSON chunk is rewritten (padded to 4 bytes with spaces); every other chunk is copied
 byte for byte, and a file that needs no change is not written. The rewrite is idempotent, so the
