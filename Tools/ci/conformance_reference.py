@@ -5,7 +5,7 @@ Usage: python3 Tools/ci/conformance_reference.py [FIXTURE_DIR ...]
 
 For every Tools/fixtures/conformance/<NAME>/expected.json (or the directories given), this loads the
 fixture's .gltf, computes each case's outputs from the asset data alone, following the normative
-draft at glTF-private 314c95c5 (KhronosGroup/glTF PR #2512 at 7ab5368a), and compares them with the
+draft in KhronosGroup/glTF#2512 at 7ab5368a, and compares them with the
 hand-written expected values. It exits non-zero on any disagreement.
 
 It is a reference for the spec's arithmetic, not a renderer or an importer: it decodes accessors,

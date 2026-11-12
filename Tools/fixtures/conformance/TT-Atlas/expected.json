@@ -3,10 +3,11 @@
   "asset": "TT-Atlas.gltf",
   "license": "CC0-1.0",
   "spec": {
-    "repository": "Kjakubzak/glTF-private",
-    "branch": "avatar_ext_normative",
-    "commit": "314c95c571185776f8624ceb94773ce3b976ad91",
-    "public": "KhronosGroup/glTF#2512 at 7ab5368a87d1d303dff33ec5f9aad42752e84c78"
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91"
   },
   "kind": "expression",
   "summary": "Texture-transform offset and rotation are additive (rotation on raw radians, never wrapped); scale SHOULD be additive.",

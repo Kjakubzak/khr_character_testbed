@@ -4,8 +4,8 @@
 Usage: python3 Tools/ci/generate-conformance-fixtures.py [--check]
 
 Each fixture is one self-contained .gltf (buffers and images embedded as data URIs) plus an
-expected.json that states the inputs and the outputs the normative draft at glTF-private 314c95c5
-(KhronosGroup/glTF PR #2512 at 7ab5368a) requires (MUST) or recommends (SHOULD). The expected values
+expected.json that states the inputs and the outputs the normative draft in KhronosGroup/glTF#2512
+at 7ab5368a requires (MUST) or recommends (SHOULD). The expected values
 are written out by hand below from the spec text; Tools/ci/conformance_reference.py recomputes them
 from the .gltf files independently. Fixtures in invalid/ must be rejected by a validator for the
 reason listed in invalid/expected.json. Everything here is procedurally generated and CC0-1.0.
@@ -25,10 +25,11 @@ import zlib
 REPO = pathlib.Path(__file__).resolve().parents[2]
 OUT = REPO / "Tools" / "fixtures" / "conformance"
 SPEC = {
-    "repository": "Kjakubzak/glTF-private",
-    "branch": "avatar_ext_normative",
-    "commit": "314c95c571185776f8624ceb94773ce3b976ad91",
-    "public": "KhronosGroup/glTF#2512 at 7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91",
 }
 GENERATOR = "khr_character_testbed conformance fixtures (Tools/ci/generate-conformance-fixtures.py)"
 

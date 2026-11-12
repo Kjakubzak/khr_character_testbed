@@ -6,8 +6,8 @@ Usage:
   python3 Tools/ci/validate-character-json.py --spec SPEC_ROOT FILE...
   python3 Tools/ci/validate-character-json.py --spec SPEC_ROOT --expect-invalid MANIFEST
 
-SPEC_ROOT is a checkout of the glTF repository at the targeted draft (glTF-private 314c95c5, or the
-identical extension payload of KhronosGroup/glTF PR #2512 at 7ab5368a) containing
+SPEC_ROOT is a checkout of the glTF repository at the targeted draft (KhronosGroup/glTF#2512 at
+7ab5368a; glTF-private 314c95c5 carries the same extension payload) containing
 specification/2.0/schema and extensions/2.0/Khronos. --expect-invalid reads a manifest such as
 Tools/fixtures/conformance/invalid/expected.json and requires every listed file to fail with only
 the listed error codes.
