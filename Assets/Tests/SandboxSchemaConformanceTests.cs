@@ -88,14 +88,18 @@ namespace KhrCharacterTestbed.Tests
                 return e;
             }
 
-            // A suppression object has only target, type, amount and threshold; any other member, such as a legacy
-            // name, is ignored. A threshold on a blend or omitted type is a warning, never an error.
+            // A suppression object has target, an optional name (a label for the suppression itself, never compared
+            // with the target's name), type, amount and threshold. A threshold on a blend or omitted type is a
+            // warning, never an error.
             public static List<string> Suppression(JObject suppression, List<string> warnings = null)
             {
                 var e = new List<string>();
                 var target = suppression["target"];
                 if (target == null || target.Type != JTokenType.Integer || (int)target < 0)
                     e.Add("suppression.target is required (integer >= 0).");
+                var name = suppression["name"];
+                if (name != null && name.Type != JTokenType.String)
+                    e.Add("suppression.name must be a string.");
                 var type = suppression["type"];
                 string value = null;
                 if (type != null)
@@ -365,7 +369,7 @@ namespace KhrCharacterTestbed.Tests
         public void Suppression_VendorShapedCustomType_Accepted()
             => Assert.IsEmpty(KhrSchemaCheck.Suppression(
                     new JObject { ["target"] = 0, ["type"] = "ACME_expression_suppression_curve", ["amount"] = 0.1, ["threshold"] = 0.3 }),
-                "a vendor-shaped custom token is valid without a companion extension; it then has factor 1.");
+                "a vendor-shaped custom token is valid without a companion extension; it then contributes no attenuation.");
 
         [Test]
         public void Suppression_Valid_Accepted()
@@ -389,15 +393,17 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [Test]
-        public void Suppression_NameIsIgnored()
+        public void Suppression_OptionalNameIsALabelOnly()
         {
             var report = CheckWire(ExpressionAsset(@"[
                 { 'name': 'smile', 'animation': 0 },
                 { 'name': 'frown', 'animation': 0, 'extensions': { 'KHR_character_expression_suppression': {
                     'suppressions': [ { 'target': 0, 'name': 'not-smile' } ] } } } ]",
                 Animation("{ 'node': 0, 'path': 'translation' }")));
-            Assert.IsEmpty(report.Errors, "a suppression name is not a defined member and is never compared.");
+            Assert.IsEmpty(report.Errors, "a suppression may carry a name; it is never compared with the target's name.");
             Assert.AreEqual(1, report.Suppression);
+            Assert.IsNotEmpty(KhrSchemaCheck.Suppression(new JObject { ["target"] = 0, ["name"] = 3 }),
+                "a non-string suppression name must be rejected.");
         }
 
         [Test]

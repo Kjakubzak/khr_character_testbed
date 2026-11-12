@@ -15,17 +15,18 @@ namespace KhrCharacterTestbed.Tests
     /// <list type="bullet">
     /// <item>Node hints replace all material slots only within a view where their predicate is false.</item>
     /// <item>The primitive hint replaces only the targeted faceplate slot.</item>
-    /// <item>A view's tag set decides the standard roles: an untagged view shows only <c>always</c> and un-hinted
-    /// content; custom or differently cased roles are hidden unless the host supports them.</item>
+    /// <item>The application's role logic decides which roles apply (spec 314c95c5): with no logic nothing is hidden;
+    /// custom or differently cased roles are ignored unless the application recognizes them.</item>
     /// <item>Disposing each scope restores every authored material and never toggles Renderer.enabled.</item>
     /// </list>
     /// </summary>
     public class VisibilityHintsFigureToggleTests
     {
-        private static readonly string[] Untagged = new string[0];
-        private static readonly string[] ThirdPerson = { "third_person" };
-        private static readonly string[] FirstPerson = { "first_person" };
-        private static readonly string[] BothTags = { "first_person", "third_person" };
+        private static readonly VisibilityRoleContext NoLogic = VisibilityRoleContext.NoLogic;
+        private static readonly VisibilityRoleContext ThirdPerson = FirstPersonRolePolicy.OtherView;
+        private static readonly VisibilityRoleContext FirstPerson = FirstPersonRolePolicy.FirstPersonView;
+        private static readonly VisibilityRoleContext BothApply =
+            new VisibilityRoleContext(new[] { "first_person", "third_person" }, null);
 
         private GameObject _figure;
         private ScopedMaterialVisibilityAdapter _adapter;
@@ -39,7 +40,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [Test]
-        public void SampleFigure_ScopesNodeAndPrimitiveHintsByViewTags()
+        public void SampleFigure_ScopesNodeAndPrimitiveHintsByRoleLogic()
         {
             BuildFigure();
             var head = RendererFor("Head");    // node hint: third_person
@@ -84,26 +85,30 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [Test]
-        public void SampleFigure_UntaggedViewShowsOnlyUnhintedAndAlwaysContent()
+        public void SampleFigure_NoRoleLogicShowsEverything()
         {
             BuildFigure();
             var head = RendererFor("Head");
             var arms = RendererFor("Arms");
+            var status = RendererFor("Status");
             var mask = RendererFor("Mask");
             var torso = RendererFor("Torso");
 
-            using (_adapter.ApplyForView(new[] { head, arms, mask, torso }, Untagged, CoreVisible))
+            using (_adapter.ApplyForView(new[] { head, arms, status, mask, torso }, NoLogic, CoreVisible))
             {
-                Assert.IsTrue(Hidden(head), "third_person Head needs a third_person view tag.");
-                Assert.IsTrue(Hidden(arms), "first_person Arms need a first_person view tag.");
-                Assert.IsTrue(Hidden(mask, 1), "the third_person Mask shell needs a third_person view tag.");
-                Assert.IsFalse(Hidden(mask, 0), "the unhinted Mask strap renders in every view.");
-                Assert.IsFalse(Hidden(torso), "the unhinted Torso renders in every view.");
+                Assert.IsFalse(Hidden(head), "with no role logic, third_person applies in every view.");
+                Assert.IsFalse(Hidden(arms), "with no role logic, first_person applies in every view.");
+                Assert.IsFalse(Hidden(status), "with no role logic, the Status hint imposes no restriction.");
+                Assert.IsFalse(Hidden(mask, 1));
+                Assert.IsFalse(Hidden(mask, 0));
+                Assert.IsFalse(Hidden(torso));
             }
+            Assert.AreSame(NoLogic, _figure.GetComponent<ViewContextController>().DefaultRoles,
+                "the figure starts with no role logic");
         }
 
         [Test]
-        public void SampleFigure_ViewWithBothTagsShowsEverything()
+        public void SampleFigure_ViewWhereBothRolesApplyShowsEverything()
         {
             BuildFigure();
             var head = RendererFor("Head");
@@ -111,7 +116,7 @@ namespace KhrCharacterTestbed.Tests
             var mask = RendererFor("Mask");
             var torso = RendererFor("Torso");
 
-            using (_adapter.ApplyForView(new[] { head, arms, mask, torso }, BothTags, CoreVisible))
+            using (_adapter.ApplyForView(new[] { head, arms, mask, torso }, BothApply, CoreVisible))
             {
                 Assert.IsFalse(Hidden(head));
                 Assert.IsFalse(Hidden(arms));
@@ -122,28 +127,54 @@ namespace KhrCharacterTestbed.Tests
         }
 
         [Test]
-        public void SampleFigure_CustomRolesAreHiddenInEveryStandardView()
+        public void SampleFigure_StatusFollowsTheSpecificationExample()
+        {
+            // The KHR_node_visibility_hint example: roles [first_person, ACME_mirror_only] is drawn in the user's own
+            // eye view and in mirrors, not in spectator views, and everywhere for a host with no logic.
+            BuildFigure();
+            var status = RendererFor("Status");
+            var expected = new[] { true, true, false, true }; // No logic, First-person, Spectator, Mirror
+            Assert.AreEqual(expected.Length, VisibilityHintsController.RoleChoices.Length);
+            for (int i = 0; i < expected.Length; i++)
+                using (_adapter.ApplyForView(new[] { status }, VisibilityHintsController.RoleChoices[i].Roles, CoreVisible))
+                    Assert.AreEqual(expected[i], !Hidden(status), VisibilityHintsController.RoleChoices[i].Label);
+
+            var head = RendererFor("Head");
+            var arms = RendererFor("Arms");
+            var mirror = VisibilityHintsController.RoleChoices[3].Roles;
+            using (_adapter.ApplyForView(new[] { head, arms }, mirror, CoreVisible))
+            {
+                Assert.IsFalse(Hidden(head), "third_person applies in the mirror view.");
+                Assert.IsTrue(Hidden(arms), "first_person does not apply in the mirror view.");
+            }
+        }
+
+        [Test]
+        public void SampleFigure_UnrecognizedCustomRolesImposeNoRestriction()
         {
             BuildFigure();
             var mirrorOnly = AddHintedPart("MirrorDetail", "ACME_mirror_only");
             var cased = AddHintedPart("CasedDetail", "First_Person");
             var renderers = new[] { mirrorOnly, cased };
 
-            foreach (var tags in new[] { Untagged, ThirdPerson, FirstPerson, BothTags })
-                using (_adapter.ApplyForView(renderers, tags, CoreVisible))
+            // Spec 314c95c5 (#256): a host ignores custom roles it does not recognize, so a hint with no recognized
+            // role imposes no restriction. (Before, such content was hidden in every view.)
+            foreach (var roles in new[] { NoLogic, ThirdPerson, FirstPerson, BothApply })
+                using (_adapter.ApplyForView(renderers, roles, CoreVisible))
                 {
-                    string viewName = $"{{{string.Join(", ", tags)}}}";
-                    Assert.IsTrue(Hidden(mirrorOnly), $"the unsupported custom role ACME_mirror_only must be hidden in {viewName}.");
-                    Assert.IsTrue(Hidden(cased), $"'First_Person' is a custom role, not first_person, and must be hidden in {viewName}.");
+                    string viewName = $"{{{string.Join(", ", roles.AppliedRoles)}}}";
+                    Assert.IsFalse(Hidden(mirrorOnly), $"the unrecognized custom role ACME_mirror_only must not hide content in {viewName}.");
+                    Assert.IsFalse(Hidden(cased), $"'First_Person' is an unrecognized custom role, not first_person, in {viewName}.");
                 }
 
-            // The application may choose to render content whose role it does not support.
-            _figure.GetComponent<ViewContextController>().RenderUnsupportedRoles = true;
-            using (_adapter.ApplyForView(renderers, ThirdPerson, CoreVisible))
+            // An application that recognizes ACME_mirror_only shows it only where it applies.
+            using (_adapter.ApplyForView(renderers, FirstPersonRolePolicy.ForView(false, null, new[] { "ACME_mirror_only" }), CoreVisible))
             {
-                Assert.IsFalse(Hidden(mirrorOnly));
+                Assert.IsTrue(Hidden(mirrorOnly));
                 Assert.IsFalse(Hidden(cased));
             }
+            using (_adapter.ApplyForView(renderers, FirstPersonRolePolicy.ForView(false, new[] { "ACME_mirror_only" }), CoreVisible))
+                Assert.IsFalse(Hidden(mirrorOnly));
         }
 
         private void BuildFigure()
@@ -170,7 +201,7 @@ namespace KhrCharacterTestbed.Tests
             var hints = _figure.GetComponent<NodeVisibilityHintSet>();
             var entries = new List<NodeVisibilityHintSet.NodeVisibilityEntry>(hints.Entries)
             {
-                new NodeVisibilityHintSet.NodeVisibilityEntry { Node = part.transform, Role = role },
+                new NodeVisibilityHintSet.NodeVisibilityEntry { Node = part.transform, Roles = new[] { role } },
             };
             hints.Bind(entries);
             return renderer;

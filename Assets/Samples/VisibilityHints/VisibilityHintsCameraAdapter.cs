@@ -7,10 +7,10 @@ using UnityGLTF.VisibilityHints;
 namespace Samples.VisibilityHints
 {
     /// <summary>
-    /// Optional sample host that realizes passive visibility predicates for one camera's render scope, using the view
-    /// tags of the <see cref="ViewContextController"/>. Hint-hidden content gets the no-draw material, so it adds no
+    /// Optional sample host that realizes passive visibility predicates for one camera's render scope, using the
+    /// default role logic of the <see cref="ViewContextController"/>. Hint-hidden content gets the no-draw material, so it adds no
     /// color or depth to that view, and every material is restored immediately after the camera renders;
-    /// other cameras may use different tags for the same character instance. The host's shadow, reflection and lighting
+    /// other cameras may use different role logic for the same character instance. The host's shadow, reflection and lighting
     /// policy is independent of the hint predicate. This sample keeps lights enabled; its figure has none.
     /// </summary>
     [DisallowMultipleComponent]
@@ -67,7 +67,7 @@ namespace Samples.VisibilityHints
             if (_materials == null || _materials.NoDrawMaterial == null) return;
             _scope = _materials.ApplyForView(
                 _renderers,
-                _view != null ? _view.DefaultViewTags : Array.Empty<string>(),
+                _view != null ? _view.DefaultRoles : VisibilityRoleContext.NoLogic,
                 IsCoreVisible);
             _scopeCamera = camera;
         }

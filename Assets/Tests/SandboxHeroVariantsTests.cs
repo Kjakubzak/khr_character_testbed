@@ -133,10 +133,10 @@ namespace KhrCharacterTestbed.Tests
             }
 
             var nodeHints = load.Current.GetComponent<NodeVisibilityHintSet>();
-            CollectionAssert.AreEquivalent(fx.NodeRoles, ImportedRoles(nodeHints?.Entries, e => e.Role),
+            CollectionAssert.AreEquivalent(fx.NodeRoles, ImportedRoles(nodeHints?.Entries, e => e.Roles),
                 $"{key}: imported node visibility roles.");
             var primitiveHints = load.Current.GetComponent<PrimitiveVisibilityHintSet>();
-            CollectionAssert.AreEquivalent(fx.PrimitiveRoles, ImportedRoles(primitiveHints?.Entries, e => e.Role),
+            CollectionAssert.AreEquivalent(fx.PrimitiveRoles, ImportedRoles(primitiveHints?.Entries, e => e.Roles),
                 $"{key}: imported primitive visibility roles.");
         }
 
@@ -150,15 +150,16 @@ namespace KhrCharacterTestbed.Tests
             var root = JObject.Parse(json);
 
             // Roles compare exactly: a differently spelled or cased token (for example "third_person_only" or
-            // "First_Person") is a custom role that a consumer hides by default, not a standard one.
+            // "First_Person") is a custom role that a consumer ignores unless it recognizes it, not a standard one.
+            // Spec 314c95c5 (#256): every hint carries a "roles" array and none carries the retired single "role".
             var nodeRoles = new List<string>();
             foreach (var node in (root["nodes"] as JArray) ?? new JArray())
-                if (node?["extensions"]?["KHR_node_visibility_hint"]?["role"] is JValue role) nodeRoles.Add((string)role);
+                if (node?["extensions"]?["KHR_node_visibility_hint"] is JObject hint) AddRoles(hint, nodeRoles, key);
             var primitiveRoles = new List<string>();
             foreach (var mesh in (root["meshes"] as JArray) ?? new JArray())
                 foreach (var primitive in (mesh?["primitives"] as JArray) ?? new JArray())
-                    if (primitive?["extensions"]?["KHR_mesh_primitive_visibility_hint"]?["role"] is JValue role)
-                        primitiveRoles.Add((string)role);
+                    if (primitive?["extensions"]?["KHR_mesh_primitive_visibility_hint"] is JObject hint)
+                        AddRoles(hint, primitiveRoles, key);
 
             CollectionAssert.AreEquivalent(fx.NodeRoles, Distinct(nodeRoles), $"{key}: KHR_node_visibility_hint roles.");
             CollectionAssert.AreEquivalent(fx.PrimitiveRoles, Distinct(primitiveRoles),
@@ -166,15 +167,28 @@ namespace KhrCharacterTestbed.Tests
             var used = root["extensionsUsed"]?.ToObject<string[]>() ?? new string[0];
             if (fx.NodeRoles.Length > 0) CollectionAssert.Contains(used, "KHR_node_visibility_hint");
             if (fx.PrimitiveRoles.Length > 0) CollectionAssert.Contains(used, "KHR_mesh_primitive_visibility_hint");
+            var required = root["extensionsRequired"]?.ToObject<string[]>() ?? new string[0];
+            CollectionAssert.DoesNotContain(required, "KHR_node_visibility_hint", $"{key}: hints must not be required.");
+            CollectionAssert.DoesNotContain(required, "KHR_mesh_primitive_visibility_hint",
+                $"{key}: hints must not be required.");
         }
 
-        private static List<string> ImportedRoles<T>(IReadOnlyList<T> entries, System.Func<T, string> role)
+        private static void AddRoles(JObject hint, List<string> roles, string key)
         {
-            var roles = new List<string>();
+            Assert.IsNull(hint["role"], $"{key}: the retired single 'role' must not be written.");
+            var array = hint["roles"] as JArray;
+            Assert.IsNotNull(array, $"{key}: a visibility hint must carry a 'roles' array.");
+            Assert.Greater(array.Count, 0, $"{key}: 'roles' must not be empty.");
+            foreach (var role in array) roles.Add((string)role);
+        }
+
+        private static List<string> ImportedRoles<T>(IReadOnlyList<T> entries, System.Func<T, string[]> roles)
+        {
+            var all = new List<string>();
             if (entries != null)
                 foreach (var entry in entries)
-                    if (entry != null) roles.Add(role(entry));
-            return Distinct(roles);
+                    if (entry != null && roles(entry) != null) all.AddRange(roles(entry));
+            return Distinct(all);
         }
 
         private static List<string> Distinct(List<string> values)
