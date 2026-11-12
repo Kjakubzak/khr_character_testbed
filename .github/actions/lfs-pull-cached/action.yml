@@ -1,0 +1,23 @@
+# This repo is not a fork, so every LFS download is billed to the owner's quota. Run after actions/checkout
+# (without `lfs: true`).
+name: Pull LFS objects through the cache
+description: Restores .git/lfs from actions/cache, keyed on the LFS pointer list, then runs git lfs pull.
+runs:
+  using: composite
+  steps:
+    - name: Hash the LFS object list
+      id: lfs
+      shell: bash
+      run: echo "key=lfs-$(git lfs ls-files --long | cut -d' ' -f1 | sort | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+    - name: Cache LFS objects
+      uses: actions/cache@v4
+      with:
+        path: .git/lfs
+        key: ${{ steps.lfs.outputs.key }}
+        restore-keys: lfs-
+    - name: Pull LFS objects
+      shell: bash
+      # prune drops objects a restore-keys hit carried over, so the saved cache stays at this commit's set.
+      run: |
+        git lfs pull
+        git lfs prune

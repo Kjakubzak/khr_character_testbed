@@ -22,16 +22,30 @@ on:
   pull_request:
   workflow_dispatch:
 
+# checks: write lets game-ci's test runner post its results check; without it the step fails after the tests pass.
+permissions:
+  contents: read
+  checks: write
+
+# Never cancel a running workflow: a cancelled Unity job can skip returning its licence activation. Every Unity job
+# also joins the repo-wide `unity-licence` group (here and in ci-nightly.yml), so only one holds a seat at a time.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   UNITY_VERSION: "2022.2.23f1"
   # Only the testbed's own tests run in this consumer (Unity 'testables' does not surface a git-package's
-  # tests); the floor tracks the sandbox suite. The plugin's ~165 tests gate in the plugin repo / khr-test-proj.
+  # tests); the floor tracks the sandbox suite. The plugin's own tests run in the plugin-tests job (embedded copy).
+  # TODO(floors from Stage 3.7): replace these placeholder floors with the counts from the Stage 3.7 evidence.
   MIN_TESTS: "120"
   MIN_SANDBOX_TESTS: "120"
+  MIN_PLUGIN_TESTS: "766"
+  MIN_PLUGIN_ONLY_TESTS: "542"
+  # Not a placeholder: 53 conformance cases + the count guard (EditMode, Sandbox.Conformance.Tests).
+  MIN_CONFORMANCE_TESTS: "54"
+  # game-ci/unity-test-runner@v4 downloads the game-ci CLI release named here (its default is `latest`).
+  GAME_CI_CLI_VERSION: "v0.1.72"
 
 jobs:
   # Doc-drift lint (no Unity): fail fast if any Unity version string in the docs/workflows disagrees with
@@ -51,10 +65,56 @@ jobs:
   package-pin-preflight:
     name: Package pin preflight
     runs-on: ubuntu-latest
+    outputs:
+      unity-licence: ${{ steps.unity-licence.outputs.available }}
+      unity-licence-missing: ${{ steps.unity-licence.outputs.missing }}
     steps:
+      # `secrets` is not readable in a job-level `if:`, so the Unity jobs gate on this output. It runs first so the
+      # output is set even when the pin check below fails. The accepted sets are the ones unity-builder (goldens, URP
+      # activation) accepts; the test runner accepts a superset. Only secret names are ever printed.
+      - name: Detect Unity licence secrets
+        id: unity-licence
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_LICENSING_SERVER: ${{ vars.UNITY_LICENSING_SERVER }}
+          # Fork PRs get no secrets but do get repository variables; never hand them the floating licence.
+          FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          if [ "$FORK_PR" != "true" ] && [ -n "$UNITY_LICENSING_SERVER" ]; then
+            available=true
+          elif [ -n "$UNITY_EMAIL" ] && [ -n "$UNITY_PASSWORD" ] && [ -n "$UNITY_SERIAL$UNITY_LICENSE" ]; then
+            available=true
+          else
+            available=false
+            missing=""
+            [ -n "$UNITY_EMAIL" ] || missing="$missing UNITY_EMAIL"
+            [ -n "$UNITY_PASSWORD" ] || missing="$missing UNITY_PASSWORD"
+            [ -n "$UNITY_SERIAL$UNITY_LICENSE" ] || missing="$missing UNITY_SERIAL-or-UNITY_LICENSE"
+            [ "$FORK_PR" != "true" ] || missing="$missing (fork PR: the licensing server is never used)"
+            echo "missing=${missing# }" >> "$GITHUB_OUTPUT"
+          fi
+          echo "available=$available" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
       - name: Check pinned UnityGLTF fork is reachable + consistent
         run: bash ./Tools/ci/check-package-pin.sh
+
+  # Without licence secrets the Unity jobs are skipped (not failed), so the other gates stay readable; this one
+  # check carries the red.
+  unity-licence-missing:
+    name: Unity licence missing
+    needs: package-pin-preflight
+    if: ${{ !cancelled() && needs.package-pin-preflight.outputs.unity-licence == 'false' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fail with the missing-secrets reason
+        env:
+          MISSING: ${{ needs.package-pin-preflight.outputs.unity-licence-missing }}
+        run: |
+          echo "::error title=Unity licence missing::Every Unity job was skipped. Missing: ${MISSING}. Set the repository variable UNITY_LICENSING_SERVER, or the secrets UNITY_EMAIL + UNITY_PASSWORD + (UNITY_SERIAL or UNITY_LICENSE); see docs/ci.md."
+          exit 1
 
   # License-compliance lint (no Unity): every committed Assets/SampleAssets/**/*.glb must have a provenance row
   # in ATTRIBUTION.md (source + SPDX). Matters for a public repo whose hero + variants are non-commercial VRM.
@@ -70,11 +130,15 @@ jobs:
   tests:
     name: Tests (Unity 2022.2.23f1, Built-in)
     needs: package-pin-preflight
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    if: needs.package-pin-preflight.outputs.unity-licence == 'true'
+    timeout-minutes: 60
+    concurrency:
+      group: unity-licence
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
+      - uses: ./.github/actions/lfs-pull-cached
 
       # Library cache keyed on the dependency fingerprint: manifest + the resolved package SHA in packages-lock
       # + the editor version. A new/force-pushed dependency commit changes packages-lock and busts the cache.
@@ -86,13 +150,20 @@ jobs:
           restore-keys: |
             Library-${{ env.UNITY_VERSION }}-builtin-
 
-      - name: Run PlayMode tests (game-ci)
-        uses: game-ci/unity-test-runner@v4
+      - name: Run EditMode + PlayMode tests (game-ci)
+        uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4 (v4.4.0)
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
-          testMode: playmode
+          unityLicensingServer: ${{ vars.UNITY_LICENSING_SERVER }}
+          testMode: all
+          customParameters: -testCategory !Graphics
+          cliVersion: ${{ env.GAME_CI_CLI_VERSION }}
+          coverageEnabled: false
           artifactsPath: artifacts/test-results
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           # No -nographics here: game-ci provides an xvfb display, so this also supports future demo-render tests.
@@ -100,24 +171,14 @@ jobs:
 
       # GATE 2 floor: only the testbed's own tests run here (Unity 'testables' does not surface a git-package's
       # tests into a consumer), so the floor tracks the sandbox suite. A hollow package resolve instead fails
-      # GATE 1 compile (Sandbox.Tests links real plugin types); the plugin's ~165 tests gate in the plugin repo.
+      # GATE 1 compile (Sandbox.Tests links real plugin types); the plugin's tests run in the plugin-tests job.
+      # `testMode: all` writes one XML per mode; the gate sums every one.
       - name: Enforce test gate + min-test-count floor
         if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          xml="$(find artifacts/test-results -name '*.xml' | head -n1 || true)"
-          if [ -z "$xml" ]; then echo "GATE 2 FAILED: no results XML (hang/crash)."; exit 1; fi
-          attr() { tr '\n' ' ' < "$xml" | sed -n 's/.*<test-run[^>]*[[:space:]]'"$1"'="\([0-9]*\)".*/\1/p' | head -n1; }
-          total="$(attr total)"; failed="$(attr failed)"; inc="$(attr inconclusive)"; sk="$(attr skipped)"
-          total="${total:-0}"; failed="${failed:-0}"; inc="${inc:-0}"; sk="${sk:-0}"
-          sandbox="$(tr '\n' ' ' < "$xml" | grep -o '<test-case[^>]*classname="KhrCharacterTestbed[^"]*"' | wc -l | tr -d '[:space:]' || true)"
-          sandbox="${sandbox:-0}"
-          echo "total=$total failed=$failed inconclusive=$inc skipped=$sk sandbox=$sandbox (floor=${MIN_TESTS}, sandbox-floor=${MIN_SANDBOX_TESTS})"
-          if [ "$failed" != "0" ] || [ "$inc" != "0" ] || [ "$sk" != "0" ]; then echo "GATE 2 FAILED: failed/inconclusive/skipped must be 0."; exit 1; fi
-          if [ "$total" -lt "$MIN_TESTS" ]; then echo "GATE 2 FAILED (floor): ran $total, need >= ${MIN_TESTS} (sandbox suite did not run?)"; exit 1; fi
-          if [ "$sandbox" -lt "$MIN_SANDBOX_TESTS" ]; then echo "GATE 2 FAILED (sandbox sub-floor): ran $sandbox, need >= ${MIN_SANDBOX_TESTS} — testbed suite hollow?"; exit 1; fi
-          echo "GATE 2 PASS."
+        run: >-
+          python3 Tools/ci/check-test-results.py --results-dir artifacts/test-results --modes editmode,playmode
+          --min-total "$MIN_TESTS" --min-sandbox "$MIN_SANDBOX_TESTS" --min-conformance "$MIN_CONFORMANCE_TESTS"
+          --label "GATE 2"
 
       - name: Upload test results
         if: always()
@@ -134,8 +195,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
+      - uses: ./.github/actions/lfs-pull-cached
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: "2.19.6"
@@ -172,12 +232,15 @@ jobs:
   # GATE 4 (round-trip goldens) — re-export + normalize the wire under Unity, then diff against committed goldens.
   goldens:
     name: Round-trip goldens
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: tests
+    timeout-minutes: 45
+    concurrency:
+      group: unity-licence
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
+      - uses: ./.github/actions/lfs-pull-cached
       - name: Cache Library
         uses: actions/cache@v4
         with:
@@ -190,11 +253,15 @@ jobs:
       # on your game-ci version you may instead activate a license + invoke Tools/ci/export-goldens.sh directly;
       # repo-architect owns final CI wiring. The gate itself (the diff below) is provider-agnostic.
       - name: Export normalized snapshots (SandboxCI.ExportGoldens)
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4 (v4.8.2)
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
+          unityLicensingServer: ${{ vars.UNITY_LICENSING_SERVER }}
           targetPlatform: StandaloneLinux64
           buildMethod: Samples.Editor.SandboxCI.ExportGoldens
           allowDirtyBuild: true
@@ -221,6 +288,81 @@ jobs:
           done
           if [ $fail -ne 0 ]; then echo "GATE 4 FAILED — wire drift. If intentional: Export-Goldens -Update + commit."; exit 1; fi
           echo "GATE 4 PASS."
+
+  # The plugin's own suites: 'testables' does not surface tests from a git-pinned package, so this job embeds
+  # UnityGLTF at the exact commit Packages/manifest.json pins and runs the whole project. It is chained after
+  # goldens (and runs even when goldens fails) so only one Unity job per run waits on the `unity-licence` group:
+  # GitHub cancels a second pending job in a group.
+  plugin-tests:
+    name: Plugin tests (embedded UnityGLTF)
+    needs: [package-pin-preflight, goldens]
+    if: ${{ !cancelled() && needs.package-pin-preflight.result == 'success' && needs.package-pin-preflight.outputs.unity-licence == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    concurrency:
+      group: unity-licence
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lfs-pull-cached
+      - name: Read the UnityGLTF pin from Packages/manifest.json
+        id: pin
+        run: |
+          url="$(python3 -c 'import json; print(json.load(open("Packages/manifest.json"))["dependencies"]["org.khronos.unitygltf"])')"
+          if [[ ! "$url" =~ ^https://github\.com/([^/]+/[^/#]+)#([0-9a-f]{40})$ ]]; then
+            echo "::error::org.khronos.unitygltf is not a github.com URL pinned to a 40-hex commit: '$url'"; exit 1
+          fi
+          echo "repo=${BASH_REMATCH[1]%.git}" >> "$GITHUB_OUTPUT"
+          echo "sha=${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
+      # An embedded package (a folder under Packages/ with the same name) overrides the manifest's git entry.
+      - name: Embed UnityGLTF at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.pin.outputs.repo }}
+          ref: ${{ steps.pin.outputs.sha }}
+          path: Packages/org.khronos.unitygltf
+          persist-credentials: false
+      - name: Confirm the embedded commit
+        run: test "$(git -C Packages/org.khronos.unitygltf rev-parse HEAD)" = "${{ steps.pin.outputs.sha }}"
+      # A separate key that includes the embedded SHA: the builtin key hashes packages-lock.json, which does not
+      # change when the embedded copy does.
+      - name: Cache Library (embedded UnityGLTF)
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ env.UNITY_VERSION }}-plugin-${{ steps.pin.outputs.sha }}-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-${{ env.UNITY_VERSION }}-plugin-${{ steps.pin.outputs.sha }}-
+      - name: Run EditMode + PlayMode tests with embedded UnityGLTF (game-ci)
+        uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4 (v4.4.0)
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          unityLicensingServer: ${{ vars.UNITY_LICENSING_SERVER }}
+          testMode: all
+          customParameters: -testCategory !Graphics
+          cliVersion: ${{ env.GAME_CI_CLI_VERSION }}
+          coverageEnabled: false
+          artifactsPath: artifacts/plugin-test-results
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Plugin test results
+      - name: Enforce plugin test gate + floor
+        if: always()
+        run: >-
+          python3 Tools/ci/check-test-results.py --results-dir artifacts/plugin-test-results --modes editmode,playmode
+          --min-total "$MIN_PLUGIN_TESTS" --min-sandbox "$MIN_SANDBOX_TESTS" --min-conformance "$MIN_CONFORMANCE_TESTS"
+          --min-plugin-only "$MIN_PLUGIN_ONLY_TESTS"
+          --label "Plugin tests"
+      - name: Upload plugin test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-test-results
+          path: artifacts/plugin-test-results
 
   # ── TODO: URP nightly (non-blocking) ────────────────────────────────────────────────────────────────────────
   # Add a scheduled (cron) workflow or a matrix axis that runs the `tests` job against a URP-configured project

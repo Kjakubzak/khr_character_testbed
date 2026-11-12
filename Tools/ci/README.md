@@ -11,6 +11,7 @@ Linux CI) form with the same behavior and the same exit-code contract (`0` = pas
 | `Warm-Library` | 1 | Cold-prime `Library/` (resolve packages + import + compile) so later runs are fast. |
 | `Run-Tests` | 1 + 2 | Compile-only first, then `-runTests` per platform; enforces `failed/inconclusive/skipped == 0` **and** the min-test-count floor. |
 | `Validate-Glb` | 3 | Runs the Khronos `gltf_validator` over every exported GLB; gates on `numErrors == 0`; skips non-fatally if the validator is absent. CI runs it report-only until a validator that implements the current `KHR_character` drafts is pinned (see `docs/ci.md`). |
+| `check-test-results.py` | 2 | GitHub Actions only: sums `total`/`failed`/`inconclusive`/`skipped` and the sandbox, conformance and plugin-only counts over every top-level results XML (`testMode: all` writes one per mode), then enforces the floors. Tests: `test-check-test-results.py`. |
 | `Export-Goldens` | 4 | Re-export + normalize the fixture wire (via `SandboxCI.ExportGoldens`); `-Check` diffs against committed goldens, `-Update` rewrites them. |
 
 Full documentation, local examples, validator install, golden updates, and the GitHub Actions wiring: see
