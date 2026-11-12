@@ -1,0 +1,79 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "khr_character_testbed conformance fixtures (Tools/ci/generate-conformance-fixtures.py)",
+    "copyright": "CC0-1.0"
+  },
+  "extensionsUsed": [
+    "KHR_mesh_primitive_visibility_hint"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Root",
+      "mesh": 0
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 36,
+      "target": 34962
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC3",
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        0.2,
+        0.2,
+        0
+      ]
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Quad",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0
+          },
+          "mode": 4,
+          "extensions": {
+            "KHR_mesh_primitive_visibility_hint": {
+              "roles": [
+                "first_person"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "extensionsRequired": [
+    "KHR_mesh_primitive_visibility_hint"
+  ],
+  "buffers": [
+    {
+      "byteLength": 36,
+      "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAAAAzcxMPgAAAAAAAAAAAAAAAM3MTD4AAAAA"
+    }
+  ]
+}

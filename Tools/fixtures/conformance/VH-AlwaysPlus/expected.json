@@ -1,0 +1,80 @@
+{
+  "fixture": "VH-AlwaysPlus",
+  "asset": "VH-AlwaysPlus.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91"
+  },
+  "kind": "visibility",
+  "summary": "A hint listing 'always' imposes no restriction; validators MAY warn about 'always' with other roles but MUST NOT reject the asset. An 'always' child cannot restore content its ancestor hides.",
+  "cases": [
+    {
+      "name": "no logic",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Roles, Combining hints",
+      "input": {
+        "host": {
+          "logic": [],
+          "applies": []
+        }
+      },
+      "expected": {
+        "nodes": {
+          "AlwaysOrFirst": true,
+          "AlwaysChild": true
+        }
+      }
+    },
+    {
+      "name": "first-person view: always cannot cancel the third_person ancestor",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Roles, Combining hints",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person"
+          ],
+          "applies": [
+            "first_person"
+          ]
+        }
+      },
+      "expected": {
+        "nodes": {
+          "AlwaysOrFirst": true,
+          "AlwaysChild": false
+        }
+      }
+    },
+    {
+      "name": "third-person view",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Roles, Combining hints",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person"
+          ],
+          "applies": [
+            "third_person"
+          ]
+        }
+      },
+      "expected": {
+        "nodes": {
+          "AlwaysOrFirst": true,
+          "AlwaysChild": true
+        }
+      }
+    }
+  ],
+  "notes": [
+    "A validator MAY report AlwaysOrFirst's roles; the asset is valid."
+  ]
+}

@@ -1,0 +1,458 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "khr_character_testbed conformance fixtures (Tools/ci/generate-conformance-fixtures.py)",
+    "copyright": "CC0-1.0"
+  },
+  "extensionsUsed": [
+    "KHR_character",
+    "KHR_character_expression",
+    "KHR_character_expression_texture_transform",
+    "KHR_animation_pointer",
+    "KHR_texture_transform"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Root",
+      "children": [
+        1
+      ]
+    },
+    {
+      "name": "Face",
+      "mesh": 0
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 77
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 80,
+      "byteLength": 36,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 116,
+      "byteLength": 24,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 140,
+      "byteLength": 12
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 152,
+      "byteLength": 24
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 176,
+      "byteLength": 12
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 188,
+      "byteLength": 24
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 212,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 220,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 228,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 236,
+      "byteLength": 16
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 252,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 260,
+      "byteLength": 16
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC3",
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        0.2,
+        0.2,
+        0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 3,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 3,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC2"
+    }
+  ],
+  "images": [
+    {
+      "bufferView": 0,
+      "mimeType": "image/png",
+      "name": "Atlas2x2"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9728,
+      "minFilter": 9728
+    }
+  ],
+  "textures": [
+    {
+      "source": 0,
+      "sampler": 0
+    }
+  ],
+  "materials": [
+    {
+      "name": "AtlasMaterial",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0,
+          "extensions": {
+            "KHR_texture_transform": {
+              "offset": [
+                0,
+                0
+              ],
+              "scale": [
+                0.5,
+                0.5
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Quad",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "TEXCOORD_0": 1
+          },
+          "mode": 4,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "animations": [
+    {
+      "name": "cellRight",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "path": "pointer",
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset"
+              }
+            }
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 2,
+          "output": 3,
+          "interpolation": "STEP"
+        }
+      ]
+    },
+    {
+      "name": "cellDown",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "path": "pointer",
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset"
+              }
+            }
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 4,
+          "output": 5,
+          "interpolation": "STEP"
+        }
+      ]
+    },
+    {
+      "name": "spin",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "path": "pointer",
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/rotation"
+              }
+            }
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 6,
+          "output": 7,
+          "interpolation": "LINEAR"
+        }
+      ]
+    },
+    {
+      "name": "zoom",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "path": "pointer",
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/scale"
+              }
+            }
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 8,
+          "output": 9,
+          "interpolation": "LINEAR"
+        }
+      ]
+    },
+    {
+      "name": "zoomMore",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "path": "pointer",
+            "extensions": {
+              "KHR_animation_pointer": {
+                "pointer": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/scale"
+              }
+            }
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 10,
+          "output": 11,
+          "interpolation": "LINEAR"
+        }
+      ]
+    }
+  ],
+  "extensions": {
+    "KHR_character": {},
+    "KHR_character_expression": {
+      "expressions": [
+        {
+          "name": "cellRight",
+          "animation": 0,
+          "extensions": {
+            "KHR_character_expression_texture_transform": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "cellDown",
+          "animation": 1,
+          "extensions": {
+            "KHR_character_expression_texture_transform": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "spin",
+          "animation": 2,
+          "extensions": {
+            "KHR_character_expression_texture_transform": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "zoom",
+          "animation": 3,
+          "extensions": {
+            "KHR_character_expression_texture_transform": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "zoomMore",
+          "animation": 4,
+          "extensions": {
+            "KHR_character_expression_texture_transform": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "buffers": [
+    {
+      "byteLength": 276,
+      "uri": "data:application/octet-stream;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR42mP4z8DwHwyBNBAw/AcAR8oI+FuapL4AAAAASUVORK5CYIIAAAAAAAAAAAAAAAAAAADNzEw+AAAAAAAAAAAAAAAAzcxMPgAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAPwAAgD8AAAAAAAAAAAAAAD8AAAAAAAAAPwAAAAAAAAAAAAAAPwAAgD8AAAAAAAAAAAAAAAAAAAA/AAAAAAAAAD8AAAAAAACAPwAAAAAAAOBAAAAAAAAAgD8AAAA/AAAAPwAAgD8AAIA/AAAAAAAAgD8AAAA/AAAAPwAAQD8AAEA/"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "fixture": "EXPR-RotSmall",
+  "asset": "EXPR-RotSmall.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91"
+  },
+  "kind": "expression",
+  "summary": "Rotation composition is host-defined but SHOULD be approximately additive for small rotations; any method within the tolerance passes.",
+  "cases": [
+    {
+      "name": "single response: the absolute sample at t = e*T",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression: Sampling",
+      "input": {
+        "drivers": {
+          "yawA": 1
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/nodes/1/rotation",
+            "rotation_vector_deg": [
+              0,
+              10,
+              0
+            ],
+            "tolerance_deg": 0.001
+          }
+        ]
+      }
+    },
+    {
+      "name": "half driver samples t = 0.5 (slerp)",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression: Sampling",
+      "input": {
+        "drivers": {
+          "yawA": 0.5
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/nodes/1/rotation",
+            "rotation_vector_deg": [
+              0,
+              5,
+              0
+            ],
+            "tolerance_deg": 0.001
+          }
+        ]
+      }
+    },
+    {
+      "name": "10 degrees about Y plus 10 degrees about X is approximately both",
+      "level": "SHOULD",
+      "spec_section": "KHR_character_expression_joint: Response handling and runtime composition; Authoring guidance",
+      "input": {
+        "drivers": {
+          "yawA": 1,
+          "pitch": 1
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/nodes/1/rotation",
+            "rotation_vector_deg": [
+              10,
+              10,
+              0
+            ],
+            "tolerance_deg": 1.5
+          }
+        ]
+      }
+    },
+    {
+      "name": "10 degrees plus 10 degrees about the same axis is approximately 20 degrees",
+      "level": "SHOULD",
+      "spec_section": "KHR_character_expression_joint: Response handling and runtime composition; Authoring guidance",
+      "input": {
+        "drivers": {
+          "yawA": 1,
+          "yawB": 1
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/nodes/1/rotation",
+            "rotation_vector_deg": [
+              0,
+              20,
+              0
+            ],
+            "tolerance_deg": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "name": "no driver: no response for the property",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression: Expression response evaluator",
+      "input": {
+        "drivers": {}
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/nodes/1/rotation",
+            "value": null
+          }
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "rotation_vector_deg is the axis-angle vector (axis times angle in degrees) of the composed node rotation; each component must be within tolerance_deg. Both multiplication orders and an axis-angle sum pass the SHOULD cases."
+  ]
+}

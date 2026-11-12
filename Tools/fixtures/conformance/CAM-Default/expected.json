@@ -1,0 +1,135 @@
+{
+  "fixture": "CAM-Default",
+  "asset": "CAM-Default.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91"
+  },
+  "kind": "camera_hint",
+  "summary": "default_view selection by lowest node index; unrecognized custom roles not surfaced; targetNode does not orient the camera.",
+  "cases": [
+    {
+      "name": "several default_view hints: the lowest node index wins",
+      "level": "SHOULD",
+      "spec_section": "KHR_node_camera_hint: Default view selection; Custom roles",
+      "input": {
+        "query": "default_view",
+        "host": {
+          "recognized_custom_roles": []
+        }
+      },
+      "expected": {
+        "node": "DefaultB",
+        "node_index": 2
+      }
+    },
+    {
+      "name": "unrecognized custom roles stay out of default affordances",
+      "level": "SHOULD",
+      "spec_section": "KHR_node_camera_hint: Default view selection; Custom roles",
+      "input": {
+        "query": "default_affordances",
+        "host": {
+          "recognized_custom_roles": []
+        }
+      },
+      "expected": {
+        "nodes": [
+          "DefaultB",
+          "Portrait",
+          "DefaultA",
+          "DefaultC"
+        ]
+      }
+    },
+    {
+      "name": "a host that recognizes the custom role may surface it",
+      "level": "SHOULD",
+      "spec_section": "KHR_node_camera_hint: Default view selection; Custom roles",
+      "input": {
+        "query": "default_affordances",
+        "host": {
+          "recognized_custom_roles": [
+            "ACME_inspect"
+          ]
+        }
+      },
+      "expected": {
+        "nodes": [
+          "DefaultB",
+          "Portrait",
+          "DefaultA",
+          "Inspect",
+          "DefaultC"
+        ]
+      }
+    },
+    {
+      "name": "initial pose position is the hint node's global translation; targetNode gives only the subject point",
+      "level": "MUST",
+      "spec_section": "KHR_node_camera_hint: Initial camera pose; Subject point",
+      "input": {
+        "query": "pose"
+      },
+      "expected": {
+        "hints": {
+          "DefaultB": {
+            "position": [
+              0,
+              1.5,
+              3
+            ],
+            "forward": [
+              0,
+              0,
+              -1
+            ],
+            "subject_point": [
+              0,
+              1.6,
+              0
+            ]
+          },
+          "Portrait": {
+            "position": [
+              0,
+              1.6,
+              0.6
+            ],
+            "forward": [
+              0,
+              0,
+              -1
+            ],
+            "subject_point": [
+              0,
+              1.6,
+              0
+            ]
+          },
+          "DefaultA": {
+            "position": [
+              1,
+              1,
+              3
+            ],
+            "forward": [
+              0,
+              0,
+              -1
+            ],
+            "subject_point": null
+          }
+        },
+        "tolerance": 1e-05
+      }
+    }
+  ],
+  "notes": [
+    "A targetNode equal to the hint's own node is invalid (validators MUST reject it); that case is invalid/camera-target-self.gltf."
+  ]
+}

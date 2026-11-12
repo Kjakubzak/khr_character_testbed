@@ -1,0 +1,323 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "khr_character_testbed conformance fixtures (Tools/ci/generate-conformance-fixtures.py)",
+    "copyright": "CC0-1.0"
+  },
+  "extensionsUsed": [
+    "KHR_character",
+    "KHR_character_expression",
+    "KHR_character_expression_joint",
+    "KHR_character_expression_suppression"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Root",
+      "children": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "name": "A"
+    },
+    {
+      "name": "B"
+    },
+    {
+      "name": "T"
+    },
+    {
+      "name": "C"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 8,
+      "byteLength": 24
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 32,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 40,
+      "byteLength": 24
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 64,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 72,
+      "byteLength": 24
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 96,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 104,
+      "byteLength": 24
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC3"
+    }
+  ],
+  "animations": [
+    {
+      "name": "A",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 1,
+            "path": "translation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 0,
+          "output": 1,
+          "interpolation": "LINEAR"
+        }
+      ]
+    },
+    {
+      "name": "B",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 2,
+            "path": "translation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 2,
+          "output": 3,
+          "interpolation": "LINEAR"
+        }
+      ]
+    },
+    {
+      "name": "T",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 3,
+            "path": "translation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 4,
+          "output": 5,
+          "interpolation": "LINEAR"
+        }
+      ]
+    },
+    {
+      "name": "C",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 4,
+            "path": "translation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 6,
+          "output": 7,
+          "interpolation": "LINEAR"
+        }
+      ]
+    }
+  ],
+  "extensions": {
+    "KHR_character": {},
+    "KHR_character_expression": {
+      "expressions": [
+        {
+          "name": "A",
+          "animation": 0,
+          "extensions": {
+            "KHR_character_expression_joint": {
+              "channels": [
+                0
+              ]
+            },
+            "KHR_character_expression_suppression": {
+              "suppressions": [
+                {
+                  "target": 2,
+                  "type": "blend",
+                  "amount": 0.4
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "B",
+          "animation": 1,
+          "extensions": {
+            "KHR_character_expression_joint": {
+              "channels": [
+                0
+              ]
+            },
+            "KHR_character_expression_suppression": {
+              "suppressions": [
+                {
+                  "target": 2,
+                  "type": "blend",
+                  "amount": 0.5
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "T",
+          "animation": 2,
+          "extensions": {
+            "KHR_character_expression_joint": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "C",
+          "animation": 3,
+          "extensions": {
+            "KHR_character_expression_joint": {
+              "channels": [
+                0
+              ]
+            },
+            "KHR_character_expression_suppression": {
+              "suppressions": [
+                {
+                  "target": 2,
+                  "type": "block",
+                  "amount": 1,
+                  "threshold": 0.5
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "buffers": [
+    {
+      "byteLength": 128,
+      "uri": "data:application/octet-stream;base64,AAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAACAPwAAAAA="
+    }
+  ]
+}

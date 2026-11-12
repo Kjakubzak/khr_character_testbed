@@ -1,0 +1,224 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "khr_character_testbed conformance fixtures (Tools/ci/generate-conformance-fixtures.py)",
+    "copyright": "CC0-1.0"
+  },
+  "extensionsUsed": [
+    "KHR_character",
+    "KHR_character_expression",
+    "KHR_character_expression_joint"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Root",
+      "children": [
+        1
+      ]
+    },
+    {
+      "name": "Eye"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 8,
+      "byteLength": 32
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 40,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 48,
+      "byteLength": 32
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 80,
+      "byteLength": 8
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 88,
+      "byteLength": 32
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 2,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        1
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 2,
+      "type": "VEC4"
+    }
+  ],
+  "animations": [
+    {
+      "name": "yawA",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 1,
+            "path": "rotation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 0,
+          "output": 1,
+          "interpolation": "LINEAR"
+        }
+      ]
+    },
+    {
+      "name": "pitch",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 1,
+            "path": "rotation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 2,
+          "output": 3,
+          "interpolation": "LINEAR"
+        }
+      ]
+    },
+    {
+      "name": "yawB",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 1,
+            "path": "rotation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 4,
+          "output": 5,
+          "interpolation": "LINEAR"
+        }
+      ]
+    }
+  ],
+  "extensions": {
+    "KHR_character": {},
+    "KHR_character_expression": {
+      "expressions": [
+        {
+          "name": "yawA",
+          "animation": 0,
+          "extensions": {
+            "KHR_character_expression_joint": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "pitch",
+          "animation": 1,
+          "extensions": {
+            "KHR_character_expression_joint": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "yawB",
+          "animation": 2,
+          "extensions": {
+            "KHR_character_expression_joint": {
+              "channels": [
+                0
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "buffers": [
+    {
+      "byteLength": 120,
+      "uri": "data:application/octet-stream;base64,AAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAALZ+sj0AAAAAngZ/PwAAAAAAAIA/AAAAAAAAAAAAAAAAAACAP7Z+sj0AAAAAAAAAAJ4Gfz8AAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAtn6yPQAAAACeBn8/"
+    }
+  ]
+}

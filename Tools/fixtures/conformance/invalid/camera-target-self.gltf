@@ -1,0 +1,40 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "khr_character_testbed conformance fixtures (Tools/ci/generate-conformance-fixtures.py)",
+    "copyright": "CC0-1.0"
+  },
+  "extensionsUsed": [
+    "KHR_node_camera_hint"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Root",
+      "children": [
+        1
+      ]
+    },
+    {
+      "name": "SelfTarget",
+      "translation": [
+        0,
+        1,
+        2
+      ],
+      "extensions": {
+        "KHR_node_camera_hint": {
+          "role": "default_view",
+          "targetNode": 1
+        }
+      }
+    }
+  ]
+}

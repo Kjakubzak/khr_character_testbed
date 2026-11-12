@@ -1,0 +1,129 @@
+{
+  "fixture": "SUP-Overlap",
+  "asset": "SUP-Overlap.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91"
+  },
+  "kind": "suppression",
+  "summary": "Attenuations from every suppression on a target are summed, clamped to [0, 1], and applied once.",
+  "cases": [
+    {
+      "name": "two blends sum then clamp: 1 * (1 - (0.4 + 0.5)) = 0.1 (the product rule gave 0.3)",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_suppression: Suppression and aggregation",
+      "input": {
+        "drivers": {
+          "A": 1,
+          "B": 1,
+          "T": 1
+        }
+      },
+      "expected": {
+        "effective": {
+          "A": 1,
+          "B": 1,
+          "T": 0.1,
+          "C": 0
+        }
+      }
+    },
+    {
+      "name": "partial source driver",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_suppression: Suppression and aggregation",
+      "input": {
+        "drivers": {
+          "A": 0.5,
+          "B": 1,
+          "T": 1
+        }
+      },
+      "expected": {
+        "effective": {
+          "T": 0.3
+        }
+      }
+    },
+    {
+      "name": "target driver below 1",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_suppression: Suppression and aggregation",
+      "input": {
+        "drivers": {
+          "A": 1,
+          "B": 1,
+          "T": 0.8
+        }
+      },
+      "expected": {
+        "effective": {
+          "T": 0.08
+        }
+      }
+    },
+    {
+      "name": "block above threshold adds its amount; the sum clamps to 1",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_suppression: Suppression and aggregation",
+      "input": {
+        "drivers": {
+          "A": 1,
+          "B": 1,
+          "T": 1,
+          "C": 0.6
+        }
+      },
+      "expected": {
+        "effective": {
+          "T": 0,
+          "C": 0.6
+        }
+      }
+    },
+    {
+      "name": "block threshold is strict (0.5 is not above 0.5)",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_suppression: Suppression and aggregation",
+      "input": {
+        "drivers": {
+          "A": 1,
+          "B": 1,
+          "T": 1,
+          "C": 0.5
+        }
+      },
+      "expected": {
+        "effective": {
+          "T": 0.1
+        }
+      }
+    },
+    {
+      "name": "drivers clamp to [0, 1] before suppression; a missing driver is 0",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_suppression: Immutable input and output vectors",
+      "input": {
+        "drivers": {
+          "A": 2,
+          "T": 1.5
+        }
+      },
+      "expected": {
+        "effective": {
+          "A": 1,
+          "B": 0,
+          "T": 0.6,
+          "C": 0
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Tolerance for every effective value: 1e-6."
+  ]
+}

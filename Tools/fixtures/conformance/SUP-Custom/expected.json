@@ -1,0 +1,68 @@
+{
+  "fixture": "SUP-Custom",
+  "asset": "SUP-Custom.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91"
+  },
+  "kind": "suppression",
+  "summary": "An unsupported custom suppression type contributes 0; threshold on a blend is ignored.",
+  "cases": [
+    {
+      "name": "custom type without a companion contributes 0",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_suppression: Custom suppression types",
+      "input": {
+        "drivers": {
+          "Curve": 1,
+          "T": 1
+        }
+      },
+      "expected": {
+        "effective": {
+          "T": 1
+        }
+      }
+    },
+    {
+      "name": "threshold on a blend is ignored: 1 * (1 - 0.5 * 0.5) = 0.75",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_suppression: Suppression and aggregation",
+      "input": {
+        "drivers": {
+          "Soft": 0.5,
+          "T": 1
+        }
+      },
+      "expected": {
+        "effective": {
+          "T": 0.75
+        }
+      }
+    },
+    {
+      "name": "both together",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_suppression: Suppression and aggregation",
+      "input": {
+        "drivers": {
+          "Curve": 1,
+          "Soft": 1,
+          "T": 1
+        }
+      },
+      "expected": {
+        "effective": {
+          "T": 0.5
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Validators SHOULD warn about the threshold on Soft's blend suppression; the asset is valid."
+  ]
+}

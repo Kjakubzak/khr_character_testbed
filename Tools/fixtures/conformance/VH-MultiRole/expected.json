@@ -1,0 +1,145 @@
+{
+  "fixture": "VH-MultiRole",
+  "asset": "VH-MultiRole.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91"
+  },
+  "kind": "visibility",
+  "summary": "Roles in one hint are alternatives (OR); custom roles count only when the host recognizes them.",
+  "cases": [
+    {
+      "name": "no logic (inspector): every standard role applies",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Roles, Combining hints",
+      "input": {
+        "host": {
+          "logic": [],
+          "applies": []
+        }
+      },
+      "expected": {
+        "nodes": {
+          "SelfStatus": true,
+          "Head": true
+        }
+      }
+    },
+    {
+      "name": "first/third-person logic, own eye view",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Roles, Combining hints",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person"
+          ],
+          "applies": [
+            "first_person"
+          ]
+        }
+      },
+      "expected": {
+        "nodes": {
+          "SelfStatus": true,
+          "Head": false
+        }
+      }
+    },
+    {
+      "name": "first/third-person logic, spectator view; ACME_mirror_only unrecognized",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Roles, Combining hints",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person"
+          ],
+          "applies": [
+            "third_person"
+          ]
+        }
+      },
+      "expected": {
+        "nodes": {
+          "SelfStatus": false,
+          "Head": true
+        }
+      }
+    },
+    {
+      "name": "first/third-person and ACME_mirror_only logic, mirror view",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Roles, Combining hints",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person",
+            "ACME_mirror_only"
+          ],
+          "applies": [
+            "third_person",
+            "ACME_mirror_only"
+          ]
+        }
+      },
+      "expected": {
+        "nodes": {
+          "SelfStatus": true,
+          "Head": true
+        }
+      }
+    },
+    {
+      "name": "first/third-person and ACME_mirror_only logic, spectator view",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Roles, Combining hints",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person",
+            "third_person",
+            "ACME_mirror_only"
+          ],
+          "applies": [
+            "third_person"
+          ]
+        }
+      },
+      "expected": {
+        "nodes": {
+          "SelfStatus": false,
+          "Head": true
+        }
+      }
+    },
+    {
+      "name": "logic only for first_person: third_person has no logic, so it applies in every view",
+      "level": "MUST",
+      "spec_section": "KHR_node_visibility_hint: Roles, Combining hints",
+      "input": {
+        "host": {
+          "logic": [
+            "first_person"
+          ],
+          "applies": [
+            "first_person"
+          ]
+        }
+      },
+      "expected": {
+        "nodes": {
+          "SelfStatus": true,
+          "Head": true
+        }
+      }
+    }
+  ]
+}

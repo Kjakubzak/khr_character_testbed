@@ -1,0 +1,186 @@
+{
+  "fixture": "TT-Atlas",
+  "asset": "TT-Atlas.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91"
+  },
+  "kind": "expression",
+  "summary": "Texture-transform offset and rotation are additive (rotation on raw radians, never wrapped); scale SHOULD be additive.",
+  "cases": [
+    {
+      "name": "one STEP atlas cell",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_texture_transform: Expression composition",
+      "input": {
+        "drivers": {
+          "cellRight": 1
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset",
+            "value": [
+              0.5,
+              0
+            ],
+            "tolerance": 1e-05
+          },
+          {
+            "target": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/rotation",
+            "value": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "STEP below the switching key holds the first key (a response of [0, 0])",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression: Sampling",
+      "input": {
+        "drivers": {
+          "cellRight": 0.25
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset",
+            "value": [
+              0,
+              0
+            ],
+            "tolerance": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "name": "STEP at the switching key",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression: Sampling",
+      "input": {
+        "drivers": {
+          "cellRight": 0.5
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset",
+            "value": [
+              0.5,
+              0
+            ],
+            "tolerance": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "name": "two cells add: the diagonal cell",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_texture_transform: Expression composition",
+      "input": {
+        "drivers": {
+          "cellRight": 1,
+          "cellDown": 1
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset",
+            "value": [
+              0.5,
+              0.5
+            ],
+            "tolerance": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "name": "raw radians, no wrapping: 7 rad",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_texture_transform: Expression composition",
+      "input": {
+        "drivers": {
+          "spin": 1
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/rotation",
+            "value": 7,
+            "tolerance": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "name": "half driver: 3.5 rad",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression_texture_transform: Expression composition",
+      "input": {
+        "drivers": {
+          "spin": 0.5
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/rotation",
+            "value": 3.5,
+            "tolerance": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "name": "texture scale composes as b + sum(s - n): 0.5 + 0.5 + 0.25",
+      "level": "SHOULD",
+      "spec_section": "KHR_character_expression_texture_transform: Expression composition",
+      "input": {
+        "drivers": {
+          "zoom": 1,
+          "zoomMore": 1
+        }
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/scale",
+            "value": [
+              1.25,
+              1.25
+            ],
+            "tolerance": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "name": "no driver: no response",
+      "level": "MUST",
+      "spec_section": "KHR_character_expression: Expression response evaluator",
+      "input": {
+        "drivers": {}
+      },
+      "expected": {
+        "properties": [
+          {
+            "target": "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset",
+            "value": null
+          }
+        ]
+      }
+    }
+  ]
+}

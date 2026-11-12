@@ -1,0 +1,230 @@
+{
+  "fixture": "REF-Poses",
+  "asset": "REF-Poses.gltf",
+  "license": "CC0-1.0",
+  "spec": {
+    "pull_request": "KhronosGroup/glTF#2512",
+    "repository": "Kjakubzak/glTF",
+    "branch": "kjakubzak/avatar_ext",
+    "commit": "7ab5368a87d1d303dff33ec5f9aad42752e84c78",
+    "same_payload": "Kjakubzak/glTF-private avatar_ext_normative 314c95c571185776f8624ceb94773ce3b976ad91"
+  },
+  "kind": "reference_pose",
+  "summary": "Resolved reference-pose values: sampled values for targeted TRS properties, authored initial values (including matrix) for everything else.",
+  "cases": [
+    {
+      "name": "a_pose (STEP, one key): targeted rotation from the sampler, everything else authored",
+      "level": "MUST",
+      "spec_section": "KHR_character_reference_pose: Reference-pose validity",
+      "input": {
+        "animation": "APose"
+      },
+      "expected": {
+        "poseType": "a_pose",
+        "local": {
+          "Hips": {
+            "translation": [
+              0,
+              1,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          },
+          "Arm": {
+            "translation": [
+              0.2,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              -0.3826834323650898,
+              0.9238795325112867
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          },
+          "Hand": {
+            "translation": [
+              0.3,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          },
+          "Prop": {
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0.5,
+              1
+            ]
+          }
+        },
+        "global_translation": {
+          "Hand": [
+            0.41213203435596424,
+            0.7878679656440357,
+            0
+          ],
+          "Prop": [
+            0,
+            0,
+            0.5
+          ]
+        },
+        "tolerance": 1e-05
+      }
+    },
+    {
+      "name": "custom label, LINEAR key at t = 2; Arm keeps its authored rotation, not the Wave animation's",
+      "level": "MUST",
+      "spec_section": "KHR_character_reference_pose: Reference-pose validity",
+      "input": {
+        "animation": "Custom"
+      },
+      "expected": {
+        "poseType": "ACME_custom",
+        "local": {
+          "Hips": {
+            "translation": [
+              0,
+              0.9,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          },
+          "Arm": {
+            "translation": [
+              0.2,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          },
+          "Hand": {
+            "translation": [
+              0.3,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          },
+          "Prop": {
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0.5,
+              1
+            ]
+          }
+        },
+        "global_translation": {
+          "Hand": [
+            0.5,
+            0.9,
+            0
+          ],
+          "Prop": [
+            0,
+            0,
+            0.5
+          ]
+        },
+        "tolerance": 1e-05
+      }
+    },
+    {
+      "name": "only tagged animations are reference poses",
+      "level": "MUST",
+      "spec_section": "KHR_character_reference_pose: Extension usage",
+      "input": {
+        "query": "tagged_animations"
+      },
+      "expected": {
+        "animations": [
+          "APose",
+          "Custom"
+        ]
+      }
+    }
+  ]
+}
