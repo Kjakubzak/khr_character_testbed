@@ -311,7 +311,7 @@ namespace Samples.Shared
         public static string HeroAbsolutePath => Path.Combine(Application.dataPath, HeroRelativePath);
 
         /// <summary>Project-relative paths of the per-role visibility-hint variants of the hero
-        /// (built by tools/make_hero_variants.py). Each isolates one <c>KHR_node_visibility_hint</c>
+        /// (built by Tools/ci/make_hero_variants.py). Each isolates one <c>KHR_node_visibility_hint</c>
         /// role; the third_person one also carries a <c>KHR_mesh_primitive_visibility_hint</c> example.</summary>
         public static readonly string[] HeroVariantRelativePaths =
         {

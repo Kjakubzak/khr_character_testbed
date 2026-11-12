@@ -27,7 +27,7 @@ cubes. All primitives — no third-party content.
 | `expressions_joint.glb` | 31 KB | armature + torso + head + nod joint expr (`+ _expression + _expression_joint`) |
 | `expressions_mask.glb` | 30 KB | morph exprs + smile block-suppresses frown (`+ _expression_suppression`) |
 | `expressions_mapping.glb` | 29 KB | morph expr + ARKit routing `mouthSmileLeft/Right → smile` at 0.5 each (`+ _expression_mapping`) |
-| `node_hints.glb` | 496 B | root + camera hint ("portrait" role) + lookat target ("eyes" hint) — no geometry (`KHR_node_camera_hint + KHR_node_lookat_target`) |
+| `node_hints.glb` | 496 B | root + camera hint ("portrait" role) + lookat target (`ACME_eye_target` hint) — no geometry (`KHR_node_camera_hint + KHR_node_lookat_target`) |
 | `visibility_hints.glb` | 2.7 KB | root + a `first_person` node hint (on an empty view-model) + a 2-primitive cube whose accent primitive is `third_person` (`KHR_node_visibility_hint + KHR_mesh_primitive_visibility_hint`) |
 | `full.glb` | 46 KB | Everything above combined |
 | `starter.glb` | 42 KB | The canonical starter (matches `samples/generate_starter.py` output — character + humanoid armature + `t_pose` ref pose + shape-keyed head + morph exprs) |
@@ -38,7 +38,7 @@ addon's current authoring surface.
 
 The committed files carry the current wire vocabulary: `KHR_character: {}`,
 expression entries labeled with `name`, `KHR_character_expression_suppression`
-with a `suppressions` array, and `t_pose`. `Tools/ci/normalize-character-fixtures.py`
+with a `suppressions` array, `t_pose`, and visibility hints with a `roles` array. `Tools/ci/normalize-character-fixtures.py`
 produced it from the addon's earlier output (see below).
 
 ## What the character looks like

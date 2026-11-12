@@ -16,8 +16,16 @@ independent labels. Reference poses require a nonempty `poseType`; they have no 
 `Tools/ci/normalize-character-fixtures.py` migrates earlier fixture names and aliases. Where an asset contains the
 former separate input mapping, that authored external-input operation becomes the sole canonical mapping. It does
 not calculate an inverse of the former output projection. Numeric indices preserve duplicate expression labels;
-ambiguous legacy string references fail with an error. Animation channels, hierarchy, hints, vendor data and binary
+ambiguous legacy string references fail with an error. Animation channels, hierarchy, vendor data and binary
 chunks are preserved. The committed Blender and VRM-origin examples have undergone this migration.
+
+The script also migrates assets to the wire of `avatar_ext_normative` at `314c95c5` (KhronosGroup/glTF PR #2512 at
+`7ab5368a`): a visibility hint's `role` becomes the `roles` array; the visibility hints and `KHR_node_camera_hint` are
+removed from `extensionsRequired`; the made-up `KHR_mesh_annotation*` and `KHR_virtual_transforms` extensions are
+deleted (a first- or third-person-only annotation becomes a `KHR_mesh_primitive_visibility_hint`); and index
+properties written as strings become integers. Its docstring lists every rule. `Tools/ci/make_hero_variants.py`
+normalizes the hero, restores its suppressions and rebuilds its three visibility-hint variants; `--check` verifies the
+committed files. The runtime behavior described below is still that of `9dc0781c`.
 
 ## Integration cases
 
