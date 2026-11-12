@@ -424,7 +424,9 @@ def tt_atlas():
     a.root["materials"] = [{"name": "AtlasMaterial", "pbrMetallicRoughness": {"baseColorTexture": {
         "index": 0, "extensions": {TEXTURE_TRANSFORM: {"offset": [0, 0], "scale": [0.5, 0.5]}}}}}]
     mesh = a.mesh("Quad")
-    a.root["meshes"][mesh]["primitives"][0]["material"] = 0
+    primitive = a.root["meshes"][mesh]["primitives"][0]
+    primitive["attributes"]["TEXCOORD_0"] = a.accessor([0, 0, 1, 0, 0, 1], "VEC2", target=34962)
+    primitive["material"] = 0
     a.node("Root", children=[1])
     a.node("Face", mesh=mesh)
     base = "/materials/0/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/"
