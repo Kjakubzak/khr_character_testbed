@@ -12,7 +12,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
 
 ## Requirements
 
-- **Unity 6000.5.4f1** (Built-in Render Pipeline; URP works as an upgrade)
+- **Unity 2022.2.23f1** (Built-in Render Pipeline; URP works as an upgrade)
 - **Git** + **Git LFS** (`git lfs install`) — sample binaries are stored via LFS
 - Internet on first open (resolves the UnityGLTF package from a pinned Git URL)
 
@@ -25,7 +25,7 @@ Clone it, press Play, and watch a character import, emote, gaze, animate, switch
    git lfs install
    git clone <this-repo-url>
    ```
-2. **Open** the folder in **Unity 6000.5.4f1**. First open resolves the UnityGLTF + `KHR_character` plugin from `Packages/manifest.json` (pinned by commit SHA) — give it a moment.
+2. **Open** the folder in **Unity 2022.2.23f1**. First open resolves the UnityGLTF + `KHR_character` plugin from `Packages/manifest.json` (pinned by commit SHA) — give it a moment.
 3. **First time only** — if `Assets/SampleAssets/Synthetic/*.glb` or the demo scenes are missing, generate them from the menu:
    - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Generate Sample Characters**
    - **Assets ▸ UnityGLTF ▸ KHR Character ▸ Build Sample Scenes**
@@ -121,7 +121,7 @@ exported through the plugin; focused wire fixtures are packaged from their proce
 This project is a **pure UPM consumer** — it vendors no plugin code. `Packages/manifest.json` pins UnityGLTF (a fork that adds the `KHR_character` plugin) by commit SHA via a Git URL, and `Packages/packages-lock.json` records the resolved SHA for reproducible builds:
 
 ```jsonc
-"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#49bdcc8a72fb8e26878d01b5026d2ba26cdebb06",
+"org.khronos.unitygltf": "https://github.com/Kjakubzak/UnityGLTF.git#cb3918e75c90a4453d2e26541144bf98315c7a13",
 "testables": ["org.khronos.unitygltf"]
 ```
 

@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
 
 env:
-  UNITY_VERSION: "6000.5.4f1"
+  UNITY_VERSION: "2022.2.23f1"
   MIN_TESTS: "120"
   MIN_SANDBOX_TESTS: "120"
 

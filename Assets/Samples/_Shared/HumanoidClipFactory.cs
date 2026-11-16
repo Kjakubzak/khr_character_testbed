@@ -1,11 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityGLTF.KhrCharacter;
-#if UNITY_6000_5_OR_NEWER
-using CharacterKey = UnityEngine.EntityId;
-#else
-using CharacterKey = System.Int32;
-#endif
 
 namespace Samples.Shared
 {
@@ -128,8 +123,8 @@ namespace Samples.Shared
         // 8 per dropdown refresh. Cache per (character instanceID, clipName) so repeated calls reuse one clip; a
         // HumanoidClipCacheCleaner on the character root destroys them on teardown. Keying on the instanceID (not
         // the GameObject) avoids pinning a destroyed character alive via the dictionary.
-        private static readonly Dictionary<(CharacterKey CharacterId, string ClipName), AnimationClip> _adaptiveCache =
-            new Dictionary<(CharacterKey CharacterId, string ClipName), AnimationClip>();
+        private static readonly Dictionary<(int CharacterId, string ClipName), AnimationClip> _adaptiveCache =
+            new Dictionary<(int CharacterId, string ClipName), AnimationClip>();
 
         public static IEnumerable<AnimationClip> All()
         {
@@ -197,11 +192,7 @@ namespace Samples.Shared
             var skeleton = hub != null ? hub.Skeleton : null;
             if (skeleton == null) return GetOrBuildStatic(data); // no map, use fallback clip (already cached)
 
-#if UNITY_6000_5_OR_NEWER
-            var key = (character.GetEntityId(), data.Name);
-#else
             var key = (character.GetInstanceID(), data.Name);
-#endif
             if (_adaptiveCache.TryGetValue(key, out var cachedAdaptive) && cachedAdaptive != null)
                 return cachedAdaptive;
 
@@ -219,9 +210,9 @@ namespace Samples.Shared
         /// <summary>Destroy and forget every character-adaptive clip cached for <paramref name="instanceId"/>.
         /// Called by <see cref="HumanoidClipCacheCleaner"/> when the character GameObject is destroyed, so the
         /// HideAndDontSave clips (which survive scene unload) don't leak for the play session.</summary>
-        internal static void ReleaseForCharacter(CharacterKey instanceId)
+        internal static void ReleaseForCharacter(int instanceId)
         {
-            var stale = new List<(CharacterKey CharacterId, string ClipName)>();
+            var stale = new List<(int CharacterId, string ClipName)>();
             foreach (var kv in _adaptiveCache)
                 if (kv.Key.CharacterId == instanceId) stale.Add(kv.Key);
             foreach (var key in stale)

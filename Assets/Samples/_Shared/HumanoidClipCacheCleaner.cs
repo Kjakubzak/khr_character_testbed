@@ -20,11 +20,7 @@ namespace Samples.Shared
 
         private void OnDestroy()
         {
-#if UNITY_6000_5_OR_NEWER
-            HumanoidClipFactory.ReleaseForCharacter(gameObject.GetEntityId());
-#else
             HumanoidClipFactory.ReleaseForCharacter(gameObject.GetInstanceID());
-#endif
         }
     }
 }
