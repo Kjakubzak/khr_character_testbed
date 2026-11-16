@@ -20,7 +20,7 @@ namespace Samples.Editor
     ///
     /// - SC-Face       : head mesh + 6 morph expressions (incl. lookL/R/U/D) + a jaw joint.
     /// - SC-FacePlus   : SC-Face + a texture-transform expression (UV offset) on a distinct material.
-    /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + t_pose reference pose + a camera hint.
+    /// - SC-Body       : a T-pose humanoid-mappable skeleton + skeleton mapping + t_pose reference pose + portrait and first_person camera hints.
     /// - SC-LookAt     : a KHR_character marker + passive LookAtTargetSet metadata on ordinary target nodes.
     /// - SC-Partial    : a KHR_character marker with ONLY a morph expression (graceful-degradation: no skeleton/camera/lookat).
     /// - SC-PseudoVRM  : SC-Partial post-processed with synthetic VRMC_* tokens for import/export-safety coverage.
@@ -471,7 +471,7 @@ namespace Samples.Editor
 
         // Builds a minimal but complete humanoid T-pose skeleton (all Unity-required bones plus chest/neck/
         // shoulders), authors KHR_character_skeleton_mapping under a versioned Unity Humanoid vocabulary URI with
-        // a t_pose reference pose, and adds a "portrait" camera hint. Bone node names are unique and generic.
+        // a t_pose reference pose, and adds "portrait" and "first_person" camera hints. Bone node names are unique and generic.
         // No skinned mesh is attached (bones only); the wire still carries the extensions.
         private static GameObject AssembleBodyCharacter(List<Object> temps)
         {
@@ -539,9 +539,17 @@ namespace Samples.Editor
             var portrait = new GameObject("PortraitCamera") { hideFlags = HideFlags.HideAndDontSave };
             portrait.transform.SetParent(root.transform, false);
             portrait.transform.localPosition = new Vector3(0f, 1.5f, 1.2f);
+            // A first-person camera hint node at eye height, after PortraitCamera so existing node indices are kept.
+            // A hint camera looks along its node's local -Z, so turning the node 180 degrees about Y makes it look
+            // along the character's forward (+Z). It has no target node: first_person names a viewpoint, not a subject.
+            var firstPerson = new GameObject("FirstPersonCamera") { hideFlags = HideFlags.HideAndDontSave };
+            firstPerson.transform.SetParent(root.transform, false);
+            firstPerson.transform.localPosition = new Vector3(0f, 1.6f, 0.08f);
+            firstPerson.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             root.AddComponent<CameraHintSet>().Bind(new List<CameraHint>
             {
                 new CameraHint { Role = "portrait", Label = "Portrait", Node = portrait.transform, Target = bones["head"] },
+                new CameraHint { Role = CameraHintRoles.FirstPerson, Label = "First person", Node = firstPerson.transform },
             });
 
             return root;
@@ -678,7 +686,7 @@ namespace Samples.Editor
                 new NodeVisibilityHintSet.NodeVisibilityEntry
                 {
                     Node = head.transform,
-                    Role = VisibilityHintExtensionNames.RoleThirdPerson,
+                    Roles = new[] { VisibilityHintExtensionNames.RoleThirdPerson },
                     Label = "Head",
                 },
             });
@@ -707,7 +715,7 @@ namespace Samples.Editor
                 {
                     Mesh = mesh,
                     SubMesh = 1,
-                    Role = VisibilityHintExtensionNames.RoleFirstPerson,
+                    Roles = new[] { VisibilityHintExtensionNames.RoleFirstPerson },
                     Label = "BodyArms",
                 },
             });
@@ -739,7 +747,7 @@ namespace Samples.Editor
                 new NodeVisibilityHintSet.NodeVisibilityEntry
                 {
                     Node = head.transform,
-                    Role = VisibilityHintExtensionNames.RoleThirdPerson,
+                    Roles = new[] { VisibilityHintExtensionNames.RoleThirdPerson },
                     Label = "Head",
                 },
             });
@@ -750,7 +758,7 @@ namespace Samples.Editor
                 {
                     Mesh = bodyMesh,
                     SubMesh = 1,
-                    Role = VisibilityHintExtensionNames.RoleFirstPerson,
+                    Roles = new[] { VisibilityHintExtensionNames.RoleFirstPerson },
                     Label = "BodyArms",
                 },
             });

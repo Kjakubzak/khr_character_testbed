@@ -52,8 +52,8 @@ class Fixture:
             for primitive in primitives:
                 primitive["targets"] = [{"POSITION": delta}]
         else:
-            primitives[0]["extensions"] = {PRIMITIVE_HINT: {"role": "always"}}
-            primitives[1]["extensions"] = {PRIMITIVE_HINT: {"role": "first_person"}}
+            primitives[0]["extensions"] = {PRIMITIVE_HINT: {"roles": ["always"]}}
+            primitives[1]["extensions"] = {PRIMITIVE_HINT: {"roles": ["first_person"]}}
         self.root["materials"] = [{"name": "FixtureRed", "doubleSided": True,
                                    "pbrMetallicRoughness": {"baseColorFactor": [1, 0, 0, 1], "metallicFactor": 0, "roughnessFactor": 1}}]
         self.root["meshes"] = [{"name": "SharedFixtureMesh", "primitives": primitives}]
@@ -79,7 +79,7 @@ class Fixture:
 
 
 def hint(role):
-    return {NODE_HINT: {"role": role}}
+    return {NODE_HINT: {"roles": [role]}}
 
 
 def ancestors():

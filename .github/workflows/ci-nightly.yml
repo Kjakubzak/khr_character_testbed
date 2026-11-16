@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
 
 env:
-  UNITY_VERSION: "2022.2.23f1"
+  UNITY_VERSION: "6000.5.4f1"
   MIN_TESTS: "120"
   MIN_SANDBOX_TESTS: "120"
 
@@ -41,8 +41,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
+      # Character samples (Characters/**, ~230 MB of LFS) are not pulled in CI; their suite runs locally.
+      - name: Pull LFS objects except the character samples
+        run: |
+          git lfs pull --exclude="Assets/SampleAssets/Characters/**"
+          rm -f Assets/SampleAssets/Characters/*/*.glb Assets/SampleAssets/Characters/*/*.glb.meta
       - name: Cache Library
         uses: actions/cache@v4
         with:
@@ -57,6 +60,7 @@ jobs:
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
           testMode: playmode
+          customParameters: -testCategory !Characters
           artifactsPath: artifacts/test-results
           githubToken: ${{ secrets.GITHUB_TOKEN }}
       - name: Enforce test gate + floor
@@ -96,8 +100,11 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
+      # Character samples (Characters/**, ~230 MB of LFS) are not pulled in CI; their suite runs locally.
+      - name: Pull LFS objects except the character samples
+        run: |
+          git lfs pull --exclude="Assets/SampleAssets/Characters/**"
+          rm -f Assets/SampleAssets/Characters/*/*.glb Assets/SampleAssets/Characters/*/*.glb.meta
       - name: Cache Library (URP)
         uses: actions/cache@v4
         with:
@@ -125,6 +132,7 @@ jobs:
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
           testMode: playmode
+          customParameters: -testCategory !Characters
           artifactsPath: artifacts/test-results-urp
           githubToken: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload URP test results

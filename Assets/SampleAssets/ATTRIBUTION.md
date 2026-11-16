@@ -9,7 +9,7 @@ Khronos-community glTF example. Each entry lists its source and SPDX license ide
 |---|---|---|---|
 | `SC-Face.glb` | Generated in code by `Generate Sample Characters` (Tool B) | `CC0-1.0` | Synthetic head mesh with procedural blendshapes (`jawOpen`, `blink`, `lookLeft/Right/Up/Down`, `smile`), a jaw joint, named eye bones (`LeftEye`/`RightEye`), an overlapping `aa` expression (drives the `jawOpen` shape, for the additive-composition demo) and a `happy` expression that blend-suppresses `aa`, plus a `Smile` vocabulary mapping. Emits `KHR_character` + `KHR_character_expression` (`_morphtarget`, `_joint`, `_suppression`, `_mapping`). |
 | `SC-FacePlus.glb` | Generated in code by `Generate Sample Characters` (Tool B) | `CC0-1.0` | SC-Face (same blendshapes, jaw joint, eye bones, `aa`/`happy` suppression + `Smile` mapping) plus a texture-transform expression (a `KHR_texture_transform` offset) on a distinct, CPU-readable lit material. Emits `KHR_character_expression` with `_joint`, `_suppression`, `_mapping`, AND `_texture_transform` (+ `KHR_animation_pointer` / `KHR_texture_transform`). |
-| `SC-Body.glb` | Generated in code by `Generate Sample Characters` (Tool B) | `CC0-1.0` | Synthetic T-pose humanoid skeleton (unique neutral bone names) with a skeleton mapping identified by a versioned Unity Humanoid vocabulary URI, a `t_pose` reference pose, and a portrait camera hint. Emits `KHR_character` + `KHR_character_skeleton_mapping` + `KHR_character_reference_pose` + `KHR_node_camera_hint`. Bones only (no skinned mesh). |
+| `SC-Body.glb` | Generated in code by `Generate Sample Characters` (Tool B) | `CC0-1.0` | Synthetic T-pose humanoid skeleton (unique neutral bone names) with a skeleton mapping identified by a versioned Unity Humanoid vocabulary URI, a `t_pose` reference pose, and portrait and `first_person` camera hints. Emits `KHR_character` + `KHR_character_skeleton_mapping` + `KHR_character_reference_pose` + `KHR_node_camera_hint`. Bones only (no skinned mesh). |
 | `SC-LookAt.glb` | Generated in code by `Generate Sample Characters` (Tool B) | `CC0-1.0` | Minimal passive carrier for `KHR_node_lookat_target`: a character (`KHR_character` marker) whose `LookAtTargetSet` marks two nodes (one carries the vendor-qualified hint `ACME_eye_target`, one is hint-less). No expressions, gaze consumer, or skeleton. Emits `KHR_character` + `KHR_node_lookat_target`. |
 | `SC-Partial.glb` | Generated in code by `Generate Sample Characters` (Tool B) | `CC0-1.0` | Deliberately minimal: `KHR_character` + a single morph expression only (no skeleton, camera, or look-at). Used to show most capabilities simply *absent* in the Health tri-state. Emits `KHR_character` + `KHR_character_expression` (`_morphtarget`). |
 | `SC-PseudoVRM.glb` | Generated in code by `Generate Sample Characters` (Tool B) | `CC0-1.0` | The SC-Partial body whose exported GLB is post-processed to inject **synthetic** `VRMC_vrm` / `VRMC_springBone` tokens into `extensionsUsed` + a stub root extension, so it *reads* like a VRM-origin asset. **Not a real VRM** (the tokens are empty stubs). Proves that an imported expression asset fails closed instead of being silently re-exported through a lossy controller projection. |
@@ -51,7 +51,7 @@ for the full matrix, per-fixture extensions, and how to consume them.
 | `FromBlender/expressions_joint.glb` | `khr_character_blender::build_expressions_joint` | `CC0-1.0` | Root + armature + one bone-driven expression (`nod`). Emits `KHR_character_expression` + `_joint`. |
 | `FromBlender/expressions_mask.glb` | `khr_character_blender::build_expressions_mask` | `CC0-1.0` | Morph expressions where `smile` block-suppresses `frown`. `+ _expression_suppression`. |
 | `FromBlender/expressions_mapping.glb` | `khr_character_blender::build_expressions_mapping` | `CC0-1.0` | Morph expression + ARKit routing (`mouthSmileLeft`/`mouthSmileRight` → local `smile` at 0.5 each). `+ _expression_mapping`. |
-| `FromBlender/node_hints.glb` | `khr_character_blender::build_node_hints` | `CC0-1.0` | Root + camera hint ("portrait" role) + lookat target ("eyes" hint). Emits `KHR_node_camera_hint` + `KHR_node_lookat_target`. |
+| `FromBlender/node_hints.glb` | `khr_character_blender::build_node_hints` | `CC0-1.0` | Root + camera hint ("portrait" role) + lookat target (`ACME_eye_target` hint; the addon writes "eyes"). Emits `KHR_node_camera_hint` + `KHR_node_lookat_target`. |
 | `FromBlender/visibility_hints.glb` | `khr_character_blender::build_visibility_hints` | `CC0-1.0` | Root + a `first_person` node hint (on an empty view-model) + a 2-primitive cube whose accent primitive is `third_person`. Emits `KHR_node_visibility_hint` + `KHR_mesh_primitive_visibility_hint`. |
 | `FromBlender/full.glb` | `khr_character_blender::build_full` | `CC0-1.0` | Everything above combined — 10/11 KHR Character extensions. Only `_texture_transform` absent (needs `KHR_animation_pointer` material channels, outside the addon's surface). |
 | `FromBlender/starter.glb` | `khr_character_blender::samples/generate_starter.py` | `CC0-1.0` | The canonical "typical character" — matches `samples/generate_starter.py` output (armature + skeleton mapping + `t_pose` ref pose + head with smile/frown). |
@@ -62,16 +62,16 @@ tests/fixtures/regenerate.py` in the `khr_character_blender` checkout,
 then copy the resulting `tests/fixtures/*.glb` into this folder and run
 `Tools/ci/normalize-character-fixtures.py` over them, which rewrites the
 addon's earlier wire vocabulary (`rootNode`, `expression`, `_mask`,
-`_texture`, `TPose`) to the current one.
+`_texture`, `TPose`, a visibility hint's single `role`) to the current one.
 
 ## Hero character — committed (Git LFS)
 
 | Asset | Source | License (SPDX) | Notes |
 |---|---|---|---|
-| `khr-character-example.glb` | By **0b5vr**, authored in **VRoid Studio 2.12.0** | `LicenseRef-VRM-1.0` | The demo "hero" used as the default character across all scenes. The demos consume **only its `KHR_character` data** (skeleton mapping, expressions, camera hints) and **ignore** its VRM extensions (`VRMC_vrm` / `VRMC_springBone` / `VRMC_materials_mtoon` / `VRMC_character_expression_lookat`) and MToon materials. Its `KHR_character` wire is normalized to the current draft (required expression names, stable mapping aliases and canonical external input mapping). Shared eye rotation targets are valid and preserved. Stored via **Git LFS** (~10.5 MB). |
-| `khr-character-example-always.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `always` `KHR_node_visibility_hint` role (visible in every view). Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its normalized character wire. Stored via **Git LFS** (~11 MB). |
-| `khr-character-example-first-person.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `first_person` `KHR_node_visibility_hint` role. Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its normalized character wire. Stored via **Git LFS** (~11 MB). |
-| `khr-character-example-third-person.glb` | Derived from `khr-character-example.glb` via `tools/make_hero_variants.py` | `LicenseRef-VRM-1.0` | Hero role-variant whose face primitives carry the `third_person` `KHR_mesh_primitive_visibility_hint` role (visible only in views tagged `third_person`), with `always` node hints on the body and hair. Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its normalized character wire. Stored via **Git LFS** (~11 MB). |
+| `khr-character-example.glb` | By **0b5vr**, authored in **VRoid Studio 2.12.0** | `LicenseRef-VRM-1.0` | The demo "hero" used as the default character across all scenes. The demos consume **only its `KHR_character` data** (skeleton mapping, expressions, camera hints) and **ignore** its VRM extensions (`VRMC_vrm` / `VRMC_springBone` / `VRMC_materials_mtoon` / `VRMC_character_expression_lookat`) and MToon materials. Its `KHR_character` wire is normalized to the current draft (required expression names, stable mapping aliases and canonical external input mapping). Its VRM first-person annotations are expressed as `third_person` `KHR_mesh_primitive_visibility_hint`s on the face and hair primitives, the made-up `KHR_mesh_annotation*` and `KHR_virtual_transforms` extensions are removed, and its `happy`/`surprised` mouth suppressions are restored from the three.js testbed's copy of the same model (see `Tools/ci/make_hero_variants.py`). Shared eye rotation targets are valid and preserved. Stored via **Git LFS** (~10.5 MB). |
+| `khr-character-example-always.glb` | Derived from `khr-character-example.glb` via `Tools/ci/make_hero_variants.py` (the base's primitive hints are removed first) | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `always` `KHR_node_visibility_hint` role (visible in every view). Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its normalized character wire. Stored via **Git LFS** (~11 MB). |
+| `khr-character-example-first-person.glb` | Derived from `khr-character-example.glb` via `Tools/ci/make_hero_variants.py` (the base's primitive hints are removed first) | `LicenseRef-VRM-1.0` | Hero role-variant isolating the `first_person` `KHR_node_visibility_hint` role. Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its normalized character wire. Stored via **Git LFS** (~11 MB). |
+| `khr-character-example-third-person.glb` | Derived from `khr-character-example.glb` via `Tools/ci/make_hero_variants.py` (the base's primitive hints are removed first) | `LicenseRef-VRM-1.0` | Hero role-variant whose face primitives carry the `third_person` `KHR_mesh_primitive_visibility_hint` role (hidden where the application applies `first_person`), with `always` node hints on the body and hair. Inherits the base hero's VRM 1.0 terms (**non-commercial**) and its normalized character wire. Stored via **Git LFS** (~11 MB). |
 
 > **License — read from the model's embedded `VRMC_vrm.meta`** (authoritative for its declared terms): author
 > **0b5vr**, under the [**VRM 1.0 license**](https://vrm.dev/licenses/1.0/). There is no SPDX short-identifier for the
@@ -87,6 +87,27 @@ addon's earlier wire vocabulary (`rootNode`, `expression`, `_mask`,
 > (the demos read only its `KHR_character` data). **If you need a fully unrestricted / commercial-friendly default,
 > swap in a CC0 model or rely on the synthetic `SC-*` characters** (the demos fall back to `SC-*` automatically when
 > the hero is absent).
+
+## Characters/ — KHR_character sample characters, CC BY-SA 4.0
+
+| Asset | Source | License (SPDX) | Notes |
+|---|---|---|---|
+| `pubchar/pubchar.glb` | Android character by **Squarebit Studios** (LOD2 rig) | `CC-BY-SA-4.0` | Changes made: converted from the Blender production rig to a clean deform skeleton (root + bind joints), weights capped at 4 influences, face and body clips baked from the rig (`face_expression`, `dance`) plus retargeted motion, morph-target normals refitted, and KHR_character data added (skeleton mapping, t_pose/a_pose, 190 expressions, vrm1 expression mapping, suppressions, camera hints, look-at target). Exported with a fork of the Khronos glTF-Blender-IO add-on. |
+| `pubchar_arkit/pubchar_arkit.glb` | Android character by **Squarebit Studios** (ARKit-52 rig) | `CC-BY-SA-4.0` | Same changes, with 52 ARKit-named morph expressions plus four eye-joint looks. |
+| `goblin/goblin.glb` | Goblin character by **Meta** | `CC-BY-SA-4.0` | Changes made: imported from the UsdSkel source layers, weights capped at 4 influences, the authored cameras turned into camera hints, and KHR_character data added (skeleton mapping, t_pose, 38 expressions, mapping, suppressions, look-at target, primitive visibility hints). |
+| `proxy/proxy.glb` | Generated procedurally by the character pipeline | `CC0-1.0` | Parametric humanoid used as the licence-free public sample. |
+| `synthetic_face/synthetic_face.glb` | Generated procedurally | `CC0-1.0` | Synthetic face for expression tests. |
+
+These characters are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Credit the authors as above. Derivative works must use the same licence.
+
+## Characters/clips~/ — retarget clips — third-party motion
+
+| Asset | Source | License (SPDX) | Notes |
+|---|---|---|---|
+| `Neutral_ID_src.glb`, `Neutral_FW_src.glb`, `Neutral_FR_src.glb` | The 100STYLE Dataset - Ian Mason (Zenodo record 8127870) | `CC-BY-4.0` | Changes made: trimmed with the dataset's Frame_Cuts, resampled to 24 fps, written as a glTF source skeleton with a T-pose reference. |
+| `CMU_02_01_src.glb`, `CMU_02_03_src.glb`, `CMU_143_06_src.glb`, `CMU_143_18_src.glb`, `CMU_143_25_src.glb`, `CMU_143_29_src.glb` | CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu) | `LicenseRef-CMU-Mocap` | "The motion capture data may be copied, modified, or redistributed without permission." Converted from ASF/AMC and resampled to 24 fps. |
+| `test_vrma_src.glb` | pixiv `three-vrm` test.vrma | `MIT` | Copyright (c) 2019-2026 pixiv Inc. Notice in THIRD_PARTY_NOTICES.md. |
+| `ROM_sweep_src.glb` | Generated procedurally | `CC0-1.0` | Range-of-motion sweep. |
 
 ## External/ — downloaded on first run (not committed)
 

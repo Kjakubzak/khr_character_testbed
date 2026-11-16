@@ -1,0 +1,240 @@
+{
+ "schema": "khr-character-unity-test/1",
+ "name": "synthetic_face",
+ "glb": "synthetic_face.glb",
+ "private": false,
+ "source_sha256": "cd941d178fb75460775fa787937987d5ca929bdacc4e8ffe2d929f50c0ddbd42",
+ "khr_character": true,
+ "extensions_used": [
+  "KHR_texture_transform",
+  "KHR_character",
+  "KHR_animation_pointer",
+  "KHR_character_expression",
+  "KHR_character_expression_morphtarget",
+  "KHR_character_expression_joint",
+  "KHR_character_expression_texture_transform",
+  "KHR_character_expression_suppression",
+  "KHR_character_expression_mapping"
+ ],
+ "expect": {
+  "mesh_count": 2,
+  "skinned": false,
+  "expressions": [
+   {
+    "name": "jawOpen",
+    "index": 0,
+    "targets": [
+     {
+      "property": "/nodes/1/weights",
+      "element": 0,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/2/rotation"
+     }
+    ]
+   },
+   {
+    "name": "blink",
+    "index": 1,
+    "targets": [
+     {
+      "property": "/nodes/1/weights",
+      "element": 1,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "lookLeft",
+    "index": 2,
+    "targets": [
+     {
+      "property": "/nodes/1/weights",
+      "element": 2,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "lookRight",
+    "index": 3,
+    "targets": [
+     {
+      "property": "/nodes/1/weights",
+      "element": 3,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "lookUp",
+    "index": 4,
+    "targets": [
+     {
+      "property": "/nodes/1/weights",
+      "element": 4,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "lookDown",
+    "index": 5,
+    "targets": [
+     {
+      "property": "/nodes/1/weights",
+      "element": 5,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "aa",
+    "index": 6,
+    "targets": [
+     {
+      "property": "/nodes/1/weights",
+      "element": 0,
+      "value": 0.6
+     }
+    ]
+   },
+   {
+    "name": "happy",
+    "index": 7,
+    "targets": [
+     {
+      "property": "/nodes/1/weights",
+      "element": 6,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "texFx",
+    "index": 8,
+    "targets": [
+     {
+      "property": "/materials/1/pbrMetallicRoughness/baseColorTexture/extensions/KHR_texture_transform/offset"
+     }
+    ]
+   }
+  ],
+  "suppressions": [
+   {
+    "source": "happy",
+    "target": "aa",
+    "type": "blend",
+    "expected_v": 0.0
+   }
+  ],
+  "expressions_exact": true,
+  "expression_mapping_sets": {
+   "demo_v1": [
+    "Smile"
+   ]
+  },
+  "mapping_suppressions": [],
+  "animations": [
+   {
+    "name": "jawOpen",
+    "index": 0,
+    "duration": 1.0,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "blink",
+    "index": 1,
+    "duration": 1.0,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookLeft",
+    "index": 2,
+    "duration": 1.0,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookRight",
+    "index": 3,
+    "duration": 1.0,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookUp",
+    "index": 4,
+    "duration": 1.0,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookDown",
+    "index": 5,
+    "duration": 1.0,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "aa",
+    "index": 6,
+    "duration": 1.0,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "happy",
+    "index": 7,
+    "duration": 1.0,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "texFx",
+    "index": 8,
+    "duration": 1.0,
+    "tolerance": 0.05,
+    "kind": "expression"
+   }
+  ],
+  "camera_hints": [],
+  "lookat_targets": 0
+ },
+ "retarget": {
+  "clips_index": "../clips.json",
+  "clips": [],
+  "video_clips": [],
+  "sample_fractions": [
+   0.0,
+   0.125,
+   0.25,
+   0.375,
+   0.5,
+   0.625,
+   0.75,
+   0.875
+  ],
+  "floor_tolerance_m": 0.05
+ },
+ "capture": {
+  "fractions": [
+   0.0,
+   0.125,
+   0.375,
+   0.625,
+   0.875
+  ],
+  "views": [
+   "front",
+   "side",
+   "three_quarter"
+  ],
+  "resolution": 1024,
+  "hint_resolution": 1024,
+  "grid_columns": 8
+ }
+}

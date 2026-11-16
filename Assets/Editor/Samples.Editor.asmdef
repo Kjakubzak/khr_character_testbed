@@ -13,7 +13,8 @@
         "UnityGLTF.VisibilityHints.Runtime",
         "UnityGLTF.VisibilityHints.Schema",
         "UnityGLTFEditor",
-        "UnityGLTF.KhrCharacter.Editor"
+        "UnityGLTF.KhrCharacter.Editor",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,0 +1,398 @@
+fileFormatVersion: 2
+guid: 7e028509c86084bf6af61e5847babd21
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 804e1ce4c496647cfa3f1a1134187c71, type: 3}
+  _removeEmptyRootObjects: 1
+  _scaleFactor: 1
+  _deduplicateResources: 0
+  _deduplicatedStatistics:
+    meshCountBefore: 0
+    meshCountAfter: 0
+    textureCountBefore: 0
+    textureCountAfter: 0
+  _maximumLod: 300
+  _readWriteEnabled: 1
+  _generateColliders: 0
+  _addColliders: 0
+  _swapUvs: 0
+  _generateLightmapUVs: 0
+  _importBlendShapeNames: 1
+  _blendShapeFrameWeight:
+    _option: 0
+    _multiplier: 1
+  _importNormals: 0
+  _importTangents: 0
+  _importCamera: 2
+  _importAnimations: 2
+  _mecanimHumanoidFlip: 0
+  _addAnimatorComponent: 0
+  _animationLoopTime: 1
+  _animationLoopPose: 0
+  _importMaterials: 1
+  _enableGpuInstancing: 0
+  _texturesReadWriteEnabled: 1
+  _generateMipMaps: 1
+  _useSceneNameIdentifier: 1
+  _textureCompression: -50
+  _gltfAsset: '<b>Generator: </b>Khronos glTF Blender I/O v5.2.39+khr_character.f53459e5ee92.bl5.2.3
+
+    <b>Version:
+    </b>2.0
+
+
+    <b>Extras: </b>
+
+'
+  optimizeGameObjects: 0
+  materials:
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  textures:
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  - {instanceID: 0}
+  hasSceneData: 1
+  hasAnimationData: 1
+  hasMaterialData: 1
+  hasTextureData: 1
+  animations:
+  - name: face_performance
+  - name: Neutral_ID
+  - name: Neutral_FW
+  - name: Neutral_FR
+  - name: CMU_02_01
+  - name: CMU_02_03
+  - name: CMU_143_06
+  - name: CMU_143_18
+  - name: CMU_143_25
+  - name: CMU_143_29
+  - name: brow_inner_L_locXneg
+  - name: brow_inner_L_locXpos
+  - name: brow_inner_L_locYneg
+  - name: brow_inner_L_locYpos
+  - name: brow_inner_R_locXneg
+  - name: brow_inner_R_locXpos
+  - name: brow_inner_R_locYneg
+  - name: brow_inner_R_locYpos
+  - name: brow_main_L_locXneg
+  - name: brow_main_L_locXpos
+  - name: brow_main_L_locYneg
+  - name: brow_main_L_locYpos
+  - name: brow_main_L_locZneg
+  - name: brow_main_L_locZpos
+  - name: brow_main_R_locXneg
+  - name: brow_main_R_locXpos
+  - name: brow_main_R_locYneg
+  - name: brow_main_R_locYpos
+  - name: brow_main_R_locZneg
+  - name: brow_main_R_locZpos
+  - name: brow_peak_L_locXneg
+  - name: brow_peak_L_locXpos
+  - name: brow_peak_L_locYneg
+  - name: brow_peak_L_locYpos
+  - name: brow_peak_L_locZneg
+  - name: brow_peak_L_locZpos
+  - name: brow_peak_R_locXneg
+  - name: brow_peak_R_locXpos
+  - name: brow_peak_R_locYneg
+  - name: brow_peak_R_locYpos
+  - name: brow_peak_R_locZneg
+  - name: brow_peak_R_locZpos
+  - name: eye_L_locXneg
+  - name: eye_L_locXpos
+  - name: eye_L_locYneg
+  - name: eye_L_locYpos
+  - name: eye_R_locXneg
+  - name: eye_R_locXpos
+  - name: eye_R_locYneg
+  - name: eye_R_locYpos
+  - name: eyeSocket_L_locXneg
+  - name: eyeSocket_L_locXpos
+  - name: eyeSocket_L_locYneg
+  - name: eyeSocket_L_locYpos
+  - name: eyeSocket_L_locZneg
+  - name: eyeSocket_L_locZpos
+  - name: eyeSocket_R_locXneg
+  - name: eyeSocket_R_locXpos
+  - name: eyeSocket_R_locYneg
+  - name: eyeSocket_R_locYpos
+  - name: eyeSocket_R_locZneg
+  - name: eyeSocket_R_locZpos
+  - name: head_tip_locXneg
+  - name: head_tip_locXpos
+  - name: head_tip_locYneg
+  - name: head_tip_locYpos
+  - name: head_tip_locZneg
+  - name: head_tip_locZpos
+  - name: headwire_top_locXneg
+  - name: headwire_top_locXpos
+  - name: headwire_top_locYneg
+  - name: headwire_top_locYpos
+  - name: headwire_top_locZneg
+  - name: headwire_top_locZpos
+  - name: jaw_locXneg
+  - name: jaw_locXpos
+  - name: jaw_locYneg
+  - name: jaw_locYpos
+  - name: jaw_locZneg
+  - name: jaw_locZpos
+  - name: jaw_rotXneg
+  - name: jaw_rotXpos
+  - name: jaw_rotYneg
+  - name: jaw_rotYpos
+  - name: lidLower_L_locYneg
+  - name: lidLower_L_locYpos
+  - name: lidLower_R_locYneg
+  - name: lidLower_R_locYpos
+  - name: lidUpper_L_locYneg
+  - name: lidUpper_L_locYpos
+  - name: lidUpper_R_locYneg
+  - name: lidUpper_R_locYpos
+  - name: lookAt_rot_locXneg
+  - name: lookAt_rot_locXpos
+  - name: lookAt_rot_locYneg
+  - name: lookAt_rot_locYpos
+  - name: lookAt_rot_rotXneg
+  - name: lookAt_rot_rotXpos
+  - name: lookAt_rot_rotYneg
+  - name: lookAt_rot_rotYpos
+  - name: brow_corrugator_l_locXneg
+  - name: brow_corrugator_l_locXpos
+  - name: brow_corrugator_l_locYneg
+  - name: brow_corrugator_l_locYpos
+  - name: brow_corrugator_r_locXneg
+  - name: brow_corrugator_r_locXpos
+  - name: brow_corrugator_r_locYneg
+  - name: brow_corrugator_r_locYpos
+  - name: cheek_inner_l_locXneg
+  - name: cheek_inner_l_locXpos
+  - name: cheek_inner_l_locYneg
+  - name: cheek_inner_l_locZneg
+  - name: cheek_inner_l_locZpos
+  - name: cheek_inner_r_locXneg
+  - name: cheek_inner_r_locXpos
+  - name: cheek_inner_r_locYneg
+  - name: cheek_inner_r_locZneg
+  - name: cheek_inner_r_locZpos
+  - name: cheek_l_locXneg
+  - name: cheek_l_locXpos
+  - name: cheek_l_locYneg
+  - name: cheek_l_locYpos
+  - name: cheek_l_locZneg
+  - name: cheek_l_locZpos
+  - name: cheek_r_locXneg
+  - name: cheek_r_locXpos
+  - name: cheek_r_locYneg
+  - name: cheek_r_locYpos
+  - name: cheek_r_locZneg
+  - name: cheek_r_locZpos
+  - name: lip_upper_l_locXneg
+  - name: lip_upper_l_locXpos
+  - name: lip_upper_l_locYneg
+  - name: lip_upper_l_locYpos
+  - name: lip_upper_l_locZneg
+  - name: lip_upper_l_locZpos
+  - name: lip_upper_locXneg
+  - name: lip_upper_locXpos
+  - name: lip_upper_locYneg
+  - name: lip_upper_locYpos
+  - name: lip_upper_locZneg
+  - name: lip_upper_locZpos
+  - name: lip_upper_r_locXneg
+  - name: lip_upper_r_locXpos
+  - name: lip_upper_r_locYneg
+  - name: lip_upper_r_locYpos
+  - name: lip_upper_r_locZneg
+  - name: lip_upper_r_locZpos
+  - name: mouthMain_locXneg
+  - name: mouthMain_locXpos
+  - name: mouthMain_locYneg
+  - name: mouthMain_locYpos
+  - name: mouthMain_locZneg
+  - name: mouthMain_locZpos
+  - name: mouth_corner_l_locXneg
+  - name: mouth_corner_l_locXpos
+  - name: mouth_corner_l_locYneg
+  - name: mouth_corner_l_locYpos
+  - name: mouth_corner_l_locZneg
+  - name: mouth_corner_l_locZpos
+  - name: mouth_corner_r_locXneg
+  - name: mouth_corner_r_locXpos
+  - name: mouth_corner_r_locYneg
+  - name: mouth_corner_r_locYpos
+  - name: mouth_corner_r_locZneg
+  - name: mouth_corner_r_locZpos
+  - name: sneer_l_locXneg
+  - name: sneer_l_locXpos
+  - name: sneer_l_locYneg
+  - name: sneer_l_locYpos
+  - name: sneer_l_locZneg
+  - name: sneer_l_locZpos
+  - name: sneer_r_locXneg
+  - name: sneer_r_locXpos
+  - name: sneer_r_locYneg
+  - name: sneer_r_locYpos
+  - name: sneer_r_locZneg
+  - name: sneer_r_locZpos
+  - name: teeth_upper_shear_locXneg
+  - name: teeth_upper_shear_locXpos
+  - name: teeth_upper_shear_locYneg
+  - name: teeth_upper_shear_locYpos
+  - name: teeth_upper_shear_locZneg
+  - name: teeth_upper_shear_locZpos
+  - name: t_pose
+  - name: a_pose
+  _extensions:
+  - name: KHR_node_camera_hint
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_node_lookat_target
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_materials_transmission
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_reference_pose
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_morphtarget
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_joint
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_suppression
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_skeleton_mapping
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression
+    supported: 1
+    used: 1
+    required: 0
+  - name: KHR_character_expression_mapping
+    supported: 1
+    used: 1
+    required: 0
+  _textures:
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 1
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 1
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 1
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 1
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 1
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 1
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 1
+  - texture: {instanceID: 0}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  - texture: {instanceID: 0}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  _mainAssetIdentifier: scenes/Scene
+  _importPlugins:
+  - typeName: UnityGLTF.KhrCharacter.KhrCharacterImportPlugin
+    overrideEnabled: 1
+    enabled: 1
+    jsonSettings: '{"Rig":0,"CreateExpressionController":true,"SuppressNonInteractiveAnimationAutoPlay":true}'
+  - typeName: UnityGLTF.VisibilityHints.VisibilityHintImportPlugin
+    overrideEnabled: 1
+    enabled: 1
+    jsonSettings: '{}'

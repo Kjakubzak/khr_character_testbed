@@ -104,16 +104,19 @@ namespace KhrCharacterTestbed.Tests
             var mesh = target.GetComponent<MeshFilter>().sharedMesh;
             int vertices = mesh.vertexCount;
 
-            var third = Capture(camera, adapter, target, new[] { "third_person" }, "third-person");
-            var first = Capture(camera, adapter, target, new[] { "first_person" }, "first-person");
-            var both = Capture(camera, adapter, target, new[] { "first_person", "third_person" }, "both-tags");
-            var thirdAgain = Capture(camera, adapter, target, new[] { "third_person" }, "third-person-restored");
+            var third = Capture(camera, adapter, target, FirstPersonRolePolicy.OtherView, "third-person");
+            var first = Capture(camera, adapter, target, FirstPersonRolePolicy.FirstPersonView, "first-person");
+            var both = Capture(camera, adapter, target,
+                new VisibilityRoleContext(new[] { "first_person", "third_person" }, null), "both-roles");
+            var noLogic = Capture(camera, adapter, target, VisibilityRoleContext.NoLogic, "no-logic");
+            var thirdAgain = Capture(camera, adapter, target, FirstPersonRolePolicy.OtherView, "third-person-restored");
 
             Assert.Greater(third.Red, 100, "the actual nested mesh must render in its matching view");
             Assert.AreEqual(0, first.Red, "always child/primitive cannot reopen a hidden ancestor");
             Assert.Greater(first.Green, third.Green + 100,
                 "hidden geometry must not write depth that occludes the green witness behind it");
-            Assert.Greater(both.Red, third.Red + 100, "the first-person primitive is additionally visible with both tags");
+            Assert.Greater(both.Red, third.Red + 100, "the first-person primitive is additionally visible when both roles apply");
+            Assert.AreEqual(both.Red, noLogic.Red, "an application with no role logic hides nothing");
             Assert.AreEqual(third.Red, thirdAgain.Red, "another view must not leave stale visibility state");
             CollectionAssert.AreEqual(new[] { red, red }, target.sharedMaterials);
             Assert.AreEqual(ShadowCastingMode.On, target.shadowCastingMode);
@@ -129,7 +132,7 @@ namespace KhrCharacterTestbed.Tests
         }
 
         private static (int Red, int Green) Capture(Camera camera, ScopedMaterialVisibilityAdapter adapter,
-            Renderer target, string[] tags, string name)
+            Renderer target, VisibilityRoleContext roles, string name)
         {
             var previousActive = RenderTexture.active;
             var previousTarget = camera.targetTexture;
@@ -138,7 +141,7 @@ namespace KhrCharacterTestbed.Tests
             try
             {
                 camera.targetTexture = texture;
-                using (adapter.ApplyForView(target, tags, true)) camera.Render();
+                using (adapter.ApplyForView(target, roles, true)) camera.Render();
                 RenderTexture.active = texture;
                 image.ReadPixels(new Rect(0, 0, 256, 128), 0, 0);
                 image.Apply();
@@ -152,7 +155,7 @@ namespace KhrCharacterTestbed.Tests
                 Directory.CreateDirectory(directory);
                 File.WriteAllBytes(Path.Combine(directory, name + ".png"), image.EncodeToPNG());
                 File.WriteAllText(Path.Combine(directory, name + ".json"),
-                    $"{{\"redPixels\":{red},\"greenPixels\":{green},\"viewTags\":\"{string.Join(",", tags)}\"}}\n");
+                    $"{{\"redPixels\":{red},\"greenPixels\":{green},\"appliedRoles\":\"{string.Join(",", roles.AppliedRoles)}\"}}\n");
                 return (red, green);
             }
             finally

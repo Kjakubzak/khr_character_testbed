@@ -93,13 +93,18 @@ namespace KhrCharacterTestbed.Tests
             var composition = set.Compose(set.BuildSnapshot(new double?[] { 1, 1 }));
             AssertValue(composition, "/nodes/1/translation", new[] { 1.7, 0.0, 0.0 });
             AssertValue(composition, "/nodes/1/weights", new[] { 0.8 });
-            AssertValue(composition, "/nodes/1/scale", new[] { 3.0, 3.0, 3.0 });
+            AssertValue(composition, "/nodes/1/scale", new[] { 4.0, 4.0, 4.0 });
             Assert.IsTrue(composition.TryGetRecord("/nodes/1/rotation", out var q));
             double norm = 0;
             foreach (double value in q.Value) norm += value * value;
             Assert.AreEqual(1, norm, 1e-6);
-            Assert.AreEqual(1, Math.Abs(q.Value[2]), 1e-6,
-                "this Unity host chooses the highest active entry's ordinary 180-degree sample");
+            // Spec 314c95c5 (#250, #254): scale is additive, 1 + (2 - 1) + (3 - 1) = 4, and this Unity host composes
+            // rotation approximately additively (its documented log-sum method): 90 + 180 degrees about Z = 270.
+            double sign = Math.Sign(q.Value[3]) == 0 ? 1 : Math.Sign(q.Value[3]);
+            Assert.AreEqual(0, q.Value[0], 1e-6);
+            Assert.AreEqual(0, q.Value[1], 1e-6);
+            Assert.AreEqual(Math.Sin(3 * Math.PI / 4), -sign * q.Value[2], 1e-6, "270 degrees about Z");
+            Assert.AreEqual(Math.Cos(3 * Math.PI / 4), -sign * q.Value[3], 1e-6, "270 degrees about Z");
             Assert.AreEqual(position, target.localPosition);
             Assert.AreEqual(scale, target.localScale);
             Assert.AreEqual(rotation, target.localRotation);
@@ -152,6 +157,12 @@ namespace KhrCharacterTestbed.Tests
                     new Dictionary<string, double> { ["unknown"] = value }), "all supplied inputs must be finite");
         }
 
+        // Role logic of the views used below (spec 314c95c5, #256).
+        private static readonly VisibilityRoleContext FirstPersonView = FirstPersonRolePolicy.FirstPersonView;
+        private static readonly VisibilityRoleContext ThirdPersonView = FirstPersonRolePolicy.OtherView;
+        private static readonly VisibilityRoleContext BothApply =
+            new VisibilityRoleContext(new[] { "first_person", "third_person" }, null);
+
         [UnityTest]
         public IEnumerator NestedHints_UseTheSameViewAcrossAncestorsAndInstances()
         {
@@ -163,50 +174,55 @@ namespace KhrCharacterTestbed.Tests
             var always = SandboxTestUtil.FindDeep(first.Current.transform, "AlwaysChild");
             var child = SandboxTestUtil.FindDeep(first.Current.transform, "FirstChild");
             var free = SandboxTestUtil.FindDeep(first.Current.transform, "FreeChild");
-            var firstTags = new[] { "first_person" };
-            var thirdTags = new[] { "third_person" };
-            var bothTags = new[] { "first_person", "third_person" };
-            Assert.IsFalse(view.ShouldRenderNodeForView(always, firstTags, true));
-            Assert.IsTrue(view.ShouldRenderNodeForView(always, thirdTags, true));
-            Assert.IsFalse(view.ShouldRenderNodeForView(child, firstTags, true));
-            Assert.IsFalse(view.ShouldRenderNodeForView(child, thirdTags, true));
-            Assert.IsTrue(view.ShouldRenderNodeForView(child, bothTags, true));
-            Assert.IsTrue(view.ShouldRenderNodeForView(free, Array.Empty<string>(), true));
+            Assert.IsFalse(view.ShouldRenderNodeForView(always, FirstPersonView, true));
+            Assert.IsTrue(view.ShouldRenderNodeForView(always, ThirdPersonView, true));
+            Assert.IsFalse(view.ShouldRenderNodeForView(child, FirstPersonView, true));
+            Assert.IsFalse(view.ShouldRenderNodeForView(child, ThirdPersonView, true));
+            Assert.IsTrue(view.ShouldRenderNodeForView(child, BothApply, true));
+            Assert.IsTrue(view.ShouldRenderNodeForView(free, VisibilityRoleContext.NoLogic, true));
+            Assert.IsTrue(view.ShouldRenderNodeForView(child, VisibilityRoleContext.NoLogic, true),
+                "an application with no role logic hides nothing");
+            Assert.AreSame(VisibilityRoleContext.NoLogic, view.DefaultRoles, "import starts with no role logic");
             var renderer = always.GetComponent<Renderer>();
-            Assert.IsFalse(view.ShouldRenderPrimitiveForView(renderer, 0, firstTags, true));
-            Assert.IsTrue(view.ShouldRenderPrimitiveForView(renderer, 0, thirdTags, true));
-            Assert.IsFalse(view.ShouldRenderPrimitiveForView(renderer, 1, thirdTags, true));
-            Assert.IsTrue(view.ShouldRenderPrimitiveForView(renderer, 1, bothTags, true));
+            Assert.IsFalse(view.ShouldRenderPrimitiveForView(renderer, 0, FirstPersonView, true));
+            Assert.IsTrue(view.ShouldRenderPrimitiveForView(renderer, 0, ThirdPersonView, true));
+            Assert.IsFalse(view.ShouldRenderPrimitiveForView(renderer, 1, ThirdPersonView, true));
+            Assert.IsTrue(view.ShouldRenderPrimitiveForView(renderer, 1, BothApply, true));
             var otherAlways = SandboxTestUtil.FindDeep(second.Current.transform, "AlwaysChild");
-            Assert.IsTrue(other.ShouldRenderNodeForView(otherAlways, thirdTags, true));
-            Assert.IsFalse(view.ShouldRenderNodeForView(always, firstTags, true),
+            Assert.IsTrue(other.ShouldRenderNodeForView(otherAlways, ThirdPersonView, true));
+            Assert.IsFalse(view.ShouldRenderNodeForView(always, FirstPersonView, true),
                 "another instance's visible result cannot leak into this instance/view");
-            Assert.IsFalse(view.ShouldRenderNodeForView(always, bothTags, false),
+            Assert.IsFalse(view.ShouldRenderNodeForView(always, BothApply, false),
                 "the independent ancestor-inclusive core visibility term always retains its veto");
         }
 
         [UnityTest]
-        public IEnumerator CustomAncestorFallback_DoesNotBypassAnotherRestriction()
+        public IEnumerator UnrecognizedCustomRoles_AreIgnoredAndCannotBypassAnotherRestriction()
         {
             var load = Load("VH-Ancestors.glb"); yield return load;
             var view = load.Current.GetComponent<ViewContextController>();
             var unknown = SandboxTestUtil.FindDeep(load.Current.transform, "UnknownChild");
             var custom = SandboxTestUtil.FindDeep(load.Current.transform, "CustomChild");
             var always = SandboxTestUtil.FindDeep(load.Current.transform, "AlwaysChild");
-            Assert.IsFalse(view.ShouldRenderNodeForView(unknown, Array.Empty<string>(), true));
-            view.RenderUnsupportedRoles = true;
-            Assert.IsTrue(view.ShouldRenderNodeForView(unknown, Array.Empty<string>(), true));
+            // Spec 314c95c5 (#256): ACME_unknown is a custom role no application here recognizes, so it is ignored
+            // and imposes no restriction (it used to hide content unless the host opted in).
+            foreach (var roles in new[] { VisibilityRoleContext.NoLogic, FirstPersonView, ThirdPersonView, BothApply })
+                Assert.IsTrue(view.ShouldRenderNodeForView(unknown, roles, true));
             var nestedFallback = SandboxTestUtil.FindDeep(load.Current.transform, "FallbackUnderThird");
-            Assert.IsFalse(view.ShouldRenderNodeForView(nestedFallback, new[] { "first_person" }, true),
-                "rendering an unsupported role locally cannot bypass a supported false ancestor");
-            Assert.IsTrue(view.ShouldRenderNodeForView(nestedFallback, new[] { "third_person" }, true));
-            Assert.IsFalse(view.ShouldRenderNodeForView(always, new[] { "first_person" }, true));
-            Assert.IsFalse(view.ShouldRenderNodeForView(unknown, Array.Empty<string>(), false));
-            view.RenderUnsupportedRoles = false;
-            view.CustomRoleResolver = new MirrorProfile();
-            Assert.IsTrue(view.ShouldRenderNodeForView(custom, new[] { "ACME_mirror" }, true));
-            Assert.IsFalse(view.ShouldRenderNodeForView(custom, new[] { "third_person" }, true));
-            Assert.IsFalse(view.ShouldRenderNodeForView(unknown, new[] { "ACME_mirror" }, true));
+            Assert.IsFalse(view.ShouldRenderNodeForView(nestedFallback, FirstPersonView, true),
+                "an ignored custom role cannot bypass a recognized false ancestor (ThirdParent)");
+            Assert.IsTrue(view.ShouldRenderNodeForView(nestedFallback, ThirdPersonView, true));
+            Assert.IsFalse(view.ShouldRenderNodeForView(always, FirstPersonView, true));
+            Assert.IsFalse(view.ShouldRenderNodeForView(unknown, VisibilityRoleContext.NoLogic, false),
+                "core visibility always wins");
+            // ACME_mirror_only: ignored where unrecognized, hidden where recognized but not applied, shown in a mirror.
+            Assert.IsTrue(view.ShouldRenderNodeForView(custom, ThirdPersonView, true));
+            Assert.IsFalse(view.ShouldRenderNodeForView(custom,
+                FirstPersonRolePolicy.ForView(false, null, new[] { "ACME_mirror_only" }), true));
+            Assert.IsTrue(view.ShouldRenderNodeForView(custom,
+                FirstPersonRolePolicy.ForView(false, new[] { "ACME_mirror_only" }), true));
+            Assert.IsTrue(view.ShouldRenderNodeForView(unknown,
+                FirstPersonRolePolicy.ForView(false, new[] { "ACME_mirror_only" }), true));
         }
 
         [UnityTest]
@@ -226,7 +242,7 @@ namespace KhrCharacterTestbed.Tests
             Assert.IsTrue(parent.gameObject.activeSelf); Assert.IsTrue(child.gameObject.activeInHierarchy);
             Assert.IsTrue(camera.gameObject.activeInHierarchy, "core mesh visibility does not deactivate cameras");
             Assert.IsFalse(CoreNodeVisibility.IsVisibleInHierarchy(child, root.transform));
-            Assert.IsFalse(view.ShouldRenderNodeForView(child, new[] { "first_person", "third_person" },
+            Assert.IsFalse(view.ShouldRenderNodeForView(child, BothApply,
                 CoreNodeVisibility.IsVisibleInHierarchy(child, root.transform)));
             yield return null;
             Assert.IsFalse(child.GetComponent<Renderer>().enabled, "the global core adapter suppresses mesh drawing");
@@ -238,7 +254,7 @@ namespace KhrCharacterTestbed.Tests
             var visible = FindClip(animation, "CoreVisibilityMotion");
             var third = SandboxTestUtil.FindDeep(root.transform, "ThirdParent");
             var always = SandboxTestUtil.FindDeep(root.transform, "AlwaysChild");
-            Assert.IsFalse(view.ShouldRenderNodeForView(always, new[] { "first_person" }, true));
+            Assert.IsFalse(view.ShouldRenderNodeForView(always, FirstPersonView, true));
             motion.SampleAnimation(animation.gameObject, 0);
             Vector3 start = third.localPosition;
             motion.SampleAnimation(animation.gameObject, 0.5f);
@@ -328,17 +344,6 @@ namespace KhrCharacterTestbed.Tests
             System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "core-visibility.json"), report.ToString());
             Assert.IsTrue(found, "the actual imported pointer must bind CoreNodeVisibility.Visible, not GameObject activation");
 #endif
-        }
-
-        private sealed class MirrorProfile : IVisibilityRoleResolver
-        {
-            public bool TryResolve(string role, IReadOnlyCollection<string> tags, out bool visible)
-            {
-                visible = false;
-                if (role != "ACME_mirror_only") return false;
-                foreach (var tag in tags) visible |= tag == "ACME_mirror";
-                return true;
-            }
         }
     }
 }

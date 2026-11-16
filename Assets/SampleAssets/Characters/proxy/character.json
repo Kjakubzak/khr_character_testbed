@@ -1,0 +1,129 @@
+{
+ "schema": "khr-character-unity-test/1",
+ "name": "proxy",
+ "glb": "proxy.glb",
+ "private": false,
+ "source_sha256": "3c970681d2f7c77782d1d8024021a30722b5515dbd334fefb69fb750fd975635",
+ "khr_character": true,
+ "extensions_used": [
+  "KHR_character_reference_pose",
+  "KHR_character",
+  "KHR_character_skeleton_mapping"
+ ],
+ "expect": {
+  "mesh_count": 0,
+  "skinned": false,
+  "humanoid": true,
+  "mapping_set": "vrm1_humanoid",
+  "mapped_roles": [
+   "chest",
+   "head",
+   "hips",
+   "leftFoot",
+   "leftHand",
+   "leftLowerArm",
+   "leftLowerLeg",
+   "leftMiddleDistal",
+   "leftMiddleIntermediate",
+   "leftMiddleProximal",
+   "leftShoulder",
+   "leftToes",
+   "leftUpperArm",
+   "leftUpperLeg",
+   "neck",
+   "rightFoot",
+   "rightHand",
+   "rightLowerArm",
+   "rightLowerLeg",
+   "rightMiddleDistal",
+   "rightMiddleIntermediate",
+   "rightMiddleProximal",
+   "rightShoulder",
+   "rightToes",
+   "rightUpperArm",
+   "rightUpperLeg",
+   "spine",
+   "upperChest"
+  ],
+  "min_mapped_roles": 15,
+  "reference_poses": [
+   {
+    "animation": 0,
+    "pose_type": "t_pose"
+   }
+  ],
+  "reference_pose": {
+   "pose_type": "t_pose",
+   "arm_tolerance_deg": 2.0,
+   "check_arms": true
+  },
+  "animations": [
+   {
+    "name": "t_pose",
+    "index": 0,
+    "duration": 0.0,
+    "tolerance": 0.05,
+    "kind": "reference_pose"
+   },
+   {
+    "name": "Neutral_ID",
+    "index": 1,
+    "duration": 15.0,
+    "tolerance": 0.05,
+    "kind": "take"
+   }
+  ],
+  "camera_hints": [],
+  "lookat_targets": 0
+ },
+ "retarget": {
+  "clips_index": "../clips.json",
+  "clips": [
+   "Neutral_ID",
+   "Neutral_FW",
+   "Neutral_FR",
+   "test_vrma",
+   "ROM_sweep",
+   "CMU_02_01",
+   "CMU_02_03",
+   "CMU_143_06",
+   "CMU_143_18",
+   "CMU_143_25",
+   "CMU_143_29"
+  ],
+  "video_clips": [
+   "Neutral_ID",
+   "Neutral_FW",
+   "Neutral_FR",
+   "test_vrma"
+  ],
+  "sample_fractions": [
+   0.0,
+   0.125,
+   0.25,
+   0.375,
+   0.5,
+   0.625,
+   0.75,
+   0.875
+  ],
+  "floor_tolerance_m": 0.05
+ },
+ "capture": {
+  "fractions": [
+   0.0,
+   0.125,
+   0.375,
+   0.625,
+   0.875
+  ],
+  "views": [
+   "front",
+   "side",
+   "three_quarter"
+  ],
+  "resolution": 1024,
+  "hint_resolution": 1024,
+  "grid_columns": 8
+ }
+}

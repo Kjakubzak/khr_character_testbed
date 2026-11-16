@@ -1,0 +1,9135 @@
+{
+ "schema": "khr-character-unity-test/1",
+ "name": "pubchar",
+ "glb": "pubchar.glb",
+ "private": false,
+ "source_sha256": "4b8261d3c67fbae4b9f9fc3679f0907fb62af9144660e1c9004ed7428ba87bd4",
+ "khr_character": true,
+ "extensions_used": [
+  "KHR_node_camera_hint",
+  "KHR_node_lookat_target",
+  "KHR_materials_transmission",
+  "KHR_materials_specular",
+  "KHR_character_reference_pose",
+  "KHR_character_expression_morphtarget",
+  "KHR_character_expression_joint",
+  "KHR_character_expression_suppression",
+  "KHR_character",
+  "KHR_character_skeleton_mapping",
+  "KHR_character_expression",
+  "KHR_character_expression_mapping"
+ ],
+ "expect": {
+  "mesh_count": 16,
+  "skinned": true,
+  "humanoid": true,
+  "mapping_set": "vrm1_humanoid",
+  "mapped_roles": [
+   "chest",
+   "head",
+   "hips",
+   "leftFoot",
+   "leftHand",
+   "leftIndexDistal",
+   "leftIndexIntermediate",
+   "leftIndexProximal",
+   "leftLittleDistal",
+   "leftLittleIntermediate",
+   "leftLittleProximal",
+   "leftLowerArm",
+   "leftLowerLeg",
+   "leftMiddleDistal",
+   "leftMiddleIntermediate",
+   "leftMiddleProximal",
+   "leftRingDistal",
+   "leftRingIntermediate",
+   "leftRingProximal",
+   "leftShoulder",
+   "leftThumbDistal",
+   "leftThumbMetacarpal",
+   "leftThumbProximal",
+   "leftToes",
+   "leftUpperArm",
+   "leftUpperLeg",
+   "neck",
+   "rightFoot",
+   "rightHand",
+   "rightIndexDistal",
+   "rightIndexIntermediate",
+   "rightIndexProximal",
+   "rightLittleDistal",
+   "rightLittleIntermediate",
+   "rightLittleProximal",
+   "rightLowerArm",
+   "rightLowerLeg",
+   "rightMiddleDistal",
+   "rightMiddleIntermediate",
+   "rightMiddleProximal",
+   "rightRingDistal",
+   "rightRingIntermediate",
+   "rightRingProximal",
+   "rightShoulder",
+   "rightThumbDistal",
+   "rightThumbMetacarpal",
+   "rightThumbProximal",
+   "rightToes",
+   "rightUpperArm",
+   "rightUpperLeg",
+   "spine",
+   "upperChest"
+  ],
+  "min_mapped_roles": 15,
+  "reference_poses": [
+   {
+    "animation": 201,
+    "pose_type": "t_pose"
+   },
+   {
+    "animation": 202,
+    "pose_type": "a_pose"
+   }
+  ],
+  "reference_pose": {
+   "pose_type": "t_pose",
+   "arm_tolerance_deg": 2.0,
+   "check_arms": true
+  },
+  "expressions": [
+   {
+    "name": "brow_inner_L_locXneg",
+    "index": 0,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 32,
+      "value": 0.029527
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.004691
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.004691
+     }
+    ]
+   },
+   {
+    "name": "brow_inner_L_locXpos",
+    "index": 1,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 33,
+      "value": 0.029525
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.004693
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.004693
+     }
+    ]
+   },
+   {
+    "name": "brow_inner_L_locYneg",
+    "index": 2,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 30,
+      "value": 0.105392
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 31,
+      "value": 0.894608
+     }
+    ]
+   },
+   {
+    "name": "brow_inner_L_locYpos",
+    "index": 3,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 34,
+      "value": 0.071008
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 35,
+      "value": 0.928942
+     }
+    ]
+   },
+   {
+    "name": "brow_inner_R_locXneg",
+    "index": 4,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 38,
+      "value": 0.029526
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.00469
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.00469
+     }
+    ]
+   },
+   {
+    "name": "brow_inner_R_locXpos",
+    "index": 5,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 39,
+      "value": 0.029527
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.00469
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.00469
+     }
+    ]
+   },
+   {
+    "name": "brow_inner_R_locYneg",
+    "index": 6,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 36,
+      "value": 0.105401
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 37,
+      "value": 0.894599
+     }
+    ]
+   },
+   {
+    "name": "brow_inner_R_locYpos",
+    "index": 7,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 40,
+      "value": 0.070998
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 41,
+      "value": 0.928961
+     }
+    ]
+   },
+   {
+    "name": "brow_main_L_locXneg",
+    "index": 8,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 31,
+      "value": 0.000131
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 32,
+      "value": 0.528096
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.019589
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.147844
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.019591
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.147842
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.019414
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.145193
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.019761
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.15053
+     }
+    ]
+   },
+   {
+    "name": "brow_main_L_locXpos",
+    "index": 9,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 33,
+      "value": 0.546554
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 35,
+      "value": 0.000181
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.020873
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.150947
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.020875
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.150944
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.021062
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.153701
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.020681
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.148228
+     }
+    ]
+   },
+   {
+    "name": "brow_main_L_locYneg",
+    "index": 10,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 31,
+      "value": 0.477063
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.477104
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.477052
+     }
+    ]
+   },
+   {
+    "name": "brow_main_L_locYpos",
+    "index": 11,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 32,
+      "value": 0.000141
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 35,
+      "value": 0.819483
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.819492
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.000184
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.819019
+     }
+    ]
+   },
+   {
+    "name": "brow_main_L_locZneg",
+    "index": 12,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 32,
+      "value": 0.052466
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 35,
+      "value": 0.003929
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.059145
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.196399
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.05915
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.196398
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.059422
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.197613
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.058875
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.195204
+     }
+    ]
+   },
+   {
+    "name": "brow_main_L_locZpos",
+    "index": 13,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 31,
+      "value": 0.003879
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 33,
+      "value": 0.052463
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.059147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.196402
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.05915
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.196395
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.058874
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.195206
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.059419
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.19761
+     }
+    ]
+   },
+   {
+    "name": "brow_main_R_locXneg",
+    "index": 14,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 37,
+      "value": 0.00015
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 38,
+      "value": 0.546554
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.020874
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.150951
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.020874
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.15095
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.020681
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.148231
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.021062
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.153695
+     }
+    ]
+   },
+   {
+    "name": "brow_main_R_locXpos",
+    "index": 15,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 39,
+      "value": 0.528094
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 41,
+      "value": 0.000172
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.01959
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.147848
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.01959
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.147847
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.019761
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.150529
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.019414
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.145191
+     }
+    ]
+   },
+   {
+    "name": "brow_main_R_locYneg",
+    "index": 16,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 37,
+      "value": 0.477073
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.477114
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.477045
+     }
+    ]
+   },
+   {
+    "name": "brow_main_R_locYpos",
+    "index": 17,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 38,
+      "value": 0.00014
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 41,
+      "value": 0.819492
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.819492
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.000184
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.819031
+     }
+    ]
+   },
+   {
+    "name": "brow_main_R_locZneg",
+    "index": 18,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 38,
+      "value": 0.052462
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 41,
+      "value": 0.003929
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.059147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.196402
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.059149
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.196405
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.059421
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.197613
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.058875
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.195201
+     }
+    ]
+   },
+   {
+    "name": "brow_main_R_locZpos",
+    "index": 19,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 37,
+      "value": 0.003888
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 39,
+      "value": 0.052464
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.059147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.196405
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.059148
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.196401
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.058875
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.195206
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.059421
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.197607
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_L_locXneg",
+    "index": 20,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.000198
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.019813
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.000198
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.019813
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_L_locXpos",
+    "index": 21,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.059149
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.196409
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.059147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.196404
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_L_locYneg",
+    "index": 22,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.233373
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_L_locYpos",
+    "index": 23,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.115792
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_L_locZneg",
+    "index": 24,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.059149
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.196409
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.059148
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.196404
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_L_locZpos",
+    "index": 25,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.059148
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.196409
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.059146
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.196403
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_R_locXneg",
+    "index": 26,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.059147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.196406
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.059148
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.196403
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_R_locXpos",
+    "index": 27,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.000198
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.019812
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.000198
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.019812
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_R_locYneg",
+    "index": 28,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.233367
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_R_locYpos",
+    "index": 29,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.115805
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_R_locZneg",
+    "index": 30,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.059148
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.196409
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.059148
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.1964
+     }
+    ]
+   },
+   {
+    "name": "brow_peak_R_locZpos",
+    "index": 31,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.059147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.196406
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.059148
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.196403
+     }
+    ]
+   },
+   {
+    "name": "eye_L_locXneg",
+    "index": 32,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.052826
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.245866
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": -0.010898
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.047926
+     },
+     {
+      "property": "/nodes/2/rotation"
+     }
+    ]
+   },
+   {
+    "name": "eye_L_locXpos",
+    "index": 33,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.041543
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": -0.009238
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.248587
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.036768
+     },
+     {
+      "property": "/nodes/2/rotation"
+     }
+    ]
+   },
+   {
+    "name": "eye_L_locYneg",
+    "index": 34,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.40335
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.07529
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 4,
+      "value": 0.001591
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.084751
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 6,
+      "value": 0.003024
+     },
+     {
+      "property": "/nodes/2/rotation"
+     }
+    ]
+   },
+   {
+    "name": "eye_L_locYpos",
+    "index": 35,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": -0.019547
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.052033
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 4,
+      "value": 0.004758
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.05616
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 6,
+      "value": 0.007036
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.701443
+     },
+     {
+      "property": "/nodes/2/rotation"
+     }
+    ]
+   },
+   {
+    "name": "eye_R_locXneg",
+    "index": 36,
+    "targets": [
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.052826
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.245866
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": -0.010898
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.047926
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "eye_R_locXpos",
+    "index": 37,
+    "targets": [
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.041543
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": -0.009238
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.248587
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.036768
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "eye_R_locYneg",
+    "index": 38,
+    "targets": [
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.403331
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.075291
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 4,
+      "value": 0.001591
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.084752
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 6,
+      "value": 0.003024
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "eye_R_locYpos",
+    "index": 39,
+    "targets": [
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": -0.019547
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.052028
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 4,
+      "value": 0.004757
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.056155
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 6,
+      "value": 0.007035
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.701472
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "eyeSocket_L_locXneg",
+    "index": 40,
+    "targets": [
+     {
+      "property": "/nodes/2/translation"
+     }
+    ]
+   },
+   {
+    "name": "eyeSocket_L_locXpos",
+    "index": 41,
+    "targets": [
+     {
+      "property": "/nodes/2/translation"
+     }
+    ]
+   },
+   {
+    "name": "eyeSocket_L_locZpos",
+    "index": 42,
+    "targets": [
+     {
+      "property": "/nodes/2/translation"
+     }
+    ]
+   },
+   {
+    "name": "eyeSocket_R_locXneg",
+    "index": 43,
+    "targets": [
+     {
+      "property": "/nodes/3/translation"
+     }
+    ]
+   },
+   {
+    "name": "eyeSocket_R_locXpos",
+    "index": 44,
+    "targets": [
+     {
+      "property": "/nodes/3/translation"
+     }
+    ]
+   },
+   {
+    "name": "eyeSocket_R_locZpos",
+    "index": 45,
+    "targets": [
+     {
+      "property": "/nodes/3/translation"
+     }
+    ]
+   },
+   {
+    "name": "head_tip_locXneg",
+    "index": 46,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 32,
+      "value": 0.59656
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 35,
+      "value": 0.004034
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 37,
+      "value": 0.003993
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 39,
+      "value": 0.59656
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.026462
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.161355
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.026714
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.164116
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.026713
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.164123
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.026463
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.161357
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.158921
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.026931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.166604
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.026931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.166606
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.158914
+     }
+    ]
+   },
+   {
+    "name": "head_tip_locXpos",
+    "index": 47,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 31,
+      "value": 0.003983
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 33,
+      "value": 0.596559
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 38,
+      "value": 0.596559
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 41,
+      "value": 0.004034
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.026712
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.164119
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.026464
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.161352
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.026462
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.161359
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.026713
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.164121
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.026931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.166607
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.026235
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.158917
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.158919
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.026931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.166601
+     }
+    ]
+   },
+   {
+    "name": "head_tip_locYneg",
+    "index": 48,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 31,
+      "value": 0.78262
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 33,
+      "value": 0.054093
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 37,
+      "value": 0.78263
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 39,
+      "value": 0.054094
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.02125
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.743264
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.001189
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.003275
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.021252
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.743269
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.001189
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.003284
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.019819
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.747329
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.001089
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.003017
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.019818
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.747325
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.001089
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.00301
+     }
+    ]
+   },
+   {
+    "name": "head_tip_locYpos",
+    "index": 49,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 32,
+      "value": 0.054096
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 35,
+      "value": 0.782661
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 38,
+      "value": 0.054094
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 41,
+      "value": 0.782661
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.001189
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.003294
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.021255
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.743274
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.001189
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.003294
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.021253
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.743277
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.001089
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.003014
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.019816
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.747323
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.001089
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.003017
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.019819
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.74733
+     }
+    ]
+   },
+   {
+    "name": "head_tip_locZneg",
+    "index": 50,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 33,
+      "value": 0.586314
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 35,
+      "value": 0.330973
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 39,
+      "value": 0.586318
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 41,
+      "value": 0.330963
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.111527
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.150144
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.189417
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.240627
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.111529
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.150145
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.189416
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.240635
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.113115
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.152109
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.187333
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.238393
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.113114
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.152111
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.187334
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.238388
+     }
+    ]
+   },
+   {
+    "name": "head_tip_locZpos",
+    "index": 51,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 31,
+      "value": 0.413663
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 32,
+      "value": 0.732901
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 37,
+      "value": 0.413672
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 38,
+      "value": 0.732903
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 42,
+      "value": 0.235537
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 43,
+      "value": 0.215929
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 44,
+      "value": 0.135936
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 45,
+      "value": 0.140448
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 46,
+      "value": 0.235538
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 47,
+      "value": 0.21593
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 48,
+      "value": 0.135934
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 49,
+      "value": 0.140456
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 50,
+      "value": 0.232819
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 51,
+      "value": 0.214189
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 52,
+      "value": 0.137917
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 53,
+      "value": 0.1422
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 54,
+      "value": 0.232817
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 55,
+      "value": 0.214191
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 56,
+      "value": 0.137918
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 57,
+      "value": 0.142194
+     }
+    ]
+   },
+   {
+    "name": "headwire_top_locXneg",
+    "index": 52,
+    "targets": [
+     {
+      "property": "/nodes/2/translation"
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/translation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "headwire_top_locXpos",
+    "index": 53,
+    "targets": [
+     {
+      "property": "/nodes/2/translation"
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/translation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "headwire_top_locYneg",
+    "index": 54,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": -0.000348
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": -0.00016
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": -0.000188
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": -0.000348
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": -0.00016
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": -0.000188
+     },
+     {
+      "property": "/nodes/2/translation"
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/2/scale"
+     },
+     {
+      "property": "/nodes/3/translation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     },
+     {
+      "property": "/nodes/3/scale"
+     }
+    ]
+   },
+   {
+    "name": "headwire_top_locYpos",
+    "index": 55,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.000118
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.000118
+     },
+     {
+      "property": "/nodes/2/translation"
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/2/scale"
+     },
+     {
+      "property": "/nodes/3/translation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     },
+     {
+      "property": "/nodes/3/scale"
+     }
+    ]
+   },
+   {
+    "name": "headwire_top_locZneg",
+    "index": 56,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.000262
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.000104
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.000123
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.000262
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.000104
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.000123
+     },
+     {
+      "property": "/nodes/2/translation"
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/2/scale"
+     },
+     {
+      "property": "/nodes/3/translation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     },
+     {
+      "property": "/nodes/3/scale"
+     }
+    ]
+   },
+   {
+    "name": "headwire_top_locZpos",
+    "index": 57,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": -0.000213
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": -0.000106
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": -0.000125
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": -0.000213
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": -0.000106
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": -0.000125
+     },
+     {
+      "property": "/nodes/2/translation"
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/2/scale"
+     },
+     {
+      "property": "/nodes/3/translation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     },
+     {
+      "property": "/nodes/3/scale"
+     }
+    ]
+   },
+   {
+    "name": "jaw_locXneg",
+    "index": 58,
+    "targets": [
+     {
+      "property": "/nodes/4/translation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "jaw_locXpos",
+    "index": 59,
+    "targets": [
+     {
+      "property": "/nodes/4/translation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "jaw_locYneg",
+    "index": 60,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 136,
+      "value": 0.159911
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 185,
+      "value": -0.000347
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 186,
+      "value": 0.013352
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 187,
+      "value": -0.002118
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 188,
+      "value": -0.000494
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 189,
+      "value": -0.000347
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 190,
+      "value": 0.013351
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 191,
+      "value": -0.002118
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 192,
+      "value": -0.000494
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 193,
+      "value": -0.004175
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 194,
+      "value": 0.03297
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 195,
+      "value": -0.004175
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 196,
+      "value": 0.03297
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 197,
+      "value": -0.002884
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 198,
+      "value": 0.046411
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 199,
+      "value": -0.000284
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 200,
+      "value": -0.015013
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 201,
+      "value": -0.002176
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 202,
+      "value": -0.000465
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 203,
+      "value": -0.000346
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 204,
+      "value": 0.013347
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 205,
+      "value": -0.002117
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 206,
+      "value": -0.000494
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 207,
+      "value": -0.000347
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 208,
+      "value": 0.013347
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 209,
+      "value": -0.002117
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 210,
+      "value": -0.000494
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 211,
+      "value": -0.004174
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 212,
+      "value": 0.032958
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 213,
+      "value": -0.004174
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 214,
+      "value": 0.032958
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 215,
+      "value": -0.002883
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 216,
+      "value": 0.046406
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 217,
+      "value": -0.000284
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 218,
+      "value": -0.015018
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 219,
+      "value": -0.002175
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 220,
+      "value": -0.000465
+     },
+     {
+      "property": "/nodes/4/translation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "jaw_locYpos",
+    "index": 61,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 135,
+      "value": 0.019346
+     },
+     {
+      "property": "/nodes/4/translation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "jaw_locZpos",
+    "index": 62,
+    "targets": [
+     {
+      "property": "/nodes/4/translation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "jaw_rotXneg",
+    "index": 63,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 136,
+      "value": 0.86324
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 137,
+      "value": 0.13676
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 185,
+      "value": -0.001729
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 186,
+      "value": 0.051767
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 187,
+      "value": -0.005756
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 188,
+      "value": -0.001959
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 189,
+      "value": -0.00173
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 190,
+      "value": 0.05176
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 191,
+      "value": -0.005756
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 192,
+      "value": -0.001959
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 193,
+      "value": -0.006313
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 194,
+      "value": 0.104924
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 195,
+      "value": -0.006313
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 196,
+      "value": 0.104923
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 197,
+      "value": -0.012205
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 198,
+      "value": 0.382166
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 199,
+      "value": -0.001487
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 200,
+      "value": -0.054455
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 201,
+      "value": -0.008866
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 202,
+      "value": -0.002063
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 203,
+      "value": -0.001729
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 204,
+      "value": 0.051747
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 205,
+      "value": -0.005755
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 206,
+      "value": -0.001959
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 207,
+      "value": -0.00173
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 208,
+      "value": 0.05177
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 209,
+      "value": -0.005755
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 210,
+      "value": -0.001959
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 211,
+      "value": -0.006311
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 212,
+      "value": 0.10491
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 213,
+      "value": -0.006311
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 214,
+      "value": 0.104912
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 215,
+      "value": -0.012204
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 216,
+      "value": 0.382163
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 217,
+      "value": -0.001487
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 218,
+      "value": -0.05446
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 219,
+      "value": -0.008865
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 220,
+      "value": -0.002063
+     },
+     {
+      "property": "/nodes/4/rotation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/91/rotation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     },
+     {
+      "property": "/nodes/92/rotation"
+     }
+    ]
+   },
+   {
+    "name": "jaw_rotYneg",
+    "index": 64,
+    "targets": [
+     {
+      "property": "/nodes/4/rotation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/91/rotation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     },
+     {
+      "property": "/nodes/92/rotation"
+     }
+    ]
+   },
+   {
+    "name": "jaw_rotYpos",
+    "index": 65,
+    "targets": [
+     {
+      "property": "/nodes/4/rotation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/91/rotation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     },
+     {
+      "property": "/nodes/92/rotation"
+     }
+    ]
+   },
+   {
+    "name": "jaw_rotZneg",
+    "index": 66,
+    "targets": [
+     {
+      "property": "/nodes/4/rotation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/91/rotation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     },
+     {
+      "property": "/nodes/92/rotation"
+     }
+    ]
+   },
+   {
+    "name": "jaw_rotZpos",
+    "index": 67,
+    "targets": [
+     {
+      "property": "/nodes/4/rotation"
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/91/rotation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     },
+     {
+      "property": "/nodes/92/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lidLower_L_locYneg",
+    "index": 68,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 0,
+      "value": 0.623442
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 1,
+      "value": 0.376558
+     }
+    ]
+   },
+   {
+    "name": "lidLower_L_locYpos",
+    "index": 69,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 2,
+      "value": 0.298619
+     }
+    ]
+   },
+   {
+    "name": "lidLower_R_locYneg",
+    "index": 70,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 3,
+      "value": 0.623442
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 4,
+      "value": 0.376558
+     }
+    ]
+   },
+   {
+    "name": "lidLower_R_locYpos",
+    "index": 71,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 5,
+      "value": 0.298619
+     }
+    ]
+   },
+   {
+    "name": "lidUpper_L_locYneg",
+    "index": 72,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 2,
+      "value": 0.007711
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 7,
+      "value": 0.992289
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 8,
+      "value": 0.007711
+     }
+    ]
+   },
+   {
+    "name": "lidUpper_L_locYpos",
+    "index": 73,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 9,
+      "value": 0.511479
+     }
+    ]
+   },
+   {
+    "name": "lidUpper_R_locYneg",
+    "index": 74,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 5,
+      "value": 0.007711
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 11,
+      "value": 0.992289
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 12,
+      "value": 0.007711
+     }
+    ]
+   },
+   {
+    "name": "lidUpper_R_locYpos",
+    "index": 75,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 13,
+      "value": 0.511479
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_locXneg",
+    "index": 76,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.020589
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.076134
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": -0.010898
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.016135
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.020589
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.076134
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": -0.010898
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.016135
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_locXpos",
+    "index": 77,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.029521
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 2,
+      "value": 0.001738
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": -0.009238
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.722578
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.029639
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.029521
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 2,
+      "value": 0.001738
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": -0.009238
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.722578
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.029639
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_locYneg",
+    "index": 78,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.732508
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.04134
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 4,
+      "value": 0.003757
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.04453
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 6,
+      "value": 0.005603
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.732531
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.041337
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 4,
+      "value": 0.003756
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.044527
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 6,
+      "value": 0.005601
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_locYpos",
+    "index": 79,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": -0.019547
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.034493
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.040166
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.100969
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": -0.019547
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.034493
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.040166
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.100969
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_rotXneg",
+    "index": 80,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": -0.019547
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.05203
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 4,
+      "value": 0.004758
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.056157
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 6,
+      "value": 0.007036
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.70146
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": -0.019547
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.05203
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 4,
+      "value": 0.004758
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.056157
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 6,
+      "value": 0.007036
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.70146
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_rotXpos",
+    "index": 81,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.732523
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.041338
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 4,
+      "value": 0.003757
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.044528
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 6,
+      "value": 0.005602
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.732523
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.041338
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 4,
+      "value": 0.003756
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.044528
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 6,
+      "value": 0.005602
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_rotYneg",
+    "index": 82,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": -0.008691
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 2,
+      "value": 0.002516
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.962981
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 4,
+      "value": 0.012878
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": -0.010898
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": -0.008691
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 2,
+      "value": 0.002516
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.962981
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 4,
+      "value": 0.012878
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": -0.010898
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_rotYpos",
+    "index": 83,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": -0.007712
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 2,
+      "value": 0.002126
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": -0.009238
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.957503
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 6,
+      "value": 0.014659
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": -0.007713
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 2,
+      "value": 0.002126
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": -0.009238
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.95751
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 6,
+      "value": 0.014656
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_trs_locXneg",
+    "index": 84,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.057129
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 2,
+      "value": 0.002181
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.5277
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": -0.010898
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.05556
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 8,
+      "value": 0.000553
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.057129
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 2,
+      "value": 0.002181
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.5277
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": -0.010898
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.05556
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_trs_locXpos",
+    "index": 85,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.04616
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 2,
+      "value": 0.000457
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": -0.009238
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.5305
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.043983
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.04616
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 2,
+      "value": 0.000457
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": -0.009238
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.5305
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.043983
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_trs_locYneg",
+    "index": 86,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.533781
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.068191
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 4,
+      "value": 0.003124
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.075541
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 6,
+      "value": 0.00509
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.533781
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.068191
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 4,
+      "value": 0.003124
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.075541
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 6,
+      "value": 0.00509
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_trs_locYpos",
+    "index": 87,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": -0.019547
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.07584
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 4,
+      "value": 0.003589
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.084042
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 6,
+      "value": 0.005763
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 7,
+      "value": 0.505938
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": -0.019547
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.07584
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 4,
+      "value": 0.003589
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.084042
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 6,
+      "value": 0.005763
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 7,
+      "value": 0.505938
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_trs_locZneg",
+    "index": 88,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": 0.004908
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": 0.00223
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": 0.002624
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": 0.004908
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": 0.00223
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": 0.002624
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_trs_locZpos",
+    "index": 89,
+    "targets": [
+     {
+      "property": "/nodes/101/weights",
+      "element": 1,
+      "value": -0.00332
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 3,
+      "value": -0.001568
+     },
+     {
+      "property": "/nodes/101/weights",
+      "element": 5,
+      "value": -0.001847
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 1,
+      "value": -0.00332
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 3,
+      "value": -0.001568
+     },
+     {
+      "property": "/nodes/104/weights",
+      "element": 5,
+      "value": -0.001847
+     },
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_locYneg",
+    "index": 90,
+    "targets": [
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_locZneg",
+    "index": 91,
+    "targets": [
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_locZpos",
+    "index": 92,
+    "targets": [
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_l_locXneg",
+    "index": 93,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 15,
+      "value": 0.036062
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 17,
+      "value": 0.101355
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 21,
+      "value": 0.036061
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_l_locXpos",
+    "index": 94,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 15,
+      "value": 0.075287
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 19,
+      "value": 0.33804
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 21,
+      "value": 0.075288
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_l_locYneg",
+    "index": 95,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 15,
+      "value": 0.556324
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 17,
+      "value": 0.071586
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 19,
+      "value": 0.071598
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_l_locYpos",
+    "index": 96,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 17,
+      "value": 0.025051
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 19,
+      "value": 0.025034
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 21,
+      "value": 0.06615
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_l_locZneg",
+    "index": 97,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 14,
+      "value": 0.027691
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 15,
+      "value": 0.132141
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 16,
+      "value": 0.027694
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 17,
+      "value": 0.132165
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 18,
+      "value": 0.027685
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 19,
+      "value": 0.13212
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 20,
+      "value": 0.027689
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 21,
+      "value": 0.132144
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_l_locZpos",
+    "index": 98,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 14,
+      "value": 0.027692
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 15,
+      "value": 0.132144
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 16,
+      "value": 0.027685
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 17,
+      "value": 0.132122
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 18,
+      "value": 0.027695
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 19,
+      "value": 0.132163
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 20,
+      "value": 0.027689
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 21,
+      "value": 0.13214
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_r_locXneg",
+    "index": 99,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 23,
+      "value": 0.075285
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 25,
+      "value": 0.338041
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 29,
+      "value": 0.075283
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_r_locXpos",
+    "index": 100,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 23,
+      "value": 0.036066
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 27,
+      "value": 0.101346
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 29,
+      "value": 0.036054
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_r_locYneg",
+    "index": 101,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 23,
+      "value": 0.556309
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 25,
+      "value": 0.071579
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 27,
+      "value": 0.071602
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_r_locYpos",
+    "index": 102,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 25,
+      "value": 0.025054
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 27,
+      "value": 0.025037
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 29,
+      "value": 0.066155
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_r_locZneg",
+    "index": 103,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 22,
+      "value": 0.027687
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 23,
+      "value": 0.132134
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 24,
+      "value": 0.027702
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 25,
+      "value": 0.132201
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 26,
+      "value": 0.027678
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 27,
+      "value": 0.132076
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 28,
+      "value": 0.027693
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 29,
+      "value": 0.132144
+     }
+    ]
+   },
+   {
+    "name": "brow_corrugator_r_locZpos",
+    "index": 104,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 22,
+      "value": 0.027692
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 23,
+      "value": 0.132153
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 24,
+      "value": 0.027677
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 25,
+      "value": 0.132087
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 26,
+      "value": 0.027704
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 27,
+      "value": 0.13219
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 28,
+      "value": 0.027688
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 29,
+      "value": 0.132125
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_l_locXneg",
+    "index": 105,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 58,
+      "value": 0.023267
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 59,
+      "value": 0.123735
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 60,
+      "value": 0.038128
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 61,
+      "value": 0.158607
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 62,
+      "value": 0.01425
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 63,
+      "value": 0.139068
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 64,
+      "value": 0.009387
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 65,
+      "value": 0.087299
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_l_locXpos",
+    "index": 106,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 58,
+      "value": 0.023267
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 59,
+      "value": 0.123735
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 60,
+      "value": 0.038128
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 61,
+      "value": 0.158607
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 62,
+      "value": 0.01425
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 63,
+      "value": 0.139068
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 64,
+      "value": 0.009387
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 65,
+      "value": 0.087299
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_l_locYneg",
+    "index": 107,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 59,
+      "value": 0.275773
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 61,
+      "value": 0.064506
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 63,
+      "value": 0.069109
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_l_locYpos",
+    "index": 108,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 60,
+      "value": 0.003929
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 61,
+      "value": 0.053165
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 63,
+      "value": 0.179722
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 65,
+      "value": 0.1314
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_l_locZneg",
+    "index": 109,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 59,
+      "value": 0.070435
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 61,
+      "value": 0.485397
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 65,
+      "value": 0.023844
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_l_locZpos",
+    "index": 110,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 59,
+      "value": 0.072062
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 63,
+      "value": 0.34964
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 65,
+      "value": 0.04437
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_r_locXneg",
+    "index": 111,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 66,
+      "value": 0.023267
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 67,
+      "value": 0.123732
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 68,
+      "value": 0.038128
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 69,
+      "value": 0.158606
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 70,
+      "value": 0.01425
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 71,
+      "value": 0.139066
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 72,
+      "value": 0.009387
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 73,
+      "value": 0.087298
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_r_locXpos",
+    "index": 112,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 66,
+      "value": 0.023267
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 67,
+      "value": 0.123732
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 68,
+      "value": 0.038128
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 69,
+      "value": 0.158606
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 70,
+      "value": 0.01425
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 71,
+      "value": 0.139066
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 72,
+      "value": 0.009387
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 73,
+      "value": 0.087298
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_r_locYneg",
+    "index": 113,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 67,
+      "value": 0.275773
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 69,
+      "value": 0.064505
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 71,
+      "value": 0.069108
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_r_locYpos",
+    "index": 114,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 68,
+      "value": 0.003928
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 69,
+      "value": 0.053163
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 71,
+      "value": 0.179719
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 73,
+      "value": 0.131398
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_r_locZneg",
+    "index": 115,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 67,
+      "value": 0.070433
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 69,
+      "value": 0.485395
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 73,
+      "value": 0.023843
+     }
+    ]
+   },
+   {
+    "name": "cheek_inner_r_locZpos",
+    "index": 116,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 67,
+      "value": 0.07206
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 71,
+      "value": 0.349638
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 73,
+      "value": 0.044368
+     }
+    ]
+   },
+   {
+    "name": "cheek_l_locXneg",
+    "index": 117,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 74,
+      "value": 0.016931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 75,
+      "value": 0.127366
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 76,
+      "value": 0.016931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 77,
+      "value": 0.127366
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 78,
+      "value": 0.016932
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 79,
+      "value": 0.127365
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 80,
+      "value": 0.016931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 81,
+      "value": 0.127366
+     }
+    ]
+   },
+   {
+    "name": "cheek_l_locXpos",
+    "index": 118,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 74,
+      "value": 0.016931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 75,
+      "value": 0.127366
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 76,
+      "value": 0.016931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 77,
+      "value": 0.127366
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 78,
+      "value": 0.016931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 79,
+      "value": 0.127365
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 80,
+      "value": 0.016931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 81,
+      "value": 0.127365
+     }
+    ]
+   },
+   {
+    "name": "cheek_l_locYneg",
+    "index": 119,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 74,
+      "value": 0.949269
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 76,
+      "value": 0.06259
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 78,
+      "value": 0.062591
+     }
+    ]
+   },
+   {
+    "name": "cheek_l_locYpos",
+    "index": 120,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 76,
+      "value": 0.06259
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 78,
+      "value": 0.062591
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 80,
+      "value": 0.949269
+     }
+    ]
+   },
+   {
+    "name": "cheek_l_locZneg",
+    "index": 121,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 74,
+      "value": 0.06259
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 76,
+      "value": 0.949269
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 80,
+      "value": 0.06259
+     }
+    ]
+   },
+   {
+    "name": "cheek_l_locZpos",
+    "index": 122,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 74,
+      "value": 0.062591
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 78,
+      "value": 0.949268
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 80,
+      "value": 0.062591
+     }
+    ]
+   },
+   {
+    "name": "cheek_r_locXneg",
+    "index": 123,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 82,
+      "value": 0.016927
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 83,
+      "value": 0.127339
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 84,
+      "value": 0.016931
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 85,
+      "value": 0.127341
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 86,
+      "value": 0.016932
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 87,
+      "value": 0.127334
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 88,
+      "value": 0.016936
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 89,
+      "value": 0.127326
+     }
+    ]
+   },
+   {
+    "name": "cheek_r_locXpos",
+    "index": 124,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 82,
+      "value": 0.016926
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 83,
+      "value": 0.127338
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 84,
+      "value": 0.01693
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 85,
+      "value": 0.127339
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 86,
+      "value": 0.016932
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 87,
+      "value": 0.127334
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 88,
+      "value": 0.016935
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 89,
+      "value": 0.127325
+     }
+    ]
+   },
+   {
+    "name": "cheek_r_locYneg",
+    "index": 125,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 82,
+      "value": 0.949275
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 84,
+      "value": 0.062583
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 86,
+      "value": 0.062585
+     }
+    ]
+   },
+   {
+    "name": "cheek_r_locYpos",
+    "index": 126,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 84,
+      "value": 0.062594
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 86,
+      "value": 0.062599
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 88,
+      "value": 0.949263
+     }
+    ]
+   },
+   {
+    "name": "cheek_r_locZneg",
+    "index": 127,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 82,
+      "value": 0.062581
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 84,
+      "value": 0.94927
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 88,
+      "value": 0.062596
+     }
+    ]
+   },
+   {
+    "name": "cheek_r_locZpos",
+    "index": 128,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 82,
+      "value": 0.062583
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 86,
+      "value": 0.949267
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 88,
+      "value": 0.062601
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_l_locXneg",
+    "index": 129,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 157,
+      "value": 0.027689
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 158,
+      "value": 0.132145
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 159,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 160,
+      "value": 0.132137
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 161,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 162,
+      "value": 0.132138
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 163,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 164,
+      "value": 0.132126
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_l_locXpos",
+    "index": 130,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 157,
+      "value": 0.027689
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 158,
+      "value": 0.132145
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 159,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 160,
+      "value": 0.132137
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 161,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 162,
+      "value": 0.132137
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 163,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 164,
+      "value": 0.132126
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_l_locYneg",
+    "index": 131,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 158,
+      "value": 0.027492
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 160,
+      "value": 0.011113
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 162,
+      "value": 0.011113
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_l_locYpos",
+    "index": 132,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 160,
+      "value": 0.062832
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 162,
+      "value": 0.062832
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 164,
+      "value": 0.643377
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_l_locZneg",
+    "index": 133,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 158,
+      "value": 0.07747
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 160,
+      "value": 0.421124
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 164,
+      "value": 0.077453
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_l_locZpos",
+    "index": 134,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 158,
+      "value": 0.060798
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 162,
+      "value": 0.208925
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 164,
+      "value": 0.060782
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_locXneg",
+    "index": 135,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 153,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 154,
+      "value": 0.132147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 155,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 156,
+      "value": 0.132147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 165,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 166,
+      "value": 0.132147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 175,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 176,
+      "value": 0.132147
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_locXpos",
+    "index": 136,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 153,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 154,
+      "value": 0.132147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 155,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 156,
+      "value": 0.132147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 165,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 166,
+      "value": 0.132147
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 175,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 176,
+      "value": 0.132147
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_locYneg",
+    "index": 137,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 154,
+      "value": 0.668832
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 156,
+      "value": 0.059674
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 166,
+      "value": 0.059673
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_locYpos",
+    "index": 138,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 156,
+      "value": 0.060286
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 166,
+      "value": 0.060286
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 176,
+      "value": 0.205968
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_locZneg",
+    "index": 139,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 154,
+      "value": 0.067765
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 156,
+      "value": 0.255532
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 176,
+      "value": 0.067765
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_locZpos",
+    "index": 140,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 154,
+      "value": 0.072561
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 166,
+      "value": 0.543841
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 176,
+      "value": 0.072561
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_r_locXneg",
+    "index": 141,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 167,
+      "value": 0.027688
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 168,
+      "value": 0.132142
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 169,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 170,
+      "value": 0.132145
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 171,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 172,
+      "value": 0.132142
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 173,
+      "value": 0.027691
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 174,
+      "value": 0.132145
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_r_locXpos",
+    "index": 142,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 167,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 168,
+      "value": 0.132145
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 169,
+      "value": 0.02769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 170,
+      "value": 0.132144
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 171,
+      "value": 0.027691
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 172,
+      "value": 0.132143
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 173,
+      "value": 0.027691
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 174,
+      "value": 0.132142
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_r_locYneg",
+    "index": 143,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 168,
+      "value": 0.027509
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 170,
+      "value": 0.011126
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 172,
+      "value": 0.011126
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_r_locYpos",
+    "index": 144,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 170,
+      "value": 0.06284
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 172,
+      "value": 0.062837
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 174,
+      "value": 0.643392
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_r_locZneg",
+    "index": 145,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 168,
+      "value": 0.07747
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 170,
+      "value": 0.42113
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 174,
+      "value": 0.07747
+     }
+    ]
+   },
+   {
+    "name": "lip_upper_r_locZpos",
+    "index": 146,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 168,
+      "value": 0.060798
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 172,
+      "value": 0.208932
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 174,
+      "value": 0.060798
+     }
+    ]
+   },
+   {
+    "name": "mouthMain_locXneg",
+    "index": 147,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 177,
+      "value": 0.061206
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 178,
+      "value": 0.163146
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 179,
+      "value": 0.040802
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 180,
+      "value": 0.123406
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 181,
+      "value": 0.028111
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 182,
+      "value": 0.109256
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 183,
+      "value": 0.019179
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 184,
+      "value": 0.120148
+     }
+    ]
+   },
+   {
+    "name": "mouthMain_locXpos",
+    "index": 148,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 177,
+      "value": 0.061206
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 178,
+      "value": 0.163146
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 179,
+      "value": 0.040802
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 180,
+      "value": 0.123406
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 181,
+      "value": 0.028111
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 182,
+      "value": 0.109256
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 183,
+      "value": 0.019179
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 184,
+      "value": 0.120148
+     }
+    ]
+   },
+   {
+    "name": "mouthMain_locYneg",
+    "index": 149,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 178,
+      "value": 0.022103
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 180,
+      "value": 0.007753
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 181,
+      "value": 0.00014
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 182,
+      "value": 0.002674
+     }
+    ]
+   },
+   {
+    "name": "mouthMain_locYpos",
+    "index": 150,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 180,
+      "value": 0.029929
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 182,
+      "value": 0.023558
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 184,
+      "value": 0.081773
+     }
+    ]
+   },
+   {
+    "name": "mouthMain_locZneg",
+    "index": 151,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 177,
+      "value": 0.061326
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 178,
+      "value": 0.195246
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 181,
+      "value": 0.051619
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 182,
+      "value": 0.397407
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 184,
+      "value": 0.044764
+     }
+    ]
+   },
+   {
+    "name": "mouthMain_locZpos",
+    "index": 152,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 178,
+      "value": 0.042431
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 180,
+      "value": 0.140486
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 184,
+      "value": 0.04803
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_l_locXneg",
+    "index": 153,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 185,
+      "value": -0.001779
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 186,
+      "value": 0.048256
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 187,
+      "value": -0.004264
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 188,
+      "value": -0.001819
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 189,
+      "value": -0.001779
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 190,
+      "value": 0.048255
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 191,
+      "value": -0.004264
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 192,
+      "value": -0.001819
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 193,
+      "value": -0.00228
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 194,
+      "value": 0.090257
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 195,
+      "value": -0.002281
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 196,
+      "value": 0.090256
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 197,
+      "value": -0.011894
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 198,
+      "value": 0.538408
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 199,
+      "value": -0.001563
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 200,
+      "value": -0.049768
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 201,
+      "value": -0.008506
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 202,
+      "value": -0.002046
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_l_locXpos",
+    "index": 154,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 185,
+      "value": -0.000602
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 186,
+      "value": 0.005399
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 187,
+      "value": 0.005344
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 188,
+      "value": 0.0013
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 189,
+      "value": -0.000602
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 190,
+      "value": 0.005402
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 191,
+      "value": 0.005346
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 192,
+      "value": 0.0013
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 193,
+      "value": 0.009536
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 194,
+      "value": -0.000366
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 195,
+      "value": 0.009537
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 196,
+      "value": -0.000365
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 197,
+      "value": -0.005399
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 198,
+      "value": -0.007964
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 199,
+      "value": -0.00154
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 200,
+      "value": 0.269159
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 201,
+      "value": 0.719811
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 202,
+      "value": -0.001092
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_l_locYneg",
+    "index": 155,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 185,
+      "value": -0.001854
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 186,
+      "value": 0.505437
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 187,
+      "value": -0.008856
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 188,
+      "value": -0.002256
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 189,
+      "value": -0.001854
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 190,
+      "value": -0.051556
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 191,
+      "value": -0.008855
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 192,
+      "value": -0.002256
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 193,
+      "value": -0.003066
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 194,
+      "value": 0.094523
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 195,
+      "value": -0.003066
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 196,
+      "value": 0.094523
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 197,
+      "value": -0.007506
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 198,
+      "value": 0.049864
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 199,
+      "value": -0.001501
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 200,
+      "value": 0.049796
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 201,
+      "value": -0.004494
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 202,
+      "value": -0.001707
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_l_locYpos",
+    "index": 156,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 185,
+      "value": -0.001853
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 186,
+      "value": -0.051444
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 187,
+      "value": -0.008843
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 188,
+      "value": -0.002254
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 189,
+      "value": -0.001853
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 190,
+      "value": 0.507783
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 191,
+      "value": -0.008843
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 192,
+      "value": -0.002254
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 193,
+      "value": -0.003007
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 194,
+      "value": 0.094234
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 195,
+      "value": -0.003007
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 196,
+      "value": 0.094235
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 197,
+      "value": -0.007476
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 198,
+      "value": 0.049769
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 199,
+      "value": -0.001501
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 200,
+      "value": 0.049702
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 201,
+      "value": -0.004468
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 202,
+      "value": -0.001704
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_l_locZneg",
+    "index": 157,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 185,
+      "value": -0.000432
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 186,
+      "value": 0.01677
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 187,
+      "value": -0.002695
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 188,
+      "value": -0.000622
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 189,
+      "value": -0.000432
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 190,
+      "value": 0.01677
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 191,
+      "value": -0.002695
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 192,
+      "value": -0.000622
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 193,
+      "value": -0.005719
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 194,
+      "value": 0.113685
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 195,
+      "value": -0.005719
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 196,
+      "value": -0.011315
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 197,
+      "value": -0.003536
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 198,
+      "value": 0.016803
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 199,
+      "value": -0.000352
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 200,
+      "value": 0.016787
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 201,
+      "value": -0.002657
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 202,
+      "value": -0.000578
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_l_locZpos",
+    "index": 158,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 185,
+      "value": -0.000951
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 186,
+      "value": 0.034312
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 187,
+      "value": -0.005172
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 188,
+      "value": -0.001296
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 189,
+      "value": -0.000951
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 190,
+      "value": 0.034312
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 191,
+      "value": -0.005172
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 192,
+      "value": -0.001296
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 193,
+      "value": -0.011943
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 194,
+      "value": -0.023309
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 195,
+      "value": -0.011943
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 196,
+      "value": 0.351692
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 197,
+      "value": -0.006962
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 198,
+      "value": 0.034383
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 199,
+      "value": -0.000782
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 200,
+      "value": 0.034348
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 201,
+      "value": -0.005091
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 202,
+      "value": -0.0012
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_r_locXneg",
+    "index": 159,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 203,
+      "value": -0.001779
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 204,
+      "value": 0.048251
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 205,
+      "value": -0.004262
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 206,
+      "value": -0.001819
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 207,
+      "value": -0.001779
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 208,
+      "value": 0.04825
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 209,
+      "value": -0.004264
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 210,
+      "value": -0.001819
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 211,
+      "value": -0.002279
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 212,
+      "value": 0.090245
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 213,
+      "value": -0.002279
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 214,
+      "value": 0.090245
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 215,
+      "value": -0.011893
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 216,
+      "value": 0.538401
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 217,
+      "value": -0.001563
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 218,
+      "value": -0.049773
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 219,
+      "value": -0.008505
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 220,
+      "value": -0.002045
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_r_locXpos",
+    "index": 160,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 203,
+      "value": -0.000602
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 204,
+      "value": 0.005386
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 205,
+      "value": 0.005347
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 206,
+      "value": 0.0013
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 207,
+      "value": -0.000602
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 208,
+      "value": 0.005405
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 209,
+      "value": 0.005345
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 210,
+      "value": 0.0013
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 211,
+      "value": 0.009538
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 212,
+      "value": -0.000378
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 213,
+      "value": 0.009539
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 214,
+      "value": -0.000377
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 215,
+      "value": -0.005398
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 216,
+      "value": -0.007968
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 217,
+      "value": -0.00154
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 218,
+      "value": 0.269153
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 219,
+      "value": 0.719812
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 220,
+      "value": -0.001092
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_r_locYneg",
+    "index": 161,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 203,
+      "value": -0.001854
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 204,
+      "value": 0.505446
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 205,
+      "value": -0.008855
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 206,
+      "value": -0.002256
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 207,
+      "value": -0.001854
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 208,
+      "value": -0.051548
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 209,
+      "value": -0.008855
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 210,
+      "value": -0.002256
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 211,
+      "value": -0.003064
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 212,
+      "value": 0.094507
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 213,
+      "value": -0.003064
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 214,
+      "value": 0.094508
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 215,
+      "value": -0.007504
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 216,
+      "value": 0.049858
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 217,
+      "value": -0.001501
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 218,
+      "value": 0.049791
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 219,
+      "value": -0.004493
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 220,
+      "value": -0.001707
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_r_locYpos",
+    "index": 162,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 203,
+      "value": -0.001853
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 204,
+      "value": -0.051461
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 205,
+      "value": -0.008842
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 206,
+      "value": -0.002254
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 207,
+      "value": -0.001853
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 208,
+      "value": 0.507765
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 209,
+      "value": -0.008842
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 210,
+      "value": -0.002254
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 211,
+      "value": -0.003006
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 212,
+      "value": 0.094225
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 213,
+      "value": -0.003006
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 214,
+      "value": 0.094226
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 215,
+      "value": -0.007475
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 216,
+      "value": 0.049766
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 217,
+      "value": -0.001501
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 218,
+      "value": 0.049698
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 219,
+      "value": -0.004468
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 220,
+      "value": -0.001704
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_r_locZneg",
+    "index": 163,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 203,
+      "value": -0.000951
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 204,
+      "value": 0.034307
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 205,
+      "value": -0.005171
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 206,
+      "value": -0.001296
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 207,
+      "value": -0.000951
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 208,
+      "value": 0.034308
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 209,
+      "value": -0.005171
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 210,
+      "value": -0.001296
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 211,
+      "value": -0.011941
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 212,
+      "value": 0.35168
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 213,
+      "value": -0.011941
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 214,
+      "value": -0.02332
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 215,
+      "value": -0.006961
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 216,
+      "value": 0.034378
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 217,
+      "value": -0.000782
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 218,
+      "value": 0.034344
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 219,
+      "value": -0.00509
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 220,
+      "value": -0.001199
+     }
+    ]
+   },
+   {
+    "name": "mouth_corner_r_locZpos",
+    "index": 164,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 203,
+      "value": -0.000432
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 204,
+      "value": 0.016765
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 205,
+      "value": -0.002694
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 206,
+      "value": -0.000622
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 207,
+      "value": -0.000432
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 208,
+      "value": 0.016765
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 209,
+      "value": -0.002694
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 210,
+      "value": -0.000622
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 211,
+      "value": -0.005717
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 212,
+      "value": -0.011328
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 213,
+      "value": -0.005717
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 214,
+      "value": 0.113672
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 215,
+      "value": -0.003535
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 216,
+      "value": 0.016797
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 217,
+      "value": -0.000352
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 218,
+      "value": 0.016782
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 219,
+      "value": -0.002656
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 220,
+      "value": -0.000578
+     }
+    ]
+   },
+   {
+    "name": "sneer_l_locXneg",
+    "index": 165,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 271,
+      "value": 0.040027
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 272,
+      "value": 0.040031
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 273,
+      "value": 0.040031
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 275,
+      "value": 0.040031
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 276,
+      "value": 0.142086
+     }
+    ]
+   },
+   {
+    "name": "sneer_l_locXpos",
+    "index": 166,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 271,
+      "value": 0.040027
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 272,
+      "value": 0.040032
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 273,
+      "value": 0.040032
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 274,
+      "value": 0.142088
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 275,
+      "value": 0.040032
+     }
+    ]
+   },
+   {
+    "name": "sneer_l_locYneg",
+    "index": 167,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 271,
+      "value": 0.227472
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 272,
+      "value": 0.053445
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 273,
+      "value": 0.053448
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 274,
+      "value": 0.053446
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 276,
+      "value": 0.053447
+     }
+    ]
+   },
+   {
+    "name": "sneer_l_locYpos",
+    "index": 168,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 272,
+      "value": 0.030478
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 273,
+      "value": 0.030478
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 274,
+      "value": 0.030478
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 275,
+      "value": 0.099002
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 276,
+      "value": 0.030479
+     }
+    ]
+   },
+   {
+    "name": "sneer_l_locZneg",
+    "index": 169,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 272,
+      "value": 0.99996
+     }
+    ]
+   },
+   {
+    "name": "sneer_l_locZpos",
+    "index": 170,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 271,
+      "value": 0.02909
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 273,
+      "value": 0.093462
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 274,
+      "value": 0.029094
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 275,
+      "value": 0.029094
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 276,
+      "value": 0.029094
+     }
+    ]
+   },
+   {
+    "name": "sneer_r_locXneg",
+    "index": 171,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 277,
+      "value": 0.040024
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 278,
+      "value": 0.04003
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 279,
+      "value": 0.04003
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 281,
+      "value": 0.04003
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 282,
+      "value": 0.142086
+     }
+    ]
+   },
+   {
+    "name": "sneer_r_locXpos",
+    "index": 172,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 277,
+      "value": 0.040023
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 278,
+      "value": 0.040029
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 279,
+      "value": 0.040029
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 280,
+      "value": 0.142083
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 281,
+      "value": 0.040029
+     }
+    ]
+   },
+   {
+    "name": "sneer_r_locYneg",
+    "index": 173,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 277,
+      "value": 0.227443
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 278,
+      "value": 0.053441
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 279,
+      "value": 0.053442
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 280,
+      "value": 0.053441
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 282,
+      "value": 0.053441
+     }
+    ]
+   },
+   {
+    "name": "sneer_r_locYpos",
+    "index": 174,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 278,
+      "value": 0.030478
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 279,
+      "value": 0.030478
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 280,
+      "value": 0.030478
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 281,
+      "value": 0.099003
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 282,
+      "value": 0.030478
+     }
+    ]
+   },
+   {
+    "name": "sneer_r_locZneg",
+    "index": 175,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 278,
+      "value": 0.999952
+     }
+    ]
+   },
+   {
+    "name": "sneer_r_locZpos",
+    "index": 176,
+    "targets": [
+     {
+      "property": "/nodes/98/weights",
+      "element": 277,
+      "value": 0.029086
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 279,
+      "value": 0.093461
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 280,
+      "value": 0.029093
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 281,
+      "value": 0.029093
+     },
+     {
+      "property": "/nodes/98/weights",
+      "element": 282,
+      "value": 0.029093
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_molar_l_locYneg",
+    "index": 177,
+    "targets": [
+     {
+      "property": "/nodes/91/translation"
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_molar_l_locZneg",
+    "index": 178,
+    "targets": [
+     {
+      "property": "/nodes/91/translation"
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_molar_l_locZpos",
+    "index": 179,
+    "targets": [
+     {
+      "property": "/nodes/91/translation"
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_molar_r_locYneg",
+    "index": 180,
+    "targets": [
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_molar_r_locZneg",
+    "index": 181,
+    "targets": [
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_molar_r_locZpos",
+    "index": 182,
+    "targets": [
+     {
+      "property": "/nodes/92/translation"
+     }
+    ]
+   },
+   {
+    "name": "teeth_lower_shear_locZneg",
+    "index": 183,
+    "targets": [
+     {
+      "property": "/nodes/95/weights",
+      "element": 0,
+      "value": 0.056931
+     },
+     {
+      "property": "/nodes/95/weights",
+      "element": 1,
+      "value": 0.056931
+     },
+     {
+      "property": "/nodes/95/weights",
+      "element": 2,
+      "value": 0.056931
+     },
+     {
+      "property": "/nodes/95/weights",
+      "element": 3,
+      "value": 0.056932
+     },
+     {
+      "property": "/nodes/95/weights",
+      "element": 4,
+      "value": 0.560273
+     },
+     {
+      "property": "/nodes/91/translation"
+     },
+     {
+      "property": "/nodes/92/translation"
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 0,
+      "value": 0.056931
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 1,
+      "value": 0.056931
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 2,
+      "value": 0.056931
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 3,
+      "value": 0.056932
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 4,
+      "value": 0.560273
+     }
+    ]
+   },
+   {
+    "name": "teeth_upper_shear_locXneg",
+    "index": 184,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 0,
+      "value": 0.034161
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 1,
+      "value": 0.114531
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 3,
+      "value": 0.034161
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 4,
+      "value": 0.03416
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 5,
+      "value": 0.034161
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 0,
+      "value": 0.034161
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 1,
+      "value": 0.114531
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 3,
+      "value": 0.034161
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 4,
+      "value": 0.03416
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 5,
+      "value": 0.034161
+     }
+    ]
+   },
+   {
+    "name": "teeth_upper_shear_locXpos",
+    "index": 185,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 0,
+      "value": 0.031633
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 2,
+      "value": 0.103746
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 3,
+      "value": 0.031634
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 4,
+      "value": 0.031632
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 5,
+      "value": 0.031633
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 0,
+      "value": 0.031633
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 2,
+      "value": 0.103746
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 3,
+      "value": 0.031634
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 4,
+      "value": 0.031632
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 5,
+      "value": 0.031633
+     }
+    ]
+   },
+   {
+    "name": "teeth_upper_shear_locYneg",
+    "index": 186,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 0,
+      "value": 0.082397
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 1,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 2,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 3,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 5,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 0,
+      "value": 0.082397
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 1,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 2,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 3,
+      "value": 0.026236
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 5,
+      "value": 0.026236
+     }
+    ]
+   },
+   {
+    "name": "teeth_upper_shear_locYpos",
+    "index": 187,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 1,
+      "value": 0.054645
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 2,
+      "value": 0.054645
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 3,
+      "value": 0.054645
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 4,
+      "value": 0.237917
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 5,
+      "value": 0.054646
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 1,
+      "value": 0.054645
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 2,
+      "value": 0.054645
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 3,
+      "value": 0.054645
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 4,
+      "value": 0.237917
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 5,
+      "value": 0.054646
+     }
+    ]
+   },
+   {
+    "name": "teeth_upper_shear_locZneg",
+    "index": 188,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 0,
+      "value": 0.06245
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 1,
+      "value": 0.062451
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 2,
+      "value": 0.062451
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 4,
+      "value": 0.06245
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 5,
+      "value": 0.357201
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 0,
+      "value": 0.06245
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 1,
+      "value": 0.062451
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 2,
+      "value": 0.062451
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 4,
+      "value": 0.06245
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 5,
+      "value": 0.357201
+     }
+    ]
+   },
+   {
+    "name": "teeth_upper_shear_locZpos",
+    "index": 189,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 0,
+      "value": 0.041063
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 1,
+      "value": 0.041063
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 2,
+      "value": 0.041063
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 3,
+      "value": 0.147326
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 4,
+      "value": 0.041062
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 0,
+      "value": 0.041063
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 1,
+      "value": 0.041063
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 2,
+      "value": 0.041063
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 3,
+      "value": 0.147326
+     },
+     {
+      "property": "/nodes/109/weights",
+      "element": 4,
+      "value": 0.041062
+     }
+    ]
+   }
+  ],
+  "suppressions": [
+   {
+    "source": "lidUpper_L_locYneg",
+    "target": "lookAt_rot_rotXneg",
+    "type": "block",
+    "expected_v": 0.0
+   },
+   {
+    "source": "lidUpper_L_locYneg",
+    "target": "lookAt_rot_rotXpos",
+    "type": "block",
+    "expected_v": 0.0
+   },
+   {
+    "source": "lidUpper_R_locYneg",
+    "target": "lookAt_rot_rotXneg",
+    "type": "block",
+    "expected_v": 0.0
+   },
+   {
+    "source": "lidUpper_R_locYneg",
+    "target": "lookAt_rot_rotXpos",
+    "type": "block",
+    "expected_v": 0.0
+   }
+  ],
+  "expressions_exact": true,
+  "expression_mapping_sets": {
+   "vrm1_expressions": [
+    "aa",
+    "angry",
+    "blink",
+    "blinkLeft",
+    "blinkRight",
+    "ee",
+    "happy",
+    "ih",
+    "lookDown",
+    "lookLeft",
+    "lookRight",
+    "lookUp",
+    "oh",
+    "ou",
+    "relaxed",
+    "sad",
+    "surprised"
+   ]
+  },
+  "mapping_suppressions": [
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkLeft",
+    "target": "lookUp",
+    "expected": {
+     "lookAt_rot_rotXneg": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkLeft",
+    "target": "lookDown",
+    "expected": {
+     "lookAt_rot_rotXpos": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkRight",
+    "target": "lookUp",
+    "expected": {
+     "lookAt_rot_rotXneg": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkRight",
+    "target": "lookDown",
+    "expected": {
+     "lookAt_rot_rotXpos": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blink",
+    "target": "lookUp",
+    "expected": {
+     "lookAt_rot_rotXneg": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blink",
+    "target": "lookDown",
+    "expected": {
+     "lookAt_rot_rotXpos": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "relaxed",
+    "target": "lookUp",
+    "expected": {
+     "lookAt_rot_rotXneg": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "relaxed",
+    "target": "lookDown",
+    "expected": {
+     "lookAt_rot_rotXpos": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   }
+  ],
+  "animations": [
+   {
+    "name": "face_expression",
+    "index": 0,
+    "duration": 11.208333,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "dance",
+    "index": 1,
+    "duration": 20.75,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_02_01",
+    "index": 2,
+    "duration": 2.791667,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_02_03",
+    "index": 3,
+    "duration": 1.416667,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_143_06",
+    "index": 4,
+    "duration": 3.25,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_143_18",
+    "index": 5,
+    "duration": 6.25,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_143_25",
+    "index": 6,
+    "duration": 5.458333,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_143_29",
+    "index": 7,
+    "duration": 8.916667,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "Neutral_FR",
+    "index": 8,
+    "duration": 10,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "Neutral_FW",
+    "index": 9,
+    "duration": 10,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "Neutral_ID",
+    "index": 10,
+    "duration": 15,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "brow_inner_L_locXneg",
+    "index": 11,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_inner_L_locXpos",
+    "index": 12,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_inner_L_locYneg",
+    "index": 13,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_inner_L_locYpos",
+    "index": 14,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_inner_R_locXneg",
+    "index": 15,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_inner_R_locXpos",
+    "index": 16,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_inner_R_locYneg",
+    "index": 17,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_inner_R_locYpos",
+    "index": 18,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_L_locXneg",
+    "index": 19,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_L_locXpos",
+    "index": 20,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_L_locYneg",
+    "index": 21,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_L_locYpos",
+    "index": 22,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_L_locZneg",
+    "index": 23,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_L_locZpos",
+    "index": 24,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_R_locXneg",
+    "index": 25,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_R_locXpos",
+    "index": 26,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_R_locYneg",
+    "index": 27,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_R_locYpos",
+    "index": 28,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_R_locZneg",
+    "index": 29,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_main_R_locZpos",
+    "index": 30,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_L_locXneg",
+    "index": 31,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_L_locXpos",
+    "index": 32,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_L_locYneg",
+    "index": 33,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_L_locYpos",
+    "index": 34,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_L_locZneg",
+    "index": 35,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_L_locZpos",
+    "index": 36,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_R_locXneg",
+    "index": 37,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_R_locXpos",
+    "index": 38,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_R_locYneg",
+    "index": 39,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_R_locYpos",
+    "index": 40,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_R_locZneg",
+    "index": 41,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_peak_R_locZpos",
+    "index": 42,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eye_L_locXneg",
+    "index": 43,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eye_L_locXpos",
+    "index": 44,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eye_L_locYneg",
+    "index": 45,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eye_L_locYpos",
+    "index": 46,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eye_R_locXneg",
+    "index": 47,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eye_R_locXpos",
+    "index": 48,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eye_R_locYneg",
+    "index": 49,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eye_R_locYpos",
+    "index": 50,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeSocket_L_locXneg",
+    "index": 51,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeSocket_L_locXpos",
+    "index": 52,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeSocket_L_locZpos",
+    "index": 53,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeSocket_R_locXneg",
+    "index": 54,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeSocket_R_locXpos",
+    "index": 55,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeSocket_R_locZpos",
+    "index": 56,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "head_tip_locXneg",
+    "index": 57,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "head_tip_locXpos",
+    "index": 58,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "head_tip_locYneg",
+    "index": 59,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "head_tip_locYpos",
+    "index": 60,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "head_tip_locZneg",
+    "index": 61,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "head_tip_locZpos",
+    "index": 62,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "headwire_top_locXneg",
+    "index": 63,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "headwire_top_locXpos",
+    "index": 64,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "headwire_top_locYneg",
+    "index": 65,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "headwire_top_locYpos",
+    "index": 66,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "headwire_top_locZneg",
+    "index": 67,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "headwire_top_locZpos",
+    "index": 68,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_locXneg",
+    "index": 69,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_locXpos",
+    "index": 70,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_locYneg",
+    "index": 71,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_locYpos",
+    "index": 72,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_locZpos",
+    "index": 73,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_rotXneg",
+    "index": 74,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_rotYneg",
+    "index": 75,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_rotYpos",
+    "index": 76,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_rotZneg",
+    "index": 77,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jaw_rotZpos",
+    "index": 78,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lidLower_L_locYneg",
+    "index": 79,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lidLower_L_locYpos",
+    "index": 80,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lidLower_R_locYneg",
+    "index": 81,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lidLower_R_locYpos",
+    "index": 82,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lidUpper_L_locYneg",
+    "index": 83,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lidUpper_L_locYpos",
+    "index": 84,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lidUpper_R_locYneg",
+    "index": 85,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lidUpper_R_locYpos",
+    "index": 86,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_locXneg",
+    "index": 87,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_locXpos",
+    "index": 88,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_locYneg",
+    "index": 89,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_locYpos",
+    "index": 90,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_rotXneg",
+    "index": 91,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_rotXpos",
+    "index": 92,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_rotYneg",
+    "index": 93,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_rotYpos",
+    "index": 94,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_trs_locXneg",
+    "index": 95,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_trs_locXpos",
+    "index": 96,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_trs_locYneg",
+    "index": 97,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_trs_locYpos",
+    "index": 98,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_trs_locZneg",
+    "index": 99,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_trs_locZpos",
+    "index": 100,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_locYneg",
+    "index": 101,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_locZneg",
+    "index": 102,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_locZpos",
+    "index": 103,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_l_locXneg",
+    "index": 104,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_l_locXpos",
+    "index": 105,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_l_locYneg",
+    "index": 106,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_l_locYpos",
+    "index": 107,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_l_locZneg",
+    "index": 108,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_l_locZpos",
+    "index": 109,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_r_locXneg",
+    "index": 110,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_r_locXpos",
+    "index": 111,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_r_locYneg",
+    "index": 112,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_r_locYpos",
+    "index": 113,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_r_locZneg",
+    "index": 114,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brow_corrugator_r_locZpos",
+    "index": 115,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_l_locXneg",
+    "index": 116,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_l_locXpos",
+    "index": 117,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_l_locYneg",
+    "index": 118,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_l_locYpos",
+    "index": 119,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_l_locZneg",
+    "index": 120,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_l_locZpos",
+    "index": 121,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_r_locXneg",
+    "index": 122,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_r_locXpos",
+    "index": 123,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_r_locYneg",
+    "index": 124,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_r_locYpos",
+    "index": 125,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_r_locZneg",
+    "index": 126,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_inner_r_locZpos",
+    "index": 127,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_l_locXneg",
+    "index": 128,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_l_locXpos",
+    "index": 129,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_l_locYneg",
+    "index": 130,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_l_locYpos",
+    "index": 131,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_l_locZneg",
+    "index": 132,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_l_locZpos",
+    "index": 133,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_r_locXneg",
+    "index": 134,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_r_locXpos",
+    "index": 135,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_r_locYneg",
+    "index": 136,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_r_locYpos",
+    "index": 137,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_r_locZneg",
+    "index": 138,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheek_r_locZpos",
+    "index": 139,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_l_locXneg",
+    "index": 140,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_l_locXpos",
+    "index": 141,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_l_locYneg",
+    "index": 142,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_l_locYpos",
+    "index": 143,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_l_locZneg",
+    "index": 144,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_l_locZpos",
+    "index": 145,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_locXneg",
+    "index": 146,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_locXpos",
+    "index": 147,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_locYneg",
+    "index": 148,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_locYpos",
+    "index": 149,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_locZneg",
+    "index": 150,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_locZpos",
+    "index": 151,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_r_locXneg",
+    "index": 152,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_r_locXpos",
+    "index": 153,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_r_locYneg",
+    "index": 154,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_r_locYpos",
+    "index": 155,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_r_locZneg",
+    "index": 156,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lip_upper_r_locZpos",
+    "index": 157,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthMain_locXneg",
+    "index": 158,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthMain_locXpos",
+    "index": 159,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthMain_locYneg",
+    "index": 160,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthMain_locYpos",
+    "index": 161,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthMain_locZneg",
+    "index": 162,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthMain_locZpos",
+    "index": 163,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_l_locXneg",
+    "index": 164,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_l_locXpos",
+    "index": 165,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_l_locYneg",
+    "index": 166,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_l_locYpos",
+    "index": 167,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_l_locZneg",
+    "index": 168,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_l_locZpos",
+    "index": 169,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_r_locXneg",
+    "index": 170,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_r_locXpos",
+    "index": 171,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_r_locYneg",
+    "index": 172,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_r_locYpos",
+    "index": 173,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_r_locZneg",
+    "index": 174,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouth_corner_r_locZpos",
+    "index": 175,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_l_locXneg",
+    "index": 176,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_l_locXpos",
+    "index": 177,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_l_locYneg",
+    "index": 178,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_l_locYpos",
+    "index": 179,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_l_locZneg",
+    "index": 180,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_l_locZpos",
+    "index": 181,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_r_locXneg",
+    "index": 182,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_r_locXpos",
+    "index": 183,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_r_locYneg",
+    "index": 184,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_r_locYpos",
+    "index": 185,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_r_locZneg",
+    "index": 186,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "sneer_r_locZpos",
+    "index": 187,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_molar_l_locYneg",
+    "index": 188,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_molar_l_locZneg",
+    "index": 189,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_molar_l_locZpos",
+    "index": 190,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_molar_r_locYneg",
+    "index": 191,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_molar_r_locZneg",
+    "index": 192,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_molar_r_locZpos",
+    "index": 193,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_lower_shear_locZneg",
+    "index": 194,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_upper_shear_locXneg",
+    "index": 195,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_upper_shear_locXpos",
+    "index": 196,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_upper_shear_locYneg",
+    "index": 197,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_upper_shear_locYpos",
+    "index": 198,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_upper_shear_locZneg",
+    "index": 199,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "teeth_upper_shear_locZpos",
+    "index": 200,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "t_pose",
+    "index": 201,
+    "duration": 0,
+    "tolerance": 0.05,
+    "kind": "reference_pose"
+   },
+   {
+    "name": "a_pose",
+    "index": 202,
+    "duration": 0,
+    "tolerance": 0.05,
+    "kind": "reference_pose"
+   }
+  ],
+  "camera_hints": [
+   {
+    "node": 0,
+    "role": "default_view",
+    "label": null
+   },
+   {
+    "node": 1,
+    "role": "full_body",
+    "label": null
+   },
+   {
+    "node": 7,
+    "role": "portrait",
+    "label": null,
+    "target_node": 6,
+    "target_name": "skull_bind"
+   }
+  ],
+  "lookat_targets": 1
+ },
+ "retarget": {
+  "clips_index": "../clips.json",
+  "clips": [
+   "Neutral_ID",
+   "Neutral_FW",
+   "Neutral_FR",
+   "test_vrma",
+   "ROM_sweep",
+   "CMU_02_01",
+   "CMU_02_03",
+   "CMU_143_06",
+   "CMU_143_18",
+   "CMU_143_25",
+   "CMU_143_29"
+  ],
+  "video_clips": [
+   "Neutral_ID",
+   "Neutral_FW",
+   "Neutral_FR",
+   "test_vrma"
+  ],
+  "sample_fractions": [
+   0.0,
+   0.125,
+   0.25,
+   0.375,
+   0.5,
+   0.625,
+   0.75,
+   0.875
+  ],
+  "floor_tolerance_m": 0.05
+ },
+ "capture": {
+  "fractions": [
+   0.0,
+   0.125,
+   0.375,
+   0.625,
+   0.875
+  ],
+  "views": [
+   "front",
+   "side",
+   "three_quarter"
+  ],
+  "resolution": 1024,
+  "hint_resolution": 1024,
+  "grid_columns": 8
+ }
+}

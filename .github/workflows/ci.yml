@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  UNITY_VERSION: "2022.2.23f1"
+  UNITY_VERSION: "6000.5.4f1"
   # Only the testbed's own tests run in this consumer (Unity 'testables' does not surface a git-package's
   # tests); the floor tracks the sandbox suite. The plugin's ~165 tests gate in the plugin repo / khr-test-proj.
   MIN_TESTS: "120"
@@ -68,13 +68,16 @@ jobs:
 
   # GATE 1 (compile) + GATE 2 (tests + min-test-count floor). Built-in RP, required.
   tests:
-    name: Tests (Unity 2022.2.23f1, Built-in)
+    name: Tests (Unity 6000.5.4f1, Built-in)
     needs: package-pin-preflight
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
+      # Character samples (Characters/**, ~230 MB of LFS) are not pulled in CI; their suite runs locally.
+      - name: Pull LFS objects except the character samples
+        run: |
+          git lfs pull --exclude="Assets/SampleAssets/Characters/**"
+          rm -f Assets/SampleAssets/Characters/*/*.glb Assets/SampleAssets/Characters/*/*.glb.meta
 
       # Library cache keyed on the dependency fingerprint: manifest + the resolved package SHA in packages-lock
       # + the editor version. A new/force-pushed dependency commit changes packages-lock and busts the cache.
@@ -93,6 +96,7 @@ jobs:
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
           testMode: playmode
+          customParameters: -testCategory !Characters
           artifactsPath: artifacts/test-results
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           # No -nographics here: game-ci provides an xvfb display, so this also supports future demo-render tests.
@@ -134,8 +138,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
+      # Character samples (Characters/**, ~230 MB of LFS) are not pulled in CI; their suite runs locally.
+      - name: Pull LFS objects except the character samples
+        run: |
+          git lfs pull --exclude="Assets/SampleAssets/Characters/**"
+          rm -f Assets/SampleAssets/Characters/*/*.glb Assets/SampleAssets/Characters/*/*.glb.meta
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: "2.19.6"
@@ -176,8 +183,11 @@ jobs:
     needs: tests
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
+      # Character samples (Characters/**, ~230 MB of LFS) are not pulled in CI; their suite runs locally.
+      - name: Pull LFS objects except the character samples
+        run: |
+          git lfs pull --exclude="Assets/SampleAssets/Characters/**"
+          rm -f Assets/SampleAssets/Characters/*/*.glb Assets/SampleAssets/Characters/*/*.glb.meta
       - name: Cache Library
         uses: actions/cache@v4
         with:

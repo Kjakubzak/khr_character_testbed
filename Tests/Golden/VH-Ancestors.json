@@ -216,7 +216,9 @@
           },
           "extensions": {
             "KHR_mesh_primitive_visibility_hint": {
-              "role": "always"
+              "roles": [
+                "always"
+              ]
             }
           },
           "indices": 2,
@@ -229,7 +231,9 @@
           },
           "extensions": {
             "KHR_mesh_primitive_visibility_hint": {
-              "role": "first_person"
+              "roles": [
+                "first_person"
+              ]
             }
           },
           "indices": 3,
@@ -257,7 +261,9 @@
       ],
       "extensions": {
         "KHR_node_visibility_hint": {
-          "role": "third_person"
+          "roles": [
+            "third_person"
+          ]
         }
       },
       "name": "ThirdParent"
@@ -268,7 +274,9 @@
       ],
       "extensions": {
         "KHR_node_visibility_hint": {
-          "role": "always"
+          "roles": [
+            "always"
+          ]
         }
       },
       "mesh": 0,
@@ -277,7 +285,9 @@
     {
       "extensions": {
         "KHR_node_visibility_hint": {
-          "role": "first_person"
+          "roles": [
+            "first_person"
+          ]
         }
       },
       "mesh": 0,
@@ -303,7 +313,9 @@
       ],
       "extensions": {
         "KHR_node_visibility_hint": {
-          "role": "ACME_unknown"
+          "roles": [
+            "ACME_unknown"
+          ]
         }
       },
       "name": "UnknownParent"
@@ -311,7 +323,9 @@
     {
       "extensions": {
         "KHR_node_visibility_hint": {
-          "role": "always"
+          "roles": [
+            "always"
+          ]
         }
       },
       "mesh": 0,
@@ -328,7 +342,9 @@
       ],
       "extensions": {
         "KHR_node_visibility_hint": {
-          "role": "ACME_mirror_only"
+          "roles": [
+            "ACME_mirror_only"
+          ]
         }
       },
       "name": "CustomParent"
@@ -336,7 +352,9 @@
     {
       "extensions": {
         "KHR_node_visibility_hint": {
-          "role": "always"
+          "roles": [
+            "always"
+          ]
         }
       },
       "mesh": 0,
@@ -365,7 +383,9 @@
           "visible": true
         },
         "KHR_node_visibility_hint": {
-          "role": "always"
+          "roles": [
+            "always"
+          ]
         }
       },
       "mesh": 0,
@@ -401,7 +421,9 @@
       ],
       "extensions": {
         "KHR_node_visibility_hint": {
-          "role": "ACME_unknown"
+          "roles": [
+            "ACME_unknown"
+          ]
         }
       },
       "name": "UnknownUnderThird"
@@ -409,7 +431,9 @@
     {
       "extensions": {
         "KHR_node_visibility_hint": {
-          "role": "always"
+          "roles": [
+            "always"
+          ]
         }
       },
       "mesh": 0,

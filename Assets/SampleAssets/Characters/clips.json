@@ -1,0 +1,106 @@
+{
+ "schema": "khr-character-unity-clips/1",
+ "root": "clips~",
+ "excluded": [],
+ "clips": [
+  {
+   "name": "CMU_02_01",
+   "src": "CMU_02_01_src.glb",
+   "sha256": "c59ba77003ea2990a73d0550ad8fc382c4d8bd299a2157d6baa5680662eb422a",
+   "animation": "CMU_02_01",
+   "duration": 2.833333,
+   "mapped_roles": 21,
+   "add_khr_character": false
+  },
+  {
+   "name": "CMU_02_03",
+   "src": "CMU_02_03_src.glb",
+   "sha256": "c173d5db023d1357980dd3a4d62abe1c88490661bdced34ee06768005fc8a7b2",
+   "animation": "CMU_02_03",
+   "duration": 1.416667,
+   "mapped_roles": 21,
+   "add_khr_character": false
+  },
+  {
+   "name": "CMU_143_06",
+   "src": "CMU_143_06_src.glb",
+   "sha256": "10763b6e63c3bf32ab0749b2c7804675577a5ba48960dbdd6ea35fcdd53f49a8",
+   "animation": "CMU_143_06",
+   "duration": 3.25,
+   "mapped_roles": 21,
+   "add_khr_character": false
+  },
+  {
+   "name": "CMU_143_18",
+   "src": "CMU_143_18_src.glb",
+   "sha256": "a11f8fe34dd6260655491631792a513d1244fd3b5426348cbe0da0f61cef44b5",
+   "animation": "CMU_143_18",
+   "duration": 6.25,
+   "mapped_roles": 21,
+   "add_khr_character": false
+  },
+  {
+   "name": "CMU_143_25",
+   "src": "CMU_143_25_src.glb",
+   "sha256": "7ac02c3524b396f323a62a2a828e7f4b3856090609b4380e68f1022f1bfe6813",
+   "animation": "CMU_143_25",
+   "duration": 5.458333,
+   "mapped_roles": 21,
+   "add_khr_character": false
+  },
+  {
+   "name": "CMU_143_29",
+   "src": "CMU_143_29_src.glb",
+   "sha256": "f71780a7d1b521775934b0d597783efbb1bbcb657593819d87f204ca5514d131",
+   "animation": "CMU_143_29",
+   "duration": 8.958333,
+   "mapped_roles": 21,
+   "add_khr_character": false
+  },
+  {
+   "name": "Neutral_FR",
+   "src": "Neutral_FR_src.glb",
+   "sha256": "3fbe8baf897817607a35a46ef0c8515b5216a502bb5993ef8f975ed5261adb42",
+   "animation": "Neutral_FR",
+   "duration": 64.5,
+   "mapped_roles": 22,
+   "add_khr_character": false
+  },
+  {
+   "name": "Neutral_FW",
+   "src": "Neutral_FW_src.glb",
+   "sha256": "9034077ac8b775d8afc2acc46a0eb6a2facaf081a2710cf2c7f5b7d8eb717a25",
+   "animation": "Neutral_FW",
+   "duration": 118.625,
+   "mapped_roles": 22,
+   "add_khr_character": false
+  },
+  {
+   "name": "Neutral_ID",
+   "src": "Neutral_ID_src.glb",
+   "sha256": "400d6b1bddc51bd39cecb254b3b812a7f0fe4c8011102d7cd85a4c642ca1db0f",
+   "animation": "Neutral_ID",
+   "duration": 15.0,
+   "mapped_roles": 22,
+   "add_khr_character": false
+  },
+  {
+   "name": "ROM_sweep",
+   "src": "ROM_sweep_src.glb",
+   "sha256": "8dc28fb2f80e148672742f7f90717dbbedc702af406ba5b6c8b76a5c558c11c2",
+   "animation": "ROM_sweep",
+   "duration": 60.0,
+   "mapped_roles": 28,
+   "add_khr_character": false
+  },
+  {
+   "name": "test_vrma",
+   "src": "test_vrma_src.glb",
+   "sha256": "a4eabceff228478d718c02366468588cd96049cf221457f80d57f1a208448fbd",
+   "animation": "test_vrma",
+   "duration": 3.0,
+   "mapped_roles": 51,
+   "add_khr_character": false
+  }
+ ]
+}

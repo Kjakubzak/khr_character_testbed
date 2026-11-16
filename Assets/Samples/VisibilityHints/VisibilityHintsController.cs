@@ -8,18 +8,18 @@ using UnityGLTF.VisibilityHints;
 namespace Samples.VisibilityHints
 {
     /// <summary>
-    /// VisibilityHints demo. Demonstrates passive view-tag predicates (KHR_node_visibility_hint +
-    /// KHR_mesh_primitive_visibility_hint) evaluated by a <see cref="ViewContextController"/> and realized by this
-    /// sample's optional camera-scoped material adapter. It lets you SWAP the
-    /// shown asset between the built-in procedural figure and the khr_character example glbs (the per-role
-    /// variants under <c>SampleAssets/VRM_KHR_Examples</c>). A view-tag dropdown sets the tags of the main camera's view
-    /// (third_person, first_person, both, or none) so you can watch the scoped no-draw material route live. The demo
-    /// tags the main camera explicitly; other cameras, such as the Scene view, are left unmanaged.
+    /// VisibilityHints demo. Demonstrates passive role-based predicates (KHR_node_visibility_hint +
+    /// KHR_mesh_primitive_visibility_hint, spec 314c95c5) evaluated by a <see cref="ViewContextController"/> and
+    /// realized by this sample's optional camera-scoped material adapter. It lets you SWAP the shown asset between
+    /// the built-in procedural figure and the khr_character example glbs (the per-role variants under
+    /// <c>SampleAssets/VRM_KHR_Examples</c>). A role-logic dropdown picks the application logic of the main camera's
+    /// view (<see cref="RoleChoices"/>: no logic, a first-person view, a spectator view, or a mirror view) so you can
+    /// watch the scoped no-draw material route live. Other cameras, such as the Scene view, are left unmanaged.
     /// <list type="bullet">
-    /// <item>Procedural figure — Head: node <c>third_person</c>; Arms: node <c>first_person</c>; Mask shell:
-    /// primitive <c>third_person</c> on one sub-mesh (the faceplate hides without the third_person tag via the
-    /// invisible-material swap; the strap sub-mesh always stays). An untagged view shows only the Torso and the
-    /// strap.</item>
+    /// <item>Procedural figure — Head: node <c>third_person</c>; Arms: node <c>first_person</c>; Status: node
+    /// <c>first_person</c> + <c>ACME_mirror_only</c> (the specification's "SelfStatus" example: drawn for the user's
+    /// own eyes and in mirrors, not for spectators); Mask shell: primitive <c>third_person</c> on one sub-mesh (the
+    /// strap sub-mesh always stays). With no role logic nothing is hidden.</item>
     /// <item>Example glbs — each variant isolates one role on the real avatar; the sample adapter consumes the same
     /// passive predicates without making materials normative.</item>
     /// </list>
@@ -36,7 +36,7 @@ namespace Samples.VisibilityHints
         private GameObject _current;
         private ViewContextController _view;
         private VisibilityHintsCameraAdapter _renderAdapter;
-        private int _viewTagChoice;
+        private int _roleChoice;
         private int _swapRequestId; // monotonically increasing; a load whose id is stale was superseded
 
         private void Start()
@@ -45,17 +45,18 @@ namespace Samples.VisibilityHints
             // (BeforeSceneLoad) and CharacterLoader.EnableImportPlugin, so this scene no longer enables the hint
             // plugin itself — hint import is now deterministic regardless of which demo scene ran first.
             _ui = CreatePanel("Visibility Hints");
-            _ui.AddLabel("KHR_node_visibility_hint + KHR_mesh_primitive_visibility_hint — view-tag visibility. " +
-                         "Swap between the built-in figure and the khr_character example assets, then pick the view tags.");
+            _ui.AddLabel("KHR_node_visibility_hint + KHR_mesh_primitive_visibility_hint — role-based visibility. " +
+                         "Swap between the built-in figure and the khr_character example assets, then pick the " +
+                         "application's role logic for the main camera's view.");
 
             var content = new GameObject("LoadedContent");
             content.transform.SetParent(transform, false);
             _contentRoot = content.transform;
 
             _assetDropdown = _ui.AddDropdown("Asset", BuildAssetOptions(), i => { _ = SwapTo(i); }, 0);
-            var tagOptions = new List<string>();
-            foreach (var choice in ViewTagChoices) tagOptions.Add(choice.Label);
-            _ui.AddDropdown("View tags", tagOptions, OnViewTagsChosen, 0);
+            var roleOptions = new List<string>();
+            foreach (var choice in RoleChoices) roleOptions.Add(choice.Label);
+            _ui.AddDropdown("Role logic", roleOptions, OnRoleChoiceChosen, 0);
             _status = _ui.AddLabel(string.Empty);
 
             Caveats.Render(_ui, Caveats.WithHeroStatus(Caveat.Draft));
@@ -122,7 +123,7 @@ namespace Samples.VisibilityHints
             ApplyViewMode();
             FrameScene(go, new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)));
             SetStatus(_view != null
-                ? $"Loaded {Path.GetFileName(path)}. Change the view tags to see the hint applied."
+                ? $"Loaded {Path.GetFileName(path)}. Change the role logic to see the hint applied."
                 : $"Loaded {Path.GetFileName(path)} — this asset carries no visibility hints.");
         }
 
@@ -134,9 +135,9 @@ namespace Samples.VisibilityHints
             ConfigureRenderAdapter();
             ApplyViewMode();
             FrameScene(_current, new Bounds(new Vector3(0f, 1f, 0f), new Vector3(1.5f, 2f, 1f)));
-            SetStatus("Built-in figure — Head: node third_person; Arms: node first_person; Mask shell: primitive " +
-                      "third_person (the faceplate swaps to an invisible material without the third_person tag; the " +
-                      "strap stays). An untagged view shows only the Torso and the strap.");
+            SetStatus("Built-in figure — Head: node third_person; Arms: node first_person; Status: node first_person + " +
+                      "ACME_mirror_only; Mask shell: primitive third_person (the strap stays). With no role logic " +
+                      "nothing is hidden; pick a first-person, spectator or mirror view to see the roles apply.");
         }
 
         private void ClearCurrent()
@@ -147,26 +148,34 @@ namespace Samples.VisibilityHints
             _renderAdapter = null;
         }
 
-        // ── View tags ────────────────────────────────────────────────────
+        // ── Role logic ───────────────────────────────────────────────────
 
-        private static readonly (string Label, string[] Tags)[] ViewTagChoices =
+        /// <summary>The custom role this demo's application profile defines and applies in its mirror views.</summary>
+        public const string MirrorRole = "ACME_mirror_only";
+
+        /// <summary>
+        /// The application role logic offered for the main camera's view. No logic hides nothing. The other three
+        /// follow <see cref="FirstPersonRolePolicy"/>: first_person in the user's own view, third_person in every
+        /// other view; this application also recognizes <see cref="MirrorRole"/> and applies it in its mirror view.
+        /// </summary>
+        public static readonly (string Label, VisibilityRoleContext Roles)[] RoleChoices =
         {
-            ("third_person", new[] { VisibilityHintExtensionNames.ViewTagThirdPerson }),
-            ("first_person", new[] { VisibilityHintExtensionNames.ViewTagFirstPerson }),
-            ("both", new[] { VisibilityHintExtensionNames.ViewTagFirstPerson, VisibilityHintExtensionNames.ViewTagThirdPerson }),
-            ("none (untagged view)", new string[0]),
+            ("No logic (inspector: nothing hidden)", VisibilityRoleContext.NoLogic),
+            ("First-person view (user's own eyes)", FirstPersonRolePolicy.ForView(true, null, new[] { MirrorRole })),
+            ("Spectator view (third person)", FirstPersonRolePolicy.ForView(false, null, new[] { MirrorRole })),
+            ("Mirror view (third person + " + MirrorRole + ")", FirstPersonRolePolicy.ForView(false, new[] { MirrorRole })),
         };
 
-        private void OnViewTagsChosen(int choice)
+        private void OnRoleChoiceChosen(int choice)
         {
-            if (choice < 0 || choice >= ViewTagChoices.Length) return;
-            _viewTagChoice = choice;
+            if (choice < 0 || choice >= RoleChoices.Length) return;
+            _roleChoice = choice;
             ApplyViewMode();
         }
 
         private void ApplyViewMode()
         {
-            if (_view != null) _view.SetDefaultViewTags(ViewTagChoices[_viewTagChoice].Tags);
+            if (_view != null) _view.SetDefaultRoles(RoleChoices[_roleChoice].Roles);
         }
 
         private void ConfigureRenderAdapter()
@@ -196,8 +205,8 @@ namespace Samples.VisibilityHints
             // new Material()/new Mesh() they reference).
             var owned = root.AddComponent<ProceduralFigureResources>();
 
-            var view = root.AddComponent<ViewContextController>();
-            view.SetDefaultViewTags(new[] { VisibilityHintExtensionNames.ViewTagThirdPerson });
+            // The controller starts with no role logic (nothing hidden); the demo applies its role choice.
+            root.AddComponent<ViewContextController>();
             var materials = root.AddComponent<ScopedMaterialVisibilityAdapter>();
             materials.NoDrawMaterial = InvisibleMaterialInstaller.GetNoDrawMaterial();
 
@@ -210,6 +219,10 @@ namespace Samples.VisibilityHints
 
             var arms = MakePart(root.transform, "Arms", PrimitiveType.Cube,
                 new Vector3(0f, 1.15f, 0.5f), new Vector3(0.7f, 0.18f, 0.18f), new Color(0.85f, 0.55f, 0.30f), owned);
+
+            // Status: the specification's "SelfStatus" example, meant for the user's own eyes and mirrors.
+            var status = MakePart(root.transform, "Status", PrimitiveType.Cube,
+                new Vector3(0.35f, 1.45f, 0.42f), Vector3.one * 0.15f, new Color(0.25f, 0.80f, 0.45f), owned);
 
             // Mask: a 2-sub-mesh renderer (one shared mesh) so a per-primitive hint can target ONE sub-mesh.
             // sub-mesh 0 = a strap that stays visible; sub-mesh 1 = the faceplate shell, hinted third_person, so
@@ -230,15 +243,21 @@ namespace Samples.VisibilityHints
             root.AddComponent<NodeVisibilityHintSet>().Bind(new List<NodeVisibilityHintSet.NodeVisibilityEntry>
             {
                 new NodeVisibilityHintSet.NodeVisibilityEntry
-                    { Node = head.transform, Role = VisibilityHintExtensionNames.RoleThirdPerson, Label = "Head" },
+                    { Node = head.transform, Roles = new[] { VisibilityHintExtensionNames.RoleThirdPerson }, Label = "Head" },
                 new NodeVisibilityHintSet.NodeVisibilityEntry
-                    { Node = arms.transform, Role = VisibilityHintExtensionNames.RoleFirstPerson, Label = "Arms" },
+                    { Node = arms.transform, Roles = new[] { VisibilityHintExtensionNames.RoleFirstPerson }, Label = "Arms" },
+                new NodeVisibilityHintSet.NodeVisibilityEntry
+                {
+                    Node = status.transform,
+                    Roles = new[] { VisibilityHintExtensionNames.RoleFirstPerson, MirrorRole },
+                    Label = "Self status",
+                },
             });
 
             root.AddComponent<PrimitiveVisibilityHintSet>().Bind(new List<PrimitiveVisibilityHintSet.PrimitiveVisibilityEntry>
             {
                 new PrimitiveVisibilityHintSet.PrimitiveVisibilityEntry
-                    { Mesh = maskMesh, SubMesh = 1, Role = VisibilityHintExtensionNames.RoleThirdPerson, Label = "Mask Shell" },
+                    { Mesh = maskMesh, SubMesh = 1, Roles = new[] { VisibilityHintExtensionNames.RoleThirdPerson }, Label = "Mask Shell" },
             });
 
             return root;

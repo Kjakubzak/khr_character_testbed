@@ -1,0 +1,22 @@
+{
+    "name": "CharacterSamples.Runtime",
+    "rootNamespace": "KhrCharacterSamples",
+    "references": [
+        "UnityGLTFScripts",
+        "GLTFSerialization",
+        "UnityGLTF.KhrCharacter.Runtime",
+        "UnityGLTF.KhrCharacter.Schema",
+        "UnityGLTF.VisibilityHints.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

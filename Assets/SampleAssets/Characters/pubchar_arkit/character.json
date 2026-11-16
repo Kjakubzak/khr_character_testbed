@@ -1,0 +1,1537 @@
+{
+ "schema": "khr-character-unity-test/1",
+ "name": "pubchar_arkit",
+ "glb": "pubchar_arkit.glb",
+ "private": false,
+ "source_sha256": "ed7fd8c1647e0fa5f8ec8242e6cf1f02ca528faab0f5912752b544738ad42a71",
+ "khr_character": true,
+ "extensions_used": [
+  "KHR_node_camera_hint",
+  "KHR_node_lookat_target",
+  "KHR_materials_transmission",
+  "KHR_materials_specular",
+  "KHR_character_reference_pose",
+  "KHR_character_expression_joint",
+  "KHR_character_expression_morphtarget",
+  "KHR_character_expression_suppression",
+  "KHR_character",
+  "KHR_character_skeleton_mapping",
+  "KHR_character_expression",
+  "KHR_character_expression_mapping"
+ ],
+ "expect": {
+  "mesh_count": 16,
+  "skinned": true,
+  "humanoid": true,
+  "mapping_set": "vrm1_humanoid",
+  "mapped_roles": [
+   "chest",
+   "head",
+   "hips",
+   "leftFoot",
+   "leftHand",
+   "leftIndexDistal",
+   "leftIndexIntermediate",
+   "leftIndexProximal",
+   "leftLittleDistal",
+   "leftLittleIntermediate",
+   "leftLittleProximal",
+   "leftLowerArm",
+   "leftLowerLeg",
+   "leftMiddleDistal",
+   "leftMiddleIntermediate",
+   "leftMiddleProximal",
+   "leftRingDistal",
+   "leftRingIntermediate",
+   "leftRingProximal",
+   "leftShoulder",
+   "leftThumbDistal",
+   "leftThumbMetacarpal",
+   "leftThumbProximal",
+   "leftToes",
+   "leftUpperArm",
+   "leftUpperLeg",
+   "neck",
+   "rightFoot",
+   "rightHand",
+   "rightIndexDistal",
+   "rightIndexIntermediate",
+   "rightIndexProximal",
+   "rightLittleDistal",
+   "rightLittleIntermediate",
+   "rightLittleProximal",
+   "rightLowerArm",
+   "rightLowerLeg",
+   "rightMiddleDistal",
+   "rightMiddleIntermediate",
+   "rightMiddleProximal",
+   "rightRingDistal",
+   "rightRingIntermediate",
+   "rightRingProximal",
+   "rightShoulder",
+   "rightThumbDistal",
+   "rightThumbMetacarpal",
+   "rightThumbProximal",
+   "rightToes",
+   "rightUpperArm",
+   "rightUpperLeg",
+   "spine",
+   "upperChest"
+  ],
+  "min_mapped_roles": 15,
+  "reference_poses": [
+   {
+    "animation": 65,
+    "pose_type": "t_pose"
+   },
+   {
+    "animation": 66,
+    "pose_type": "a_pose"
+   }
+  ],
+  "reference_pose": {
+   "pose_type": "t_pose",
+   "arm_tolerance_deg": 2.0,
+   "check_arms": true
+  },
+  "expressions": [
+   {
+    "name": "lookAt_rot_rotXneg",
+    "index": 0,
+    "targets": [
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_rotXpos",
+    "index": 1,
+    "targets": [
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_rotYneg",
+    "index": 2,
+    "targets": [
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookAt_rot_rotYpos",
+    "index": 3,
+    "targets": [
+     {
+      "property": "/nodes/2/rotation"
+     },
+     {
+      "property": "/nodes/3/rotation"
+     }
+    ]
+   },
+   {
+    "name": "browDownLeft",
+    "index": 4,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 0,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "browDownRight",
+    "index": 5,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 1,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "browInnerUp",
+    "index": 6,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 2,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "browOuterUpLeft",
+    "index": 7,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 3,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "browOuterUpRight",
+    "index": 8,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 4,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "cheekPuff",
+    "index": 9,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 5,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "cheekSquintLeft",
+    "index": 10,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 6,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "cheekSquintRight",
+    "index": 11,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 7,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeBlinkLeft",
+    "index": 12,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 8,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeBlinkRight",
+    "index": 13,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 9,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeLookDownLeft",
+    "index": 14,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 10,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/99/weights",
+      "element": 0,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/100/weights",
+      "element": 0,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeLookDownRight",
+    "index": 15,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 11,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/102/weights",
+      "element": 0,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/103/weights",
+      "element": 0,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeLookInLeft",
+    "index": 16,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 12,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/99/weights",
+      "element": 1,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/100/weights",
+      "element": 1,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeLookInRight",
+    "index": 17,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 13,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/102/weights",
+      "element": 1,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/103/weights",
+      "element": 1,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeLookOutLeft",
+    "index": 18,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 14,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/99/weights",
+      "element": 2,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/100/weights",
+      "element": 2,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeLookOutRight",
+    "index": 19,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 15,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/102/weights",
+      "element": 2,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/103/weights",
+      "element": 2,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeLookUpLeft",
+    "index": 20,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 16,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/99/weights",
+      "element": 3,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/100/weights",
+      "element": 3,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeLookUpRight",
+    "index": 21,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 17,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/102/weights",
+      "element": 3,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/103/weights",
+      "element": 3,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeSquintLeft",
+    "index": 22,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 18,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeSquintRight",
+    "index": 23,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 19,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeWideLeft",
+    "index": 24,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 20,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "eyeWideRight",
+    "index": 25,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 21,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "jawForward",
+    "index": 26,
+    "targets": [
+     {
+      "property": "/nodes/93/weights",
+      "element": 0,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 22,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/106/weights",
+      "element": 0,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 0,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "jawLeft",
+    "index": 27,
+    "targets": [
+     {
+      "property": "/nodes/93/weights",
+      "element": 1,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 23,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/106/weights",
+      "element": 1,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 1,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "jawOpen",
+    "index": 28,
+    "targets": [
+     {
+      "property": "/nodes/93/weights",
+      "element": 2,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 24,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/106/weights",
+      "element": 2,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 2,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "jawRight",
+    "index": 29,
+    "targets": [
+     {
+      "property": "/nodes/93/weights",
+      "element": 3,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 25,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/106/weights",
+      "element": 3,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 3,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthClose",
+    "index": 30,
+    "targets": [
+     {
+      "property": "/nodes/93/weights",
+      "element": 4,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/96/weights",
+      "element": 26,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/106/weights",
+      "element": 4,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 4,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthDimpleLeft",
+    "index": 31,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 27,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthDimpleRight",
+    "index": 32,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 28,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthFrownLeft",
+    "index": 33,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 29,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthFrownRight",
+    "index": 34,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 30,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthFunnel",
+    "index": 35,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 31,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthLeft",
+    "index": 36,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 32,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthLowerDownLeft",
+    "index": 37,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 33,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthLowerDownRight",
+    "index": 38,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 34,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthPressLeft",
+    "index": 39,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 35,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthPressRight",
+    "index": 40,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 36,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthPucker",
+    "index": 41,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 37,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthRight",
+    "index": 42,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 38,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthRollLower",
+    "index": 43,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 39,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthRollUpper",
+    "index": 44,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 40,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthShrugLower",
+    "index": 45,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 41,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthShrugUpper",
+    "index": 46,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 42,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthSmileLeft",
+    "index": 47,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 43,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthSmileRight",
+    "index": 48,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 44,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthStretchLeft",
+    "index": 49,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 45,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthStretchRight",
+    "index": 50,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 46,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthUpperUpLeft",
+    "index": 51,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 47,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthUpperUpRight",
+    "index": 52,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 48,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "noseSneerLeft",
+    "index": 53,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 49,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "noseSneerRight",
+    "index": 54,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 50,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "tongueOut",
+    "index": 55,
+    "targets": [
+     {
+      "property": "/nodes/96/weights",
+      "element": 51,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/108/weights",
+      "element": 5,
+      "value": 1.0
+     }
+    ]
+   }
+  ],
+  "suppressions": [
+   {
+    "source": "eyeBlinkLeft",
+    "target": "lookAt_rot_rotXneg",
+    "type": "block",
+    "expected_v": 0.0
+   },
+   {
+    "source": "eyeBlinkLeft",
+    "target": "lookAt_rot_rotXpos",
+    "type": "block",
+    "expected_v": 0.0
+   },
+   {
+    "source": "eyeBlinkRight",
+    "target": "lookAt_rot_rotXneg",
+    "type": "block",
+    "expected_v": 0.0
+   },
+   {
+    "source": "eyeBlinkRight",
+    "target": "lookAt_rot_rotXpos",
+    "type": "block",
+    "expected_v": 0.0
+   }
+  ],
+  "expressions_exact": true,
+  "expression_mapping_sets": {
+   "vrm1_expressions": [
+    "aa",
+    "angry",
+    "blink",
+    "blinkLeft",
+    "blinkRight",
+    "ee",
+    "happy",
+    "ih",
+    "lookDown",
+    "lookLeft",
+    "lookRight",
+    "lookUp",
+    "oh",
+    "ou",
+    "relaxed",
+    "sad",
+    "surprised"
+   ]
+  },
+  "mapping_suppressions": [
+   {
+    "set": "vrm1_expressions",
+    "source": "blink",
+    "target": "lookUp",
+    "expected": {
+     "lookAt_rot_rotXneg": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blink",
+    "target": "lookDown",
+    "expected": {
+     "lookAt_rot_rotXpos": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkLeft",
+    "target": "lookUp",
+    "expected": {
+     "lookAt_rot_rotXneg": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkLeft",
+    "target": "lookDown",
+    "expected": {
+     "lookAt_rot_rotXpos": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkRight",
+    "target": "lookUp",
+    "expected": {
+     "lookAt_rot_rotXneg": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkRight",
+    "target": "lookDown",
+    "expected": {
+     "lookAt_rot_rotXpos": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   }
+  ],
+  "animations": [
+   {
+    "name": "CMU_02_01",
+    "index": 0,
+    "duration": 2.791667,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_02_03",
+    "index": 1,
+    "duration": 1.416667,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_143_06",
+    "index": 2,
+    "duration": 3.25,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_143_18",
+    "index": 3,
+    "duration": 6.25,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_143_25",
+    "index": 4,
+    "duration": 5.458333,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "CMU_143_29",
+    "index": 5,
+    "duration": 8.916667,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "Neutral_FR",
+    "index": 6,
+    "duration": 10,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "Neutral_FW",
+    "index": 7,
+    "duration": 10,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "Neutral_ID",
+    "index": 8,
+    "duration": 15,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "lookAt_rot_rotXneg",
+    "index": 9,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_rotXpos",
+    "index": 10,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_rotYneg",
+    "index": 11,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookAt_rot_rotYpos",
+    "index": 12,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "browDownLeft",
+    "index": 13,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "browDownRight",
+    "index": 14,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "browInnerUp",
+    "index": 15,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "browOuterUpLeft",
+    "index": 16,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "browOuterUpRight",
+    "index": 17,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheekPuff",
+    "index": 18,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheekSquintLeft",
+    "index": 19,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheekSquintRight",
+    "index": 20,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeBlinkLeft",
+    "index": 21,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeBlinkRight",
+    "index": 22,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeLookDownLeft",
+    "index": 23,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeLookDownRight",
+    "index": 24,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeLookInLeft",
+    "index": 25,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeLookInRight",
+    "index": 26,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeLookOutLeft",
+    "index": 27,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeLookOutRight",
+    "index": 28,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeLookUpLeft",
+    "index": 29,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeLookUpRight",
+    "index": 30,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeSquintLeft",
+    "index": 31,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeSquintRight",
+    "index": 32,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeWideLeft",
+    "index": 33,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "eyeWideRight",
+    "index": 34,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jawForward",
+    "index": 35,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jawLeft",
+    "index": 36,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jawOpen",
+    "index": 37,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jawRight",
+    "index": 38,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthClose",
+    "index": 39,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthDimpleLeft",
+    "index": 40,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthDimpleRight",
+    "index": 41,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthFrownLeft",
+    "index": 42,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthFrownRight",
+    "index": 43,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthFunnel",
+    "index": 44,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthLeft",
+    "index": 45,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthLowerDownLeft",
+    "index": 46,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthLowerDownRight",
+    "index": 47,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthPressLeft",
+    "index": 48,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthPressRight",
+    "index": 49,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthPucker",
+    "index": 50,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthRight",
+    "index": 51,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthRollLower",
+    "index": 52,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthRollUpper",
+    "index": 53,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthShrugLower",
+    "index": 54,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthShrugUpper",
+    "index": 55,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthSmileLeft",
+    "index": 56,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthSmileRight",
+    "index": 57,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthStretchLeft",
+    "index": 58,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthStretchRight",
+    "index": 59,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthUpperUpLeft",
+    "index": 60,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthUpperUpRight",
+    "index": 61,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "noseSneerLeft",
+    "index": 62,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "noseSneerRight",
+    "index": 63,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "tongueOut",
+    "index": 64,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "t_pose",
+    "index": 65,
+    "duration": 0,
+    "tolerance": 0.05,
+    "kind": "reference_pose"
+   },
+   {
+    "name": "a_pose",
+    "index": 66,
+    "duration": 0,
+    "tolerance": 0.05,
+    "kind": "reference_pose"
+   }
+  ],
+  "camera_hints": [
+   {
+    "node": 0,
+    "role": "default_view",
+    "label": null
+   },
+   {
+    "node": 1,
+    "role": "full_body",
+    "label": null
+   },
+   {
+    "node": 7,
+    "role": "portrait",
+    "label": null,
+    "target_node": 6,
+    "target_name": "skull_bind"
+   }
+  ],
+  "lookat_targets": 1
+ },
+ "retarget": {
+  "clips_index": "../clips.json",
+  "clips": [
+   "Neutral_ID",
+   "Neutral_FW",
+   "Neutral_FR",
+   "test_vrma",
+   "ROM_sweep",
+   "CMU_02_01",
+   "CMU_02_03",
+   "CMU_143_06",
+   "CMU_143_18",
+   "CMU_143_25",
+   "CMU_143_29"
+  ],
+  "video_clips": [
+   "Neutral_ID",
+   "Neutral_FW",
+   "Neutral_FR",
+   "test_vrma"
+  ],
+  "sample_fractions": [
+   0.0,
+   0.125,
+   0.25,
+   0.375,
+   0.5,
+   0.625,
+   0.75,
+   0.875
+  ],
+  "floor_tolerance_m": 0.05
+ },
+ "capture": {
+  "fractions": [
+   0.0,
+   0.125,
+   0.375,
+   0.625,
+   0.875
+  ],
+  "views": [
+   "front",
+   "side",
+   "three_quarter"
+  ],
+  "resolution": 1024,
+  "hint_resolution": 1024,
+  "grid_columns": 8
+ }
+}

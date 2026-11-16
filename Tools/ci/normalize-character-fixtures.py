@@ -1,17 +1,38 @@
 #!/usr/bin/env python3
-"""Normalize character GLBs written by older exporters to the current KHR_character wire format.
+"""Normalize character GLBs written by older exporters to the KHR_character wire format of the
+normative draft at glTF-private 314c95c5 (public KhronosGroup/glTF PR #2512 at 7ab5368a).
 
-The rewrite is idempotent, so the script is safe to re-run on already normalized files:
+Only the GLB JSON chunk is rewritten (padded to 4 bytes with spaces); every other chunk is copied
+byte for byte, and a file that needs no change is not written. The rewrite is idempotent, so the
+script is safe to re-run on already normalized files:
 
 - ``KHR_character`` becomes the empty marker ``{}`` (a legacy ``rootNode`` is dropped);
 - an expression entry's legacy ``expression`` label becomes ``name``;
 - ``KHR_character_expression_mask`` / ``masks`` become ``KHR_character_expression_suppression`` /
-  ``suppressions``; a suppression ``name`` is dropped, and so is ``threshold`` on a blend or omitted type;
+  ``suppressions``; the legacy ``name`` echo of a migrated mask is dropped (a current suppression
+  ``name`` is an independent label and is kept), and ``threshold`` is dropped on a blend or omitted type;
 - ``KHR_character_expression_texture`` becomes ``KHR_character_expression_texture_transform``;
 - both renames also apply to ``extensionsUsed`` and ``extensionsRequired``;
-- the legacy ``TPose`` / ``APose`` / ``IPose`` labels become ``t_pose`` / ``a_pose`` / ``i_pose``;
-- the unqualified look-at hint ``eyes`` becomes ``ACME_eye_target``;
-- legacy expression-name references become expression indices.
+- the legacy ``TPose`` / ``APose`` / ``IPose`` labels become ``t_pose`` / ``a_pose`` / ``i_pose``, and a
+  reference pose without ``poseType`` (implicitly a T-pose in the July draft) gets ``t_pose``;
+- the unqualified look-at hints (``eyes`` and the July examples such as ``eye_target``) become
+  vendor-qualified ``ACME_`` values;
+- legacy expression-name references become expression indices, and index-valued properties written
+  as strings (``"3"``) or integral floats become integers;
+- a visibility hint's single ``role`` becomes the ``roles`` array (``third_person_only`` and
+  ``first_person_only`` become ``third_person`` and ``first_person``);
+- ``KHR_node_visibility_hint``, ``KHR_mesh_primitive_visibility_hint`` and ``KHR_node_camera_hint`` are
+  removed from ``extensionsRequired`` (they stay in ``extensionsUsed``), and an emptied
+  ``extensionsRequired`` is removed;
+- the made-up ``KHR_mesh_annotation*`` and ``KHR_virtual_transforms`` extensions are deleted wherever they
+  appear and from both declaration lists; a primitive whose ``KHR_mesh_annotation_renderview`` said
+  ``thirdPersonOnly`` or ``firstPersonOnly`` gets a ``KHR_mesh_primitive_visibility_hint`` with the
+  matching role instead (other values impose no restriction and are dropped);
+- a visibility-hint extension in use is added to ``extensionsUsed`` when missing.
+
+Some legacy content needs an author's decision and is reported or rejected, not guessed: a mapping
+``weight`` outside [0, 1] raises an error; the July camera-hint roles ``framing_target`` and
+``orbit_center`` and custom suppression types that are not ``VENDOR_snake_case`` print a warning.
 
 Mapping-set identifiers are nonempty aliases, not documentation URLs. Known legacy
 aliases/URLs below migrate to stable aliases; unrelated identifiers are preserved.
@@ -21,6 +42,7 @@ operation with target indices renamed source. This never computes an inverse.
 
 import json
 import pathlib
+import re
 import struct
 import sys
 
@@ -37,6 +59,34 @@ REFERENCE_POSE = "KHR_character_reference_pose"
 LOOKAT_TARGET = "KHR_node_lookat_target"
 SKELETON_MAPPING = "KHR_character_skeleton_mapping"
 XMP = "KHR_xmp_json_ld"
+NODE_HINT = "KHR_node_visibility_hint"
+PRIMITIVE_HINT = "KHR_mesh_primitive_visibility_hint"
+CAMERA_HINT = "KHR_node_camera_hint"
+JOINT = "KHR_character_expression_joint"
+MORPH_TARGET = "KHR_character_expression_morphtarget"
+# KHR_node_visibility_hint / KHR_mesh_primitive_visibility_hint "Extension usage" and
+# KHR_node_camera_hint: an asset MUST NOT list these in extensionsRequired.
+NEVER_REQUIRED = (NODE_HINT, PRIMITIVE_HINT, CAMERA_HINT)
+LEGACY_ANNOTATION = "KHR_mesh_annotation"
+LEGACY_RENDERVIEW = "KHR_mesh_annotation_renderview"
+LEGACY_VIRTUAL_TRANSFORMS = "KHR_virtual_transforms"
+# Made-up names that never existed in any KHR_character draft.
+RETIRED_EXTENSION_PREFIXES = (LEGACY_ANNOTATION,)
+RETIRED_EXTENSIONS = (LEGACY_VIRTUAL_TRANSFORMS,)
+VISIBILITY_ROLE_REPLACEMENTS = {
+    "third_person_only": "third_person",
+    "first_person_only": "first_person",
+}
+# VRM firstPerson annotation types carried by KHR_mesh_annotation_renderview.renderVisibility.
+# "both"/"always" and "auto" impose no author restriction a hint can express, so they map to nothing.
+RENDER_VISIBILITY_ROLES = {
+    "thirdPersonOnly": "third_person",
+    "firstPersonOnly": "first_person",
+}
+LEGACY_CAMERA_ROLES = {"framing_target": "framing_view", "orbit_center": "orbit_view"}
+STANDARD_SUPPRESSION_TYPES = ("blend", "block")
+CUSTOM_SUPPRESSION_TYPE = re.compile(r"^[A-Z0-9]+_[a-z0-9]+(?:_[a-z0-9]+)*$")
+DIGITS = re.compile(r"^[0-9]+$")
 EXTENSION_RENAMES = {
     LEGACY_MASK: SUPPRESSION,
     LEGACY_TEXTURE: TEXTURE_TRANSFORM,
@@ -48,6 +98,10 @@ POSE_LABEL_REPLACEMENTS = {
 }
 LOOKAT_HINT_REPLACEMENTS = {
     "eyes": "ACME_eye_target",
+    "eye_target": "ACME_eye_target",
+    "head_target": "ACME_head_target",
+    "camera_target": "ACME_camera_target",
+    "aim_target": "ACME_aim_target",
 }
 EXPRESSION_MAPPING_IDENTIFIER_REPLACEMENTS = {
     "ARKit": "arkit_v1",
@@ -91,12 +145,29 @@ def expression_indices(root: dict) -> dict[str, int]:
     return indices
 
 
+def warn(message: str) -> None:
+    print(f"warning: {message}", file=sys.stderr)
+
+
+def integral(value: object) -> object:
+    """Return an integral float or a decimal string as an int; leave everything else unchanged."""
+    if isinstance(value, float) and value.is_integer() and value >= 0:
+        return int(value)
+    if isinstance(value, str) and DIGITS.match(value):
+        return int(value)
+    return value
+
+
 def resolve_legacy_reference(value: object, indices: dict[str, int], path: str) -> object:
+    if isinstance(value, float):
+        return integral(value)
     if not isinstance(value, str):
         return value
-    if value not in indices:
-        raise ValueError(f"{path}: expression name {value!r} is missing or ambiguous")
-    return indices[value]
+    if value in indices:
+        return indices[value]
+    if DIGITS.match(value):
+        return int(value)
+    raise ValueError(f"{path}: expression name {value!r} is missing or ambiguous")
 
 
 def normalize_mapping_identifiers(mapping_sets: object, replacements: dict[str, str]) -> bool:
@@ -156,19 +227,26 @@ def normalize_character_marker(extensions: dict) -> bool:
 def normalize_suppressions(suppression: object) -> bool:
     if not isinstance(suppression, dict):
         return False
-    changed = rename_key(suppression, "masks", "suppressions", SUPPRESSION)
+    legacy = rename_key(suppression, "masks", "suppressions", SUPPRESSION)
+    changed = legacy
     entries = suppression.get("suppressions", [])
     if not isinstance(entries, list):
         return changed
     for entry in entries:
         if not isinstance(entry, dict):
             continue
-        if "name" in entry:
+        # A July mask name had to echo the target's expression label; the current name labels the
+        # suppression itself, so only the legacy echo is dropped.
+        if legacy and "name" in entry:
             del entry["name"]
             changed = True
-        if "threshold" in entry and entry.get("type", "blend") == "blend":
+        kind = entry.get("type", "blend")
+        if "threshold" in entry and kind == "blend":
             del entry["threshold"]
             changed = True
+        if (isinstance(kind, str) and kind not in STANDARD_SUPPRESSION_TYPES
+                and not CUSTOM_SUPPRESSION_TYPE.match(kind)):
+            warn(f"suppression type {kind!r} is not VENDOR_snake_case; rename it by hand")
     return changed
 
 
@@ -232,7 +310,13 @@ def normalize_pose_labels(root: dict) -> bool:
         if not isinstance(animation, dict):
             continue
         pose = animation.get("extensions", {}).get(REFERENCE_POSE)
-        if isinstance(pose, dict) and pose.get("poseType") in POSE_LABEL_REPLACEMENTS:
+        if not isinstance(pose, dict):
+            continue
+        if "poseType" not in pose:
+            # July: poseType was optional and defaulted to TPose; it is now required, with no default.
+            pose["poseType"] = "t_pose"
+            changed = True
+        elif pose["poseType"] in POSE_LABEL_REPLACEMENTS:
             pose["poseType"] = POSE_LABEL_REPLACEMENTS[pose["poseType"]]
             changed = True
     return changed
@@ -248,6 +332,207 @@ def normalize_lookat_hints(root: dict) -> bool:
             target["hint"] = LOOKAT_HINT_REPLACEMENTS[target["hint"]]
             changed = True
     return changed
+
+
+def normalize_visibility_hint(hint: object, path: str) -> bool:
+    """Turn a single legacy ``role`` into the ``roles`` array, keeping the key position."""
+    if not isinstance(hint, dict):
+        return False
+    changed = False
+    if "role" in hint:
+        role = hint["role"]
+        if "roles" in hint:
+            existing = hint["roles"] if isinstance(hint["roles"], list) else [hint["roles"]]
+            if existing != [role]:
+                raise ValueError(f"{path}: legacy role {role!r} differs from roles {hint['roles']!r}")
+            del hint["role"]
+        else:
+            rebuilt = {("roles" if key == "role" else key): ([value] if key == "role" else value)
+                       for key, value in hint.items()}
+            hint.clear()
+            hint.update(rebuilt)
+        changed = True
+    roles = hint.get("roles")
+    if isinstance(roles, str):
+        roles = [roles]
+        changed = True
+    if isinstance(roles, list):
+        migrated = []
+        for role in roles:
+            role = VISIBILITY_ROLE_REPLACEMENTS.get(role, role)
+            if role not in migrated:
+                migrated.append(role)
+        if migrated != hint["roles"]:
+            hint["roles"] = migrated
+            changed = True
+    return changed
+
+
+def is_retired_extension(name: object) -> bool:
+    return isinstance(name, str) and (
+        name in RETIRED_EXTENSIONS or any(name.startswith(prefix) for prefix in RETIRED_EXTENSION_PREFIXES))
+
+
+def migrate_annotation(primitive: dict, path: str) -> bool:
+    """Replace a primitive's KHR_mesh_annotation_renderview with the equivalent visibility hint."""
+    extensions = primitive.get("extensions")
+    if not isinstance(extensions, dict) or LEGACY_ANNOTATION not in extensions:
+        return False
+    annotation = extensions[LEGACY_ANNOTATION]
+    renderview = annotation.get("extensions", {}).get(LEGACY_RENDERVIEW, {}) if isinstance(annotation, dict) else {}
+    visibility = renderview.get("renderVisibility") if isinstance(renderview, dict) else None
+    role = RENDER_VISIBILITY_ROLES.get(visibility)
+    if visibility is not None and role is None and visibility not in ("always", "both", "auto"):
+        warn(f"{path}: unknown renderVisibility {visibility!r} dropped without a hint")
+    if role is None or PRIMITIVE_HINT in extensions:
+        return False
+    # Put the hint where the annotation was, so key order stays stable across reruns.
+    rebuilt = {}
+    for key, value in extensions.items():
+        if key == LEGACY_ANNOTATION:
+            rebuilt[PRIMITIVE_HINT] = {"roles": [role]}
+        rebuilt[key] = value
+    extensions.clear()
+    extensions.update(rebuilt)
+    return True
+
+
+def strip_retired_extensions(value: object) -> bool:
+    """Delete retired made-up extension objects anywhere in the tree; drop emptied containers."""
+    changed = False
+    if isinstance(value, dict):
+        extensions = value.get("extensions")
+        if isinstance(extensions, dict):
+            for name in [name for name in extensions if is_retired_extension(name)]:
+                del extensions[name]
+                changed = True
+            if changed and not extensions:
+                del value["extensions"]
+        for child in list(value.values()):
+            changed |= strip_retired_extensions(child)
+    elif isinstance(value, list):
+        for child in value:
+            changed |= strip_retired_extensions(child)
+    return changed
+
+
+def extension_names_in_use(value: object, found: set[str]) -> set[str]:
+    if isinstance(value, dict):
+        extensions = value.get("extensions")
+        if isinstance(extensions, dict):
+            found.update(name for name in extensions if isinstance(name, str))
+        for child in value.values():
+            extension_names_in_use(child, found)
+    elif isinstance(value, list):
+        for child in value:
+            extension_names_in_use(child, found)
+    return found
+
+
+def normalize_visibility(root: dict) -> bool:
+    changed = False
+    for node_index, node in enumerate(root.get("nodes", [])):
+        if isinstance(node, dict):
+            changed |= normalize_visibility_hint(
+                node.get("extensions", {}).get(NODE_HINT), f"nodes[{node_index}].{NODE_HINT}")
+    for mesh_index, mesh in enumerate(root.get("meshes", [])):
+        if not isinstance(mesh, dict):
+            continue
+        for primitive_index, primitive in enumerate(mesh.get("primitives", [])):
+            if not isinstance(primitive, dict):
+                continue
+            path = f"meshes[{mesh_index}].primitives[{primitive_index}]"
+            changed |= migrate_annotation(primitive, path)
+            changed |= normalize_visibility_hint(
+                primitive.get("extensions", {}).get(PRIMITIVE_HINT), f"{path}.{PRIMITIVE_HINT}")
+    return changed
+
+
+def normalize_declarations(root: dict) -> bool:
+    """Drop retired names, keep never-required hints out of extensionsRequired, declare hints in use."""
+    changed = False
+    for key in ("extensionsUsed", "extensionsRequired"):
+        declarations = root.get(key)
+        if not isinstance(declarations, list):
+            continue
+        kept = [name for name in declarations
+                if not is_retired_extension(name) and not (key == "extensionsRequired" and name in NEVER_REQUIRED)]
+        if kept != declarations:
+            declarations[:] = kept
+            changed = True
+    if root.get("extensionsRequired") == []:
+        del root["extensionsRequired"]
+        changed = True
+    in_use = extension_names_in_use({key: value for key, value in root.items()
+                                     if key not in ("extensionsUsed", "extensionsRequired")}, set())
+    missing = [name for name in (NODE_HINT, PRIMITIVE_HINT) if name in in_use
+               and name not in root.get("extensionsUsed", [])]
+    if missing:
+        root.setdefault("extensionsUsed", []).extend(missing)
+        changed = True
+    return changed
+
+
+def set_index(container: object, key: object, path: str) -> bool:
+    """Rewrite container[key] as an int when it is a decimal string or an integral float."""
+    if isinstance(container, dict) and key not in container:
+        return False
+    value = container[key]
+    if isinstance(value, int) and not isinstance(value, bool):
+        return False
+    converted = integral(value)
+    if not isinstance(converted, int) or isinstance(converted, bool):
+        raise ValueError(f"{path}[{key!r}]: index {value!r} is not an integer")
+    container[key] = converted
+    return True
+
+
+def normalize_index_properties(root: dict) -> bool:
+    """Write index-valued KHR_character properties as integers (string or float legacy forms)."""
+    changed = False
+    extensions = root.get("extensions", {})
+    expressions = extensions.get(EXPRESSION, {}).get("expressions", [])
+    if isinstance(expressions, list):
+        for expression_index, expression in enumerate(expressions):
+            if not isinstance(expression, dict):
+                continue
+            path = f"expressions[{expression_index}]"
+            changed |= set_index(expression, "animation", path)
+            for derived in (JOINT, MORPH_TARGET, TEXTURE_TRANSFORM):
+                channels = expression.get("extensions", {}).get(derived, {}).get("channels")
+                if isinstance(channels, list):
+                    for channel_index in range(len(channels)):
+                        changed |= set_index(channels, channel_index, f"{path}.{derived}.channels")
+    skeleton_sets = extensions.get(SKELETON_MAPPING, {}).get("skeletalRigMappings", {})
+    if isinstance(skeleton_sets, dict):
+        for alias, associations in skeleton_sets.items():
+            if isinstance(associations, dict):
+                for role, association in associations.items():
+                    if isinstance(association, dict):
+                        changed |= set_index(association, "node", f"skeletalRigMappings[{alias!r}][{role!r}]")
+    for node_index, node in enumerate(root.get("nodes", [])):
+        hint = node.get("extensions", {}).get(CAMERA_HINT) if isinstance(node, dict) else None
+        if isinstance(hint, dict):
+            for key in ("camera", "targetNode"):
+                changed |= set_index(hint, key, f"nodes[{node_index}].{CAMERA_HINT}")
+            if hint.get("role") in LEGACY_CAMERA_ROLES:
+                warn(f"nodes[{node_index}].{CAMERA_HINT}: July role {hint['role']!r} is now a custom role; "
+                     f"{LEGACY_CAMERA_ROLES[hint['role']]!r} needs the camera pose on the hint node, so migrate it by hand")
+    return changed
+
+
+def check_mapping_weights(mapping_sets: object) -> None:
+    if not isinstance(mapping_sets, dict):
+        return
+    for alias, inputs in mapping_sets.items():
+        if not isinstance(inputs, dict):
+            continue
+        for input_key, records in inputs.items():
+            for record in records if isinstance(records, list) else []:
+                weight = record.get("weight") if isinstance(record, dict) else None
+                if isinstance(weight, (int, float)) and not 0 <= weight <= 1:
+                    raise ValueError(f"expressionSetMappings[{alias!r}][{input_key!r}]: weight {weight} is outside "
+                                     "[0, 1]; rescale it by hand (mapped drivers now saturate)")
 
 
 def normalize_json(root: dict) -> bool:
@@ -269,6 +554,10 @@ def normalize_json(root: dict) -> bool:
     changed |= normalize_expression_entries(extensions)
     changed |= normalize_pose_labels(root)
     changed |= normalize_lookat_hints(root)
+    changed |= normalize_visibility(root)
+    changed |= strip_retired_extensions(root)
+    changed |= normalize_declarations(root)
+    changed |= normalize_index_properties(root)
 
     indices = expression_indices(root)
     changed |= resolve_suppression_targets(extensions, indices)
@@ -304,6 +593,8 @@ def normalize_json(root: dict) -> bool:
                     if resolved != record["source"]:
                         record["source"] = resolved
                         changed = True
+
+    check_mapping_weights(mapping_sets)
 
     skeleton_mapping_sets = extensions.get(SKELETON_MAPPING, {}).get("skeletalRigMappings", {})
     changed |= normalize_mapping_identifiers(

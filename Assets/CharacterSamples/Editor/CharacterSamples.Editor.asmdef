@@ -1,0 +1,32 @@
+{
+    "name": "CharacterSamples.Editor",
+    "rootNamespace": "KhrCharacterSamples.Editor",
+    "references": [
+        "CharacterSamples.Runtime",
+        "UnityGLTFScripts",
+        "GLTFSerialization",
+        "UnityGLTF.KhrCharacter.Runtime",
+        "UnityGLTF.KhrCharacter.Schema",
+        "Unity.Recorder",
+        "Unity.Recorder.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.recorder",
+            "expression": "4.0.0",
+            "define": "HAVE_UNITY_RECORDER"
+        }
+    ],
+    "noEngineReferences": false
+}

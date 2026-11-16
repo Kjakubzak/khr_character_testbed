@@ -1,0 +1,1197 @@
+{
+ "schema": "khr-character-unity-test/1",
+ "name": "goblin",
+ "glb": "goblin.glb",
+ "private": false,
+ "source_sha256": "e8c01305ecb916a75c637059ca99f6bbe9689efbc33bac8377885b544f3ad6b8",
+ "khr_character": true,
+ "extensions_used": [
+  "KHR_node_camera_hint",
+  "KHR_mesh_primitive_visibility_hint",
+  "KHR_materials_clearcoat",
+  "KHR_materials_specular",
+  "KHR_node_lookat_target",
+  "KHR_character_reference_pose",
+  "KHR_character_expression_morphtarget",
+  "KHR_character_expression_suppression",
+  "KHR_character_expression_joint",
+  "KHR_character",
+  "KHR_character_skeleton_mapping",
+  "KHR_character_expression",
+  "KHR_character_expression_mapping"
+ ],
+ "expect": {
+  "mesh_count": 5,
+  "skinned": true,
+  "humanoid": true,
+  "mapping_set": "vrm1_humanoid",
+  "mapped_roles": [
+   "chest",
+   "head",
+   "hips",
+   "jaw",
+   "leftEye",
+   "leftFoot",
+   "leftHand",
+   "leftIndexDistal",
+   "leftIndexIntermediate",
+   "leftIndexProximal",
+   "leftLittleDistal",
+   "leftLittleIntermediate",
+   "leftLittleProximal",
+   "leftLowerArm",
+   "leftLowerLeg",
+   "leftMiddleDistal",
+   "leftMiddleIntermediate",
+   "leftMiddleProximal",
+   "leftShoulder",
+   "leftThumbDistal",
+   "leftThumbMetacarpal",
+   "leftThumbProximal",
+   "leftToes",
+   "leftUpperArm",
+   "leftUpperLeg",
+   "neck",
+   "rightEye",
+   "rightFoot",
+   "rightHand",
+   "rightIndexDistal",
+   "rightIndexIntermediate",
+   "rightIndexProximal",
+   "rightLittleDistal",
+   "rightLittleIntermediate",
+   "rightLittleProximal",
+   "rightLowerArm",
+   "rightLowerLeg",
+   "rightMiddleDistal",
+   "rightMiddleIntermediate",
+   "rightMiddleProximal",
+   "rightShoulder",
+   "rightThumbDistal",
+   "rightThumbMetacarpal",
+   "rightThumbProximal",
+   "rightToes",
+   "rightUpperArm",
+   "rightUpperLeg",
+   "spine",
+   "upperChest"
+  ],
+  "min_mapped_roles": 15,
+  "reference_poses": [
+   {
+    "animation": 40,
+    "pose_type": "t_pose"
+   }
+  ],
+  "reference_pose": {
+   "pose_type": "t_pose",
+   "arm_tolerance_deg": 2.0,
+   "check_arms": true
+  },
+  "expressions": [
+   {
+    "name": "cheekPuff_l",
+    "index": 0,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 0,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 0,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "cheekPuff_r",
+    "index": 1,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 1,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 1,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthClose",
+    "index": 2,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 2,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/252/weights",
+      "element": 0,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/254/weights",
+      "element": 0,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/255/weights",
+      "element": 0,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 16,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthDimple_l",
+    "index": 3,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 3,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 17,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthDimple_r",
+    "index": 4,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 4,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 18,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthFrown_l",
+    "index": 5,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 5,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 19,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthFrown_r",
+    "index": 6,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 6,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 20,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthFunnel",
+    "index": 7,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 7,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 21,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthLeft",
+    "index": 8,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 8,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 22,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthLowerDown_l",
+    "index": 9,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 9,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 23,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthLowerDown_r",
+    "index": 10,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 10,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 24,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthPress_l",
+    "index": 11,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 11,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 25,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthPress_r",
+    "index": 12,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 12,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 26,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthPucker",
+    "index": 13,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 13,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/252/weights",
+      "element": 1,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 27,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthRight",
+    "index": 14,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 14,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 28,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthRollLower",
+    "index": 15,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 15,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 29,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthRollUpper",
+    "index": 16,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 16,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 30,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthShrugLower",
+    "index": 17,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 17,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 31,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthShrugUpper",
+    "index": 18,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 18,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 32,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthSmile_l",
+    "index": 19,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 19,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 33,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthSmile_r",
+    "index": 20,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 20,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 34,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthStretch_l",
+    "index": 21,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 21,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 35,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthStretch_r",
+    "index": 22,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 22,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 36,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthUpperUp_l",
+    "index": 23,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 23,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 37,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "mouthUpperUp_r",
+    "index": 24,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 24,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 38,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "noseSneer_l",
+    "index": 25,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 25,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 39,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "noseSneer_r",
+    "index": 26,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 26,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 40,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "tongueOut",
+    "index": 27,
+    "targets": [
+     {
+      "property": "/nodes/250/weights",
+      "element": 27,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/255/weights",
+      "element": 1,
+      "value": 1.0
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 41,
+      "value": 1.0
+     }
+    ]
+   },
+   {
+    "name": "blink_l",
+    "index": 28,
+    "targets": [
+     {
+      "property": "/nodes/100/rotation"
+     },
+     {
+      "property": "/nodes/102/rotation"
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 2,
+      "value": 0.2
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 4,
+      "value": 0.8
+     }
+    ]
+   },
+   {
+    "name": "blink_r",
+    "index": 29,
+    "targets": [
+     {
+      "property": "/nodes/101/rotation"
+     },
+     {
+      "property": "/nodes/103/rotation"
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 3,
+      "value": 0.2
+     },
+     {
+      "property": "/nodes/251/weights",
+      "element": 5,
+      "value": 0.8
+     }
+    ]
+   },
+   {
+    "name": "jawOpen",
+    "index": 30,
+    "targets": [
+     {
+      "property": "/nodes/99/rotation"
+     }
+    ]
+   },
+   {
+    "name": "brows",
+    "index": 31,
+    "targets": [
+     {
+      "property": "/nodes/4/rotation"
+     },
+     {
+      "property": "/nodes/5/rotation"
+     },
+     {
+      "property": "/nodes/6/rotation"
+     },
+     {
+      "property": "/nodes/7/rotation"
+     },
+     {
+      "property": "/nodes/8/rotation"
+     },
+     {
+      "property": "/nodes/9/rotation"
+     }
+    ]
+   },
+   {
+    "name": "squint_l",
+    "index": 32,
+    "targets": [
+     {
+      "property": "/nodes/100/rotation"
+     },
+     {
+      "property": "/nodes/115/rotation"
+     }
+    ]
+   },
+   {
+    "name": "squint_r",
+    "index": 33,
+    "targets": [
+     {
+      "property": "/nodes/101/rotation"
+     },
+     {
+      "property": "/nodes/116/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookUp",
+    "index": 34,
+    "targets": [
+     {
+      "property": "/nodes/20/rotation"
+     },
+     {
+      "property": "/nodes/21/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookDown",
+    "index": 35,
+    "targets": [
+     {
+      "property": "/nodes/20/rotation"
+     },
+     {
+      "property": "/nodes/21/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookLeft",
+    "index": 36,
+    "targets": [
+     {
+      "property": "/nodes/20/rotation"
+     },
+     {
+      "property": "/nodes/21/rotation"
+     }
+    ]
+   },
+   {
+    "name": "lookRight",
+    "index": 37,
+    "targets": [
+     {
+      "property": "/nodes/20/rotation"
+     },
+     {
+      "property": "/nodes/21/rotation"
+     }
+    ]
+   }
+  ],
+  "suppressions": [
+   {
+    "source": "blink_l",
+    "target": "lookUp",
+    "type": "block",
+    "expected_v": 0.0
+   },
+   {
+    "source": "blink_l",
+    "target": "lookDown",
+    "type": "block",
+    "expected_v": 0.0
+   },
+   {
+    "source": "blink_l",
+    "target": "squint_l",
+    "type": "blend",
+    "expected_v": 0.5
+   },
+   {
+    "source": "blink_r",
+    "target": "lookUp",
+    "type": "block",
+    "expected_v": 0.0
+   },
+   {
+    "source": "blink_r",
+    "target": "lookDown",
+    "type": "block",
+    "expected_v": 0.0
+   }
+  ],
+  "expressions_exact": true,
+  "expression_mapping_sets": {
+   "vrm1_expressions": [
+    "aa",
+    "blinkLeft",
+    "blinkRight",
+    "happy",
+    "lookDown",
+    "lookLeft",
+    "lookRight",
+    "lookUp",
+    "oh",
+    "ou"
+   ]
+  },
+  "mapping_suppressions": [
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkLeft",
+    "target": "lookUp",
+    "expected": {
+     "lookUp": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkLeft",
+    "target": "lookDown",
+    "expected": {
+     "lookDown": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkRight",
+    "target": "lookUp",
+    "expected": {
+     "lookUp": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   },
+   {
+    "set": "vrm1_expressions",
+    "source": "blinkRight",
+    "target": "lookDown",
+    "expected": {
+     "lookDown": {
+      "u": 1.0,
+      "v": 0.0
+     }
+    }
+   }
+  ],
+  "animations": [
+   {
+    "name": "perform",
+    "index": 0,
+    "duration": 7.958333,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "facecal",
+    "index": 1,
+    "duration": 6.208333,
+    "tolerance": 0.05,
+    "kind": "take"
+   },
+   {
+    "name": "cheekPuff_l",
+    "index": 2,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "cheekPuff_r",
+    "index": 3,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthClose",
+    "index": 4,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthDimple_l",
+    "index": 5,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthDimple_r",
+    "index": 6,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthFrown_l",
+    "index": 7,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthFrown_r",
+    "index": 8,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthFunnel",
+    "index": 9,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthLeft",
+    "index": 10,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthLowerDown_l",
+    "index": 11,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthLowerDown_r",
+    "index": 12,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthPress_l",
+    "index": 13,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthPress_r",
+    "index": 14,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthPucker",
+    "index": 15,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthRight",
+    "index": 16,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthRollLower",
+    "index": 17,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthRollUpper",
+    "index": 18,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthShrugLower",
+    "index": 19,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthShrugUpper",
+    "index": 20,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthSmile_l",
+    "index": 21,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthSmile_r",
+    "index": 22,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthStretch_l",
+    "index": 23,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthStretch_r",
+    "index": 24,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthUpperUp_l",
+    "index": 25,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "mouthUpperUp_r",
+    "index": 26,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "noseSneer_l",
+    "index": 27,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "noseSneer_r",
+    "index": 28,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "tongueOut",
+    "index": 29,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "blink_l",
+    "index": 30,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "blink_r",
+    "index": 31,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "jawOpen",
+    "index": 32,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "brows",
+    "index": 33,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "squint_l",
+    "index": 34,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "squint_r",
+    "index": 35,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookUp",
+    "index": 36,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookDown",
+    "index": 37,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookLeft",
+    "index": 38,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "lookRight",
+    "index": 39,
+    "duration": 1,
+    "tolerance": 0.05,
+    "kind": "expression"
+   },
+   {
+    "name": "t_pose",
+    "index": 40,
+    "duration": 0,
+    "tolerance": 0.05,
+    "kind": "reference_pose"
+   }
+  ],
+  "camera_hints": [
+   {
+    "node": 0,
+    "role": "default_view",
+    "label": null
+   },
+   {
+    "node": 1,
+    "role": "detail",
+    "label": "lip"
+   },
+   {
+    "node": 2,
+    "role": "detail",
+    "label": "mouth"
+   },
+   {
+    "node": 3,
+    "role": "detail",
+    "label": "nostril"
+   },
+   {
+    "node": 119,
+    "role": "framing_view",
+    "label": null,
+    "target_node": 118,
+    "target_name": "head"
+   },
+   {
+    "node": 120,
+    "role": "full_body",
+    "label": null
+   },
+   {
+    "node": 247,
+    "role": "orbit_view",
+    "label": null,
+    "target_node": 246,
+    "target_name": "pelvis"
+   },
+   {
+    "node": 248,
+    "role": "portrait",
+    "label": null,
+    "target_node": 118,
+    "target_name": "head"
+   }
+  ],
+  "lookat_targets": 1
+ },
+ "retarget": {
+  "clips_index": "../clips.json",
+  "clips": [
+   "Neutral_ID",
+   "Neutral_FW",
+   "Neutral_FR",
+   "test_vrma",
+   "ROM_sweep",
+   "CMU_02_01",
+   "CMU_02_03",
+   "CMU_143_06",
+   "CMU_143_18",
+   "CMU_143_25",
+   "CMU_143_29"
+  ],
+  "video_clips": [
+   "Neutral_ID",
+   "Neutral_FW",
+   "Neutral_FR",
+   "test_vrma"
+  ],
+  "sample_fractions": [
+   0.0,
+   0.125,
+   0.25,
+   0.375,
+   0.5,
+   0.625,
+   0.75,
+   0.875
+  ],
+  "floor_tolerance_m": 0.05
+ },
+ "capture": {
+  "fractions": [
+   0.0,
+   0.125,
+   0.375,
+   0.625,
+   0.875
+  ],
+  "views": [
+   "front",
+   "side",
+   "three_quarter"
+  ],
+  "resolution": 1024,
+  "hint_resolution": 1024,
+  "grid_columns": 8
+ }
+}
